@@ -4,19 +4,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <SDL/SDL.h>
 
-#include "colorado/attribute-enabler.h"
-#include "colorado/camera.h"
 #include "colorado/game.h"
 #include "colorado/fixed-timestep.h"
 #include "colorado/gl.h"
-#include "colorado/screen-options.h"
 #include "colorado/triangle-shader.h"
 #include "terf/terf.h"
 
-#include "ecs.h"
-#include "mesh-binder.h"
-#include "shader-binder.h"
-#include "texture-binder.h"
+#include "graphics.h"
 
 using namespace glm;
 using namespace std;
@@ -31,69 +25,6 @@ enum class EMesh {
 	Gear8,
 	Gear32,
 	Square,
-};
-
-enum class EShader {
-	Debug,
-};
-
-struct Graphics {
-	ShaderBinder shaders;
-	AttributeEnabler ae;
-	unordered_set <int> attrib_set;
-	TextureBinder textures;
-	MeshBinder meshes;
-	
-	const Colorado::TriangleShader * current_shader () const {
-		return shaders.currentShader ();
-	}
-	
-	void render (const GraphicsEcs & ecs, const ScreenOptions & screen_opts) {
-		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		shaders.bind ((ShaderKey)EShader::Debug);
-		
-		auto uni_up = current_shader ()->uniformLocation ("up");
-		auto uni_color = current_shader ()->uniformLocation ("diffuseColor");
-		
-		ae.enableAttributes (attrib_set);
-		textures.bind ((TextureKey)ETexture::Noise);
-		
-		Camera camera;
-		auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
-		
-		auto view_mat = mat4 (1.0f);
-		view_mat = translate (view_mat, vec3 (0.0f, 0.0f, -3.0f));
-		
-		auto proj_view_mat = proj_mat * view_mat;
-		
-		for (const auto pair: ecs.opaque_pass) {
-			auto e = pair.first;
-			auto model_mat = ecs.rigid_mats.at (e);
-			auto color = ecs.diffuse_colors.at (e);
-			auto mesh = ecs.meshes.at (e);
-			
-			current_shader ()->setMvpMatrix (proj_view_mat * model_mat);
-			
-			auto light_mat = inverse (model_mat);
-			auto object_up = light_mat * vec4 (0.0, 1.0, 0.0, 0.0);
-			
-			glUniform3f (uni_up, object_up.x, object_up.y, object_up.z);
-			glUniform3f (uni_color, color.r, color.g, color.b);
-			
-			meshes.bind (mesh);
-			
-			const int floats_per_vert = 3 + 2 + 3 + 4;
-			const int stride = sizeof (GLfloat) * floats_per_vert;
-			
-			glVertexAttribPointer (current_shader ()->vertPosAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + 0);
-			glVertexAttribPointer (current_shader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
-			
-			meshes.currentMesh ()->renderPlacementIndexed (0);
-		}
-		
-		Colorado::swapBuffers ();
-	}
 };
 
 void load_graphics (Graphics & g, Terf::Archive & terf) {
