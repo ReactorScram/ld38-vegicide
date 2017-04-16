@@ -69,6 +69,7 @@ int main () {
 	
 	//glEnable (GL_DEPTH_TEST);
 	//glEnable (GL_CULL_FACE);
+	glEnable (GL_TEXTURE_2D);
 	glFrontFace (GL_CW);
 	
 	bool running = true;
