@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <vector>
 #include "colorado/vbo.h"
@@ -27,6 +28,8 @@ struct Mesh {
 	void renderPlacementIndexed (int) const;
 };
 
+typedef int64_t MeshKey;
+
 struct MeshBinder {
 	MeshBinder ();
 	
@@ -34,15 +37,15 @@ struct MeshBinder {
 	MeshBinder & operator = (const MeshBinder &) = delete;
 	
 	const Mesh * currentMesh () const;
-	std::map <std::string, std::unique_ptr <const Mesh> > meshes;
+	std::map <MeshKey, std::unique_ptr <const Mesh> > meshes;
 	
-	void bind (const std::string &);
+	void bind (const MeshKey &);
 	
 private:
 	const Mesh * m_currentMesh;
 	
 	// Can no longer lazy-load meshes
-	const Mesh * getMesh (const std::string & fn) const;
+	const Mesh * getMesh (const MeshKey & fn) const;
 	void bind (const Mesh *);
 };
 

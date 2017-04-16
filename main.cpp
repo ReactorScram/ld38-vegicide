@@ -48,6 +48,7 @@ void Texture::bind () const {
 }
 
 enum class EMesh {
+	Gear32,
 	Square,
 };
 
@@ -104,13 +105,13 @@ int main () {
 	MeshBinder meshes;
 	{
 		Mesh * square = new Mesh ();
-		square->loadIqm (terf.lookupFile ("square.iqm"));
-		meshes.meshes ["square"] = unique_ptr <const Mesh> (square);
+		square->loadIqm (terf.lookupFile ("meshes/square.iqm"));
+		meshes.meshes [(MeshKey)EMesh::Square] = unique_ptr <const Mesh> (square);
 	}
 	{
 		Mesh * m = new Mesh ();
-		m->loadIqm (terf.lookupFile ("gear32.iqm"));
-		meshes.meshes ["gear32"] = unique_ptr <const Mesh> (m);
+		m->loadIqm (terf.lookupFile ("meshes/gear32.iqm"));
+		meshes.meshes [(MeshKey)EMesh::Gear32] = unique_ptr <const Mesh> (m);
 	}
 	
 	long frames = 0;
@@ -133,7 +134,7 @@ int main () {
 			frames++;
 		}
 		
-		double revolutions = (double)frames / 360.0;
+		double revolutions = (double)frames / 720.0;
 		float radians = (mod (revolutions, 1.0)) * 2.0 * 3.1415926535;
 		
 		// Render
@@ -151,7 +152,7 @@ int main () {
 		
 		ae.enableAttributes (attrib_set);
 		
-		meshes.bind ("gear32");
+		meshes.bind ((MeshKey)EMesh::Gear32);
 		texture.bind ();
 		
 		const int floats_per_vert = 3 + 2 + 3 + 4;

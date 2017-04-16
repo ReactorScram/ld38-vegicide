@@ -117,7 +117,7 @@ void MeshBinder::bind (const Mesh * m) {
 	m_currentMesh->vbo.bind ();
 }
 
-void MeshBinder::bind (const string & code) {
+void MeshBinder::bind (const MeshKey & code) {
 	bind (getMesh (code));
 }
 
@@ -125,7 +125,7 @@ const Mesh * MeshBinder::currentMesh () const {
 	return m_currentMesh;
 }
 
-const Mesh * MeshBinder::getMesh (const string & code) const {
+const Mesh * MeshBinder::getMesh (const MeshKey & code) const {
 	const Mesh * result = meshes.at (code).get ();
 	if (result) {
 		return result;
