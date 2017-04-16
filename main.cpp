@@ -44,12 +44,11 @@ void load_graphics (Graphics & g, Terf::Archive & terf) {
 	g.meshes.add_iqm ((MeshKey)EMesh::Gear32, terf.lookupFile ("meshes/gear32.iqm"));
 }
 
-Entity add_gear (GraphicsEcs & ecs, vec3 color, EMesh mesh) {
+Entity add_gear (GraphicsEcs & ecs) {
 	Entity gear = ecs.add_entity ();
 	
 	ecs.opaque_pass [gear] = EcsTrue ();
-	ecs.diffuse_colors [gear] = color;
-	ecs.meshes [gear] = (MeshKey)mesh;
+	
 	
 	return gear;
 }
@@ -60,6 +59,8 @@ Entity add_gear_32 (GraphicsEcs & ecs, Entity gear, vec3 pos, double revolutions
 	float gear_scale = 2.0 / ((2.097 + 2.0) * 0.5);
 	
 	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale));
+	ecs.diffuse_colors [gear] = vec3 (1.0, 0.5, 0.5);
+	ecs.meshes [gear] = (MeshKey)EMesh::Gear32;
 	
 	return gear;
 }
@@ -70,6 +71,8 @@ Entity add_gear_8 (GraphicsEcs & ecs, Entity gear, vec3 pos, double revolutions)
 	float gear_scale = 0.5 / ((0.597 + 0.5) * 0.5);
 	
 	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale));
+	ecs.diffuse_colors [gear] = vec3 (0.5, 1.0, 1.0);
+	ecs.meshes [gear] = (MeshKey)EMesh::Gear8;
 	
 	return gear;
 }
@@ -124,13 +127,21 @@ int main () {
 		
 		// Animate
 		
-		double revolutions = (double)frames / 720.0;
+		double revolutions = (double)frames / 60.0;
+		
+		double axles [3];
+		axles [0] = revolutions;
+		axles [1] = -0.25 * axles [0] + (9.5 / 32.0);
+		axles [2] = -0.25 * axles [1] + (5.5 / 32.0);
 		
 		GraphicsEcs graphics_ecs;
 		
-		add_gear_8 (graphics_ecs, add_gear (graphics_ecs, vec3 (0.5, 1.0, 1.0), EMesh::Gear8), vec3 (-0.25, 0.0, 0.0), -4 * revolutions + (1.5 / 8.0));
+		add_gear_8 (graphics_ecs, add_gear (graphics_ecs), vec3 (-1.25, 0.0, 0.0), axles [0]);
 		
-		add_gear_32 (graphics_ecs, add_gear (graphics_ecs, vec3 (1.0, 0.5, 0.5), EMesh::Gear32), vec3 (1.0, 0.0, 0.0), revolutions);
+		add_gear_32 (graphics_ecs, add_gear (graphics_ecs), vec3 (0.0, 0.0, 0.0), axles [1]);
+		add_gear_8 (graphics_ecs, add_gear (graphics_ecs), vec3 (0.0, 0.0, 0.0), axles [1]);
+		
+		add_gear_32 (graphics_ecs, add_gear (graphics_ecs), vec3 (1.25, 0.0, 0.0), axles [2]);
 		
 		// Render
 		graphics.render (graphics_ecs, screen_opts);
