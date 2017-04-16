@@ -197,9 +197,9 @@ int main () {
 		
 		GraphicsEcs graphics_ecs;
 		
-		add_gear_32 (graphics_ecs, add_gear (graphics_ecs, vec3 (1.0, 0.5, 0.5), EMesh::Gear32), vec3 (1.0, 0.0, 0.0), revolutions);
-		
 		add_gear_8 (graphics_ecs, add_gear (graphics_ecs, vec3 (0.5, 1.0, 1.0), EMesh::Gear8), vec3 (-0.25, 0.0, 0.0), -4 * revolutions + (1.5 / 8.0));
+		
+		add_gear_32 (graphics_ecs, add_gear (graphics_ecs, vec3 (1.0, 0.5, 0.5), EMesh::Gear32), vec3 (1.0, 0.0, 0.0), revolutions);
 		
 		// Render
 		graphics.render (graphics_ecs, screen_opts);
