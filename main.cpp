@@ -14,6 +14,7 @@
 #include "colorado/triangle-shader.h"
 #include "terf/terf.h"
 
+#include "ecs.h"
 #include "mesh-binder.h"
 #include "shader-binder.h"
 
@@ -134,34 +135,49 @@ int main () {
 			frames++;
 		}
 		
+		// Animate
+		
 		double revolutions = (double)frames / 720.0;
 		float radians = (mod (revolutions, 1.0)) * 2.0 * 3.1415926535;
+		
+		GraphicsEcs graphics_ecs;
+		Entity gear = graphics_ecs.add_entity ();
+		
+		graphics_ecs.opaque_pass [gear] = EcsTrue ();
+		graphics_ecs.rigid_mats [gear] = rotate (mat4 (1.0f), radians, vec3 (0.0f, 0.0f, 1.0f));
+		graphics_ecs.diffuse_colors [gear] = vec3 (1.0, 0.0, 0.0);
+		graphics_ecs.meshes [gear] = (MeshKey)EMesh::Gear32;
 		
 		// Render
 		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		auto model_mat = rotate (mat4 (1.0f), radians, vec3 (0.0f, 0.0f, 1.0f));
-		
-		auto light_mat = inverse (model_mat);
-		auto object_up = light_mat * vec4 (0.0, 1.0, 0.0, 0.0);
-		
 		shaders.bind (EShader::Debug);
-		shaders.currentShader ()->setMvpMatrix (proj_view_mat * model_mat);
-		
-		glUniform3f (shaders.currentShader ()->uniformLocation ("up"), object_up.x, object_up.y, object_up.z);
-		
 		ae.enableAttributes (attrib_set);
-		
-		meshes.bind ((MeshKey)EMesh::Gear32);
 		texture.bind ();
 		
-		const int floats_per_vert = 3 + 2 + 3 + 4;
-		const int stride = sizeof (GLfloat) * floats_per_vert;
-		
-		glVertexAttribPointer (shaders.currentShader ()->vertPosAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + 0);
-		glVertexAttribPointer (shaders.currentShader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
-		
-		meshes.currentMesh ()->renderPlacementIndexed (0);
+		for (auto pair: graphics_ecs.opaque_pass) {
+			auto e = pair.first;
+			auto model_mat = graphics_ecs.rigid_mats [e];
+			//auto color = graphics_ecs.diffuse_colors [e];
+			auto mesh = graphics_ecs.meshes [e];
+			
+			shaders.currentShader ()->setMvpMatrix (proj_view_mat * model_mat);
+			
+			auto light_mat = inverse (model_mat);
+			auto object_up = light_mat * vec4 (0.0, 1.0, 0.0, 0.0);
+			
+			glUniform3f (shaders.currentShader ()->uniformLocation ("up"), object_up.x, object_up.y, object_up.z);
+			
+			meshes.bind (mesh);
+			
+			const int floats_per_vert = 3 + 2 + 3 + 4;
+			const int stride = sizeof (GLfloat) * floats_per_vert;
+			
+			glVertexAttribPointer (shaders.currentShader ()->vertPosAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + 0);
+			glVertexAttribPointer (shaders.currentShader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
+			
+			meshes.currentMesh ()->renderPlacementIndexed (0);
+		}
 		
 		Colorado::swapBuffers ();
 	}

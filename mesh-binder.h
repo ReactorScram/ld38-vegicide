@@ -28,7 +28,7 @@ struct Mesh {
 	void renderPlacementIndexed (int) const;
 };
 
-typedef int64_t MeshKey;
+typedef int32_t MeshKey;
 
 struct MeshBinder {
 	MeshBinder ();
