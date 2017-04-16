@@ -1,15 +1,21 @@
-attribute mediump vec2 attribPos;
+attribute mediump vec3 attribPos;
+attribute lowp vec3 attribNormal;
 
-varying mediump vec2 varyingTexCoord;
-varying mediump vec2 varyingDiagonalCoord;
+varying lowp vec3 varyingColor;
+
+uniform highp mat4 mvpMatrix;
+// Object-space up
+uniform lowp vec3 up;
 
 void main (void) {
-	gl_Position = vec4 (attribPos.x * 2.0 - 1.0, attribPos.y * 2.0 - 1.0, 1.0, 1.0);
-	varyingTexCoord = vec2 (1.0) * attribPos;
+	gl_Position = mvpMatrix * vec4 (attribPos, 1.0);
 	
-	vec2 offset = vec2 (0.5, 0.5);
-	vec2 tc = varyingTexCoord - offset;
+	lowp float up_dot = dot (up, attribNormal);
 	
-	// TODO: Mat3
-	varyingDiagonalCoord = vec2 (0.7 * tc.x - 0.3 * tc.y, 0.3 * tc.x + 0.7 * tc.y) + offset;
+	lowp float sun = clamp (up_dot, 0.0, 1.0);
+	lowp float sky = mix (0.0, 1.0, up_dot * 0.5 + 0.5);
+	
+	lowp float light = sqrt (sun * 0.5 + sky * 0.5);
+	
+	varyingColor = vec3 (light);
 }

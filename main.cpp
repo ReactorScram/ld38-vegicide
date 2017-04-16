@@ -1,8 +1,11 @@
 #include <unordered_set>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <SDL/SDL.h>
 
 #include "colorado/attribute-enabler.h"
+#include "colorado/camera.h"
 #include "colorado/game.h"
 #include "colorado/fixed-timestep.h"
 #include "colorado/gl.h"
@@ -14,7 +17,9 @@
 #include "mesh-binder.h"
 #include "shader-binder.h"
 
+using namespace glm;
 using namespace std;
+
 using namespace Colorado;
 
 struct Texture {
@@ -53,8 +58,16 @@ enum class EShader {
 int main () {
 	ScreenOptions screen_opts;
 	screen_opts.fullscreen = false;
-	screen_opts.width = 960;
-	screen_opts.height = 960;
+	screen_opts.width = 800;
+	screen_opts.height = 480;
+	
+	Camera camera;
+	auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
+	
+	auto view_mat = mat4 (1.0f);
+	view_mat = translate (view_mat, vec3 (0.0f, 0.0f, -4.0f));
+	
+	auto proj_view_mat = proj_mat * view_mat;
 	
 	Colorado::Game game (screen_opts);
 	SDL_WM_SetCaption ("Colorado Hexture Map", nullptr);
@@ -67,7 +80,7 @@ int main () {
 	FixedTimestep timestep (60, 1);
 	auto last_frame_time = SDL_GetTicks ();
 	
-	//glEnable (GL_DEPTH_TEST);
+	glEnable (GL_DEPTH_TEST);
 	//glEnable (GL_CULL_FACE);
 	glEnable (GL_TEXTURE_2D);
 	glFrontFace (GL_CW);
@@ -81,6 +94,7 @@ int main () {
 	
 	unordered_set <int> attrib_set;
 	attrib_set.insert (shaders.currentShader ()->vertPosAttribute);
+	attrib_set.insert (shaders.currentShader ()->vertNormAttribute);
 	
 	AttributeEnabler ae;
 	
@@ -93,6 +107,13 @@ int main () {
 		square->loadIqm (terf.lookupFile ("square.iqm"));
 		meshes.meshes ["square"] = unique_ptr <const Mesh> (square);
 	}
+	{
+		Mesh * m = new Mesh ();
+		m->loadIqm (terf.lookupFile ("gear32.iqm"));
+		meshes.meshes ["gear32"] = unique_ptr <const Mesh> (m);
+	}
+	
+	long frames = 0;
 	
 	while (running) {
 		SDL_Event ev;
@@ -109,22 +130,35 @@ int main () {
 		
 		for (int i = 0; i < numSteps; i++) {
 			// Step
+			frames++;
 		}
+		
+		double revolutions = (double)frames / 360.0;
+		float radians = (mod (revolutions, 1.0)) * 2.0 * 3.1415926535;
 		
 		// Render
 		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
+		auto model_mat = rotate (mat4 (1.0f), radians, vec3 (0.0f, 0.0f, 1.0f));
+		
+		auto light_mat = inverse (model_mat);
+		auto object_up = light_mat * vec4 (0.0, 1.0, 0.0, 0.0);
+		
 		shaders.bind (EShader::Debug);
+		shaders.currentShader ()->setMvpMatrix (proj_view_mat * model_mat);
+		
+		glUniform3f (shaders.currentShader ()->uniformLocation ("up"), object_up.x, object_up.y, object_up.z);
 		
 		ae.enableAttributes (attrib_set);
 		
-		meshes.bind ("square");
+		meshes.bind ("gear32");
 		texture.bind ();
 		
 		const int floats_per_vert = 3 + 2 + 3 + 4;
 		const int stride = sizeof (GLfloat) * floats_per_vert;
 		
 		glVertexAttribPointer (shaders.currentShader ()->vertPosAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + 0);
+		glVertexAttribPointer (shaders.currentShader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
 		
 		meshes.currentMesh ()->renderPlacementIndexed (0);
 		
