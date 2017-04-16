@@ -53,8 +53,8 @@ enum class EShader {
 int main () {
 	ScreenOptions screen_opts;
 	screen_opts.fullscreen = false;
-	screen_opts.width = 800;
-	screen_opts.height = 480;
+	screen_opts.width = 960;
+	screen_opts.height = 960;
 	
 	Colorado::Game game (screen_opts);
 	SDL_WM_SetCaption ("Colorado Hexture Map", nullptr);
@@ -84,7 +84,8 @@ int main () {
 	
 	AttributeEnabler ae;
 	
-	Texture texture (terf, "hexture/colorado.png");
+	Texture texture (terf, "hexture/noise.png");
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	
 	MeshBinder meshes;
 	{
