@@ -58,19 +58,19 @@ enum class EShader {
 };
 
 struct Graphics {
-	ShaderBinder <EShader> shaders;
+	ShaderBinder shaders;
 	AttributeEnabler ae;
 	unordered_set <int> attrib_set;
 	Texture texture;
 	MeshBinder meshes;
 	
 	Graphics (Terf::Archive & terf): texture (terf, "hexture/noise.png") {
-		shaders.addShader (EShader::Debug, newShader (terf, "shader.vert", "shader.frag"));
+		shaders.addShader ((ShaderKey)EShader::Debug, newShader (terf, "shader.vert", "shader.frag"));
 		
-		shaders.bind (EShader::Debug);
+		shaders.bind ((ShaderKey)EShader::Debug);
 		
-		attrib_set.insert (shaders.currentShader ()->vertPosAttribute);
-		attrib_set.insert (shaders.currentShader ()->vertNormAttribute);
+		attrib_set.insert (current_shader ()->vertPosAttribute);
+		attrib_set.insert (current_shader ()->vertNormAttribute);
 		
 		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		
@@ -86,14 +86,17 @@ struct Graphics {
 		}
 	}
 	
+	const Colorado::TriangleShader * current_shader () const {
+		return shaders.currentShader ();
+	}
+	
 	void render (const GraphicsEcs & ecs, const ScreenOptions & screen_opts) {
 		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		shaders.bind (EShader::Debug);
+		shaders.bind ((ShaderKey)EShader::Debug);
 		
-		auto shader = shaders.currentShader ();
-		auto uni_up = shader->uniformLocation ("up");
-		auto uni_color = shader->uniformLocation ("diffuseColor");
+		auto uni_up = current_shader ()->uniformLocation ("up");
+		auto uni_color = current_shader ()->uniformLocation ("diffuseColor");
 		
 		ae.enableAttributes (attrib_set);
 		texture.bind ();
@@ -112,7 +115,7 @@ struct Graphics {
 			auto color = ecs.diffuse_colors.at (e);
 			auto mesh = ecs.meshes.at (e);
 			
-			shaders.currentShader ()->setMvpMatrix (proj_view_mat * model_mat);
+			current_shader ()->setMvpMatrix (proj_view_mat * model_mat);
 			
 			auto light_mat = inverse (model_mat);
 			auto object_up = light_mat * vec4 (0.0, 1.0, 0.0, 0.0);
@@ -125,8 +128,8 @@ struct Graphics {
 			const int floats_per_vert = 3 + 2 + 3 + 4;
 			const int stride = sizeof (GLfloat) * floats_per_vert;
 			
-			glVertexAttribPointer (shaders.currentShader ()->vertPosAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + 0);
-			glVertexAttribPointer (shaders.currentShader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
+			glVertexAttribPointer (current_shader ()->vertPosAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + 0);
+			glVertexAttribPointer (current_shader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
 			
 			meshes.currentMesh ()->renderPlacementIndexed (0);
 		}

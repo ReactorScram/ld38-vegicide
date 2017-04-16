@@ -2,52 +2,32 @@
 #define SHADERBINDER_H
 
 #include <memory>
+#include <stdint.h>
+
 #include "colorado/triangle-shader.h"
 #include "terf/terf.h"
 
-template <class EShader>
+typedef int64_t ShaderKey;
+
 struct ShaderBinder {
-	ShaderBinder () :
-		m_currentShader (nullptr),
-		shaders ()
-	{
-		
-	}
+	ShaderBinder ();
 	
 	ShaderBinder (const ShaderBinder &) = delete;
 	ShaderBinder & operator = (const ShaderBinder &) = delete;
 	
-	void addShader (const EShader code, Colorado::TriangleShader * shader) {
-		shaders [code] = std::unique_ptr <Colorado::TriangleShader> (shader);
-	}
+	void addShader (const ShaderKey, Colorado::TriangleShader *);
 	
-	const Colorado::TriangleShader * currentShader () {
-		return m_currentShader;
-	}
+	const Colorado::TriangleShader * currentShader () const;
 	
-	void bind (const EShader code) {
-		bind (getShader (code));
-	}
+	void bind (const ShaderKey);
 	
 private:
 	const Colorado::TriangleShader * m_currentShader;
 	
-	std::map <const EShader, std::unique_ptr <const Colorado::TriangleShader> > shaders;
-	void bind (const Colorado::TriangleShader * shader) {
-		m_currentShader = shader;
-		m_currentShader->bind ();
-	}
+	std::map <ShaderKey, std::unique_ptr <const Colorado::TriangleShader> > shaders;
+	void bind (const Colorado::TriangleShader *);
 	
-	const Colorado::TriangleShader * getShader (const EShader code) {
-		const Colorado::TriangleShader * result = shaders.at (code).get ();
-		if (result) {
-			return result;
-		}
-		else {
-			//cerr << "Warning: Failed to get shader - " << code << endl;
-			return result;
-		}
-	}
+	const Colorado::TriangleShader * getShader (const ShaderKey);
 };
 
 Colorado::TriangleShader * newShader (
