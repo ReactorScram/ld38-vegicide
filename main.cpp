@@ -43,22 +43,6 @@ struct Graphics {
 	TextureBinder textures;
 	MeshBinder meshes;
 	
-	Graphics (Terf::Archive & terf) {
-		shaders.addShader ((ShaderKey)EShader::Debug, newShader (terf, "shader.vert", "shader.frag"));
-		
-		shaders.bind ((ShaderKey)EShader::Debug);
-		
-		attrib_set.insert (current_shader ()->vertPosAttribute);
-		attrib_set.insert (current_shader ()->vertNormAttribute);
-		
-		textures.add ((TextureKey)ETexture::Noise, new Texture (terf, "hexture/noise.png"));
-		
-		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		
-		meshes.add_iqm ((MeshKey)EMesh::Square, terf.lookupFile ("meshes/square.iqm"));
-		meshes.add_iqm ((MeshKey)EMesh::Gear32, terf.lookupFile ("meshes/gear32.iqm"));
-	}
-	
 	const Colorado::TriangleShader * current_shader () const {
 		return shaders.currentShader ();
 	}
@@ -111,6 +95,22 @@ struct Graphics {
 	}
 };
 
+void load_graphics (Graphics & g, Terf::Archive & terf) {
+	g.shaders.addShader ((ShaderKey)EShader::Debug, newShader (terf, "shader.vert", "shader.frag"));
+	
+	g.shaders.bind ((ShaderKey)EShader::Debug);
+	
+	g.attrib_set.insert (g.current_shader ()->vertPosAttribute);
+	g.attrib_set.insert (g.current_shader ()->vertNormAttribute);
+	
+	g.textures.add ((TextureKey)ETexture::Noise, new Texture (terf, "hexture/noise.png"));
+	
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	
+	g.meshes.add_iqm ((MeshKey)EMesh::Square, terf.lookupFile ("meshes/square.iqm"));
+	g.meshes.add_iqm ((MeshKey)EMesh::Gear32, terf.lookupFile ("meshes/gear32.iqm"));
+}
+
 Entity add_gear (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
 	float radians = (mod (revolutions, 1.0)) * 2.0 * 3.1415926535;
 	
@@ -150,7 +150,9 @@ int main () {
 	
 	bool running = true;
 	
-	Graphics graphics (terf);
+	Graphics graphics;
+	// TODO: Learn move constructors
+	load_graphics (graphics, terf);
 	
 	long frames = 0;
 	
