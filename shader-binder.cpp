@@ -48,7 +48,7 @@ void ShaderBinder::bind (const Colorado::TriangleShader * shader) {
 	m_currentShader->bind ();
 }
 
-const Colorado::TriangleShader * ShaderBinder::getShader (const ShaderKey code) {
+const Colorado::TriangleShader * ShaderBinder::getShader (const ShaderKey code) const {
 	const Colorado::TriangleShader * result = shaders.at (code).get ();
 	if (result) {
 		return result;

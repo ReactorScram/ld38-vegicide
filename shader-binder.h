@@ -27,7 +27,7 @@ private:
 	std::map <ShaderKey, std::unique_ptr <const Colorado::TriangleShader> > shaders;
 	void bind (const Colorado::TriangleShader *);
 	
-	const Colorado::TriangleShader * getShader (const ShaderKey);
+	const Colorado::TriangleShader * getShader (const ShaderKey) const;
 };
 
 Colorado::TriangleShader * newShader (

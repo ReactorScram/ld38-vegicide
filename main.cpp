@@ -9,7 +9,6 @@
 #include "colorado/game.h"
 #include "colorado/fixed-timestep.h"
 #include "colorado/gl.h"
-#include "colorado/image-to-texture.h"
 #include "colorado/screen-options.h"
 #include "colorado/triangle-shader.h"
 #include "terf/terf.h"
@@ -17,36 +16,16 @@
 #include "ecs.h"
 #include "mesh-binder.h"
 #include "shader-binder.h"
+#include "texture-binder.h"
 
 using namespace glm;
 using namespace std;
 
 using namespace Colorado;
 
-struct Texture {
-	GLuint handle;
-	
-	Texture (const Terf::Archive & terf, std::string);
-	~Texture ();
-	
-	void bind () const;
+enum class ETexture {
+	Noise,
 };
-
-Texture::Texture (const Terf::Archive & terf, std::string fn) :
-	handle (0)
-{
-	autoImageToTexture (terf.lookupFile (fn), handle, 4);
-}
-
-Texture::~Texture () {
-	if (handle > 0) {
-		glDeleteTextures (1, &handle);
-	}
-}
-
-void Texture::bind () const {
-	glBindTexture (GL_TEXTURE_2D, handle);
-}
 
 enum class EMesh {
 	Gear32,
@@ -61,10 +40,10 @@ struct Graphics {
 	ShaderBinder shaders;
 	AttributeEnabler ae;
 	unordered_set <int> attrib_set;
-	Texture texture;
+	TextureBinder textures;
 	MeshBinder meshes;
 	
-	Graphics (Terf::Archive & terf): texture (terf, "hexture/noise.png") {
+	Graphics (Terf::Archive & terf) {
 		shaders.addShader ((ShaderKey)EShader::Debug, newShader (terf, "shader.vert", "shader.frag"));
 		
 		shaders.bind ((ShaderKey)EShader::Debug);
@@ -72,18 +51,12 @@ struct Graphics {
 		attrib_set.insert (current_shader ()->vertPosAttribute);
 		attrib_set.insert (current_shader ()->vertNormAttribute);
 		
+		textures.add ((TextureKey)ETexture::Noise, new Texture (terf, "hexture/noise.png"));
+		
 		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		
-		{
-			Mesh * square = new Mesh ();
-			square->loadIqm (terf.lookupFile ("meshes/square.iqm"));
-			meshes.meshes [(MeshKey)EMesh::Square] = unique_ptr <const Mesh> (square);
-		}
-		{
-			Mesh * m = new Mesh ();
-			m->loadIqm (terf.lookupFile ("meshes/gear32.iqm"));
-			meshes.meshes [(MeshKey)EMesh::Gear32] = unique_ptr <const Mesh> (m);
-		}
+		meshes.add_iqm ((MeshKey)EMesh::Square, terf.lookupFile ("meshes/square.iqm"));
+		meshes.add_iqm ((MeshKey)EMesh::Gear32, terf.lookupFile ("meshes/gear32.iqm"));
 	}
 	
 	const Colorado::TriangleShader * current_shader () const {
@@ -99,7 +72,7 @@ struct Graphics {
 		auto uni_color = current_shader ()->uniformLocation ("diffuseColor");
 		
 		ae.enableAttributes (attrib_set);
-		texture.bind ();
+		textures.bind ((TextureKey)ETexture::Noise);
 		
 		Camera camera;
 		auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);

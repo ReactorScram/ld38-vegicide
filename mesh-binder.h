@@ -39,6 +39,8 @@ struct MeshBinder {
 	const Mesh * currentMesh () const;
 	std::map <MeshKey, std::unique_ptr <const Mesh> > meshes;
 	
+	void add (MeshKey, Mesh *);
+	void add_iqm (MeshKey, const std::vector <uint8_t> & buffer);
 	void bind (const MeshKey &);
 	
 private:

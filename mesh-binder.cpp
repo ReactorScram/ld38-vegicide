@@ -112,9 +112,21 @@ MeshBinder::MeshBinder () :
 	
 }
 
+void MeshBinder::add_iqm (MeshKey code, const vector <uint8_t> & buffer) {
+	Mesh * m = new Mesh ();
+	m->loadIqm (buffer);
+	add (code, m);
+}
+
+void MeshBinder::add (MeshKey code, Mesh * m) {
+	meshes [code] = unique_ptr <const Mesh> (m);
+}
+
 void MeshBinder::bind (const Mesh * m) {
-	m_currentMesh = m;
-	m_currentMesh->vbo.bind ();
+	if (m != m_currentMesh) {
+		m_currentMesh = m;
+		m_currentMesh->vbo.bind ();
+	}
 }
 
 void MeshBinder::bind (const MeshKey & code) {
