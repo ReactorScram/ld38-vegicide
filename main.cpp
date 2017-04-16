@@ -57,19 +57,104 @@ enum class EShader {
 	Debug,
 };
 
+struct Graphics {
+	ShaderBinder <EShader> shaders;
+	AttributeEnabler ae;
+	unordered_set <int> attrib_set;
+	Texture texture;
+	MeshBinder meshes;
+	
+	Graphics (Terf::Archive & terf): texture (terf, "hexture/noise.png") {
+		shaders.addShader (EShader::Debug, newShader (terf, "shader.vert", "shader.frag"));
+		
+		shaders.bind (EShader::Debug);
+		
+		attrib_set.insert (shaders.currentShader ()->vertPosAttribute);
+		attrib_set.insert (shaders.currentShader ()->vertNormAttribute);
+		
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		
+		{
+			Mesh * square = new Mesh ();
+			square->loadIqm (terf.lookupFile ("meshes/square.iqm"));
+			meshes.meshes [(MeshKey)EMesh::Square] = unique_ptr <const Mesh> (square);
+		}
+		{
+			Mesh * m = new Mesh ();
+			m->loadIqm (terf.lookupFile ("meshes/gear32.iqm"));
+			meshes.meshes [(MeshKey)EMesh::Gear32] = unique_ptr <const Mesh> (m);
+		}
+	}
+	
+	void render (const GraphicsEcs & ecs, const ScreenOptions & screen_opts) {
+		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		shaders.bind (EShader::Debug);
+		
+		auto shader = shaders.currentShader ();
+		auto uni_up = shader->uniformLocation ("up");
+		auto uni_color = shader->uniformLocation ("diffuseColor");
+		
+		ae.enableAttributes (attrib_set);
+		texture.bind ();
+		
+		Camera camera;
+		auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
+		
+		auto view_mat = mat4 (1.0f);
+		view_mat = translate (view_mat, vec3 (0.0f, 0.0f, -3.0f));
+		
+		auto proj_view_mat = proj_mat * view_mat;
+		
+		for (const auto pair: ecs.opaque_pass) {
+			auto e = pair.first;
+			auto model_mat = ecs.rigid_mats.at (e);
+			auto color = ecs.diffuse_colors.at (e);
+			auto mesh = ecs.meshes.at (e);
+			
+			shaders.currentShader ()->setMvpMatrix (proj_view_mat * model_mat);
+			
+			auto light_mat = inverse (model_mat);
+			auto object_up = light_mat * vec4 (0.0, 1.0, 0.0, 0.0);
+			
+			glUniform3f (uni_up, object_up.x, object_up.y, object_up.z);
+			glUniform3f (uni_color, color.r, color.g, color.b);
+			
+			meshes.bind (mesh);
+			
+			const int floats_per_vert = 3 + 2 + 3 + 4;
+			const int stride = sizeof (GLfloat) * floats_per_vert;
+			
+			glVertexAttribPointer (shaders.currentShader ()->vertPosAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + 0);
+			glVertexAttribPointer (shaders.currentShader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
+			
+			meshes.currentMesh ()->renderPlacementIndexed (0);
+		}
+		
+		Colorado::swapBuffers ();
+	}
+};
+
+Entity add_gear (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
+	float radians = (mod (revolutions, 1.0)) * 2.0 * 3.1415926535;
+	
+	Entity gear = ecs.add_entity ();
+	
+	float gear_scale = 2.0 / ((2.097 + 2.0) * 0.5);
+	
+	ecs.opaque_pass [gear] = EcsTrue ();
+	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale));
+	ecs.diffuse_colors [gear] = color;
+	ecs.meshes [gear] = (MeshKey)EMesh::Gear32;
+	
+	return gear;
+}
+
 int main () {
 	ScreenOptions screen_opts;
 	screen_opts.fullscreen = false;
 	screen_opts.width = 800;
 	screen_opts.height = 480;
-	
-	Camera camera;
-	auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
-	
-	auto view_mat = mat4 (1.0f);
-	view_mat = translate (view_mat, vec3 (0.0f, 0.0f, -4.0f));
-	
-	auto proj_view_mat = proj_mat * view_mat;
 	
 	Colorado::Game game (screen_opts);
 	SDL_WM_SetCaption ("Colorado Hexture Map", nullptr);
@@ -89,31 +174,7 @@ int main () {
 	
 	bool running = true;
 	
-	ShaderBinder <EShader> shaders;
-	shaders.addShader (EShader::Debug, newShader (terf, "shader.vert", "shader.frag"));
-	
-	shaders.bind (EShader::Debug);
-	
-	unordered_set <int> attrib_set;
-	attrib_set.insert (shaders.currentShader ()->vertPosAttribute);
-	attrib_set.insert (shaders.currentShader ()->vertNormAttribute);
-	
-	AttributeEnabler ae;
-	
-	Texture texture (terf, "hexture/noise.png");
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	
-	MeshBinder meshes;
-	{
-		Mesh * square = new Mesh ();
-		square->loadIqm (terf.lookupFile ("meshes/square.iqm"));
-		meshes.meshes [(MeshKey)EMesh::Square] = unique_ptr <const Mesh> (square);
-	}
-	{
-		Mesh * m = new Mesh ();
-		m->loadIqm (terf.lookupFile ("meshes/gear32.iqm"));
-		meshes.meshes [(MeshKey)EMesh::Gear32] = unique_ptr <const Mesh> (m);
-	}
+	Graphics graphics (terf);
 	
 	long frames = 0;
 	
@@ -138,48 +199,14 @@ int main () {
 		// Animate
 		
 		double revolutions = (double)frames / 720.0;
-		float radians = (mod (revolutions, 1.0)) * 2.0 * 3.1415926535;
 		
 		GraphicsEcs graphics_ecs;
-		Entity gear = graphics_ecs.add_entity ();
 		
-		graphics_ecs.opaque_pass [gear] = EcsTrue ();
-		graphics_ecs.rigid_mats [gear] = rotate (mat4 (1.0f), radians, vec3 (0.0f, 0.0f, 1.0f));
-		graphics_ecs.diffuse_colors [gear] = vec3 (1.0, 0.0, 0.0);
-		graphics_ecs.meshes [gear] = (MeshKey)EMesh::Gear32;
+		add_gear (graphics_ecs, vec3 (1.0, 0.0, 0.0), revolutions, vec3 (1.0, 0.5, 0.5));
+		add_gear (graphics_ecs, vec3 (-1.0, 0.0, 0.0), -revolutions + (9.5 / 32.0), vec3 (0.5, 1.0, 1.0));
 		
 		// Render
-		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		shaders.bind (EShader::Debug);
-		ae.enableAttributes (attrib_set);
-		texture.bind ();
-		
-		for (auto pair: graphics_ecs.opaque_pass) {
-			auto e = pair.first;
-			auto model_mat = graphics_ecs.rigid_mats [e];
-			//auto color = graphics_ecs.diffuse_colors [e];
-			auto mesh = graphics_ecs.meshes [e];
-			
-			shaders.currentShader ()->setMvpMatrix (proj_view_mat * model_mat);
-			
-			auto light_mat = inverse (model_mat);
-			auto object_up = light_mat * vec4 (0.0, 1.0, 0.0, 0.0);
-			
-			glUniform3f (shaders.currentShader ()->uniformLocation ("up"), object_up.x, object_up.y, object_up.z);
-			
-			meshes.bind (mesh);
-			
-			const int floats_per_vert = 3 + 2 + 3 + 4;
-			const int stride = sizeof (GLfloat) * floats_per_vert;
-			
-			glVertexAttribPointer (shaders.currentShader ()->vertPosAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + 0);
-			glVertexAttribPointer (shaders.currentShader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
-			
-			meshes.currentMesh ()->renderPlacementIndexed (0);
-		}
-		
-		Colorado::swapBuffers ();
+		graphics.render (graphics_ecs, screen_opts);
 	}
 	
 	return 0;
