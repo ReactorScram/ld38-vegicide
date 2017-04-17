@@ -3,7 +3,9 @@
 
 #include <glm/glm.hpp>
 
+#include "gl-state-tracker.h"
 #include "mesh-binder.h"
+#include "shader-binder.h"
 
 typedef int32_t Entity;
 
@@ -19,8 +21,15 @@ struct Ecs {
 	Entity add_entity ();
 };
 
+struct Pass {
+	GlState gl_state;
+	ShaderKey shader;
+	// All rigid right now but may have further typing
+	Components <EcsTrue> renderables;
+};
+
 struct GraphicsEcs : Ecs {
-	Components <EcsTrue> opaque_pass;
+	Components <Pass> passes;
 	Components <glm::mat4> rigid_mats;
 	Components <glm::vec3> diffuse_colors;
 	Components <MeshKey> meshes;

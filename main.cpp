@@ -22,6 +22,7 @@ enum class ETexture {
 };
 
 enum class EMesh {
+	Bench,
 	Gear8,
 	Gear32,
 	Square,
@@ -39,41 +40,34 @@ void load_graphics (Graphics & g, Terf::Archive & terf) {
 	
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	
+	g.meshes.add_iqm ((MeshKey)EMesh::Bench, terf.lookupFile ("meshes/bench.iqm"));
 	g.meshes.add_iqm ((MeshKey)EMesh::Square, terf.lookupFile ("meshes/square.iqm"));
 	g.meshes.add_iqm ((MeshKey)EMesh::Gear8, terf.lookupFile ("meshes/gear8.iqm"));
 	g.meshes.add_iqm ((MeshKey)EMesh::Gear32, terf.lookupFile ("meshes/gear32.iqm"));
 }
 
-Entity add_gear (GraphicsEcs & ecs) {
-	Entity gear = ecs.add_entity ();
-	
-	ecs.opaque_pass [gear] = EcsTrue ();
-	
-	return gear;
-}
-
-Entity add_gear_32 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
-	auto gear = add_gear (ecs);
+Entity gear_32 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
+	auto gear = ecs.add_entity ();
 	
 	float radians = (mod (revolutions, 1.0)) * 2.0 * 3.1415926535;
 	
 	float gear_scale = 2.0 / ((2.097 + 2.0) * 0.5);
 	
-	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale));
+	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale, gear_scale, 0.5f));
 	ecs.diffuse_colors [gear] = color;
 	ecs.meshes [gear] = (MeshKey)EMesh::Gear32;
 	
 	return gear;
 }
 
-Entity add_gear_8 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
-	auto gear = add_gear (ecs);
+Entity gear_8 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
+	auto gear = ecs.add_entity ();
 	
 	float radians = (mod (revolutions, 1.0)) * 2.0 * 3.1415926535;
 	
 	float gear_scale = 0.5 / ((0.597 + 0.5) * 0.5);
 	
-	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale));
+	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale, gear_scale, 0.5f));
 	ecs.diffuse_colors [gear] = color;
 	ecs.meshes [gear] = (MeshKey)EMesh::Gear8;
 	
@@ -142,12 +136,26 @@ int main () {
 		
 		GraphicsEcs graphics_ecs;
 		
-		add_gear_8 (graphics_ecs, vec3 (-1.25, 0.0, 0.0), axles [0], cyan);
+		// Add everything to a normal opaque pass
+		Pass opaque;
+		opaque.shader = (ShaderKey)EShader::Debug;
 		
-		add_gear_32 (graphics_ecs, vec3 (0.0, 0.0, 0.0), axles [1], cyan);
-		add_gear_8 (graphics_ecs, vec3 (0.0, 0.0, 0.75), axles [1], red);
+		opaque.renderables [gear_8 (graphics_ecs, vec3 (-1.25, 0.0, 0.0), axles [0], cyan)];
 		
-		add_gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.75), axles [2], red);
+		opaque.renderables [gear_32 (graphics_ecs, vec3 (0.0, 0.0, 0.0), axles [1], cyan)];
+		opaque.renderables [gear_8 (graphics_ecs, vec3 (0.0, 0.0, 0.125), axles [1], red)];
+		
+		opaque.renderables [gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.125), axles [2], red)];
+		
+		{
+			Entity e = graphics_ecs.add_entity ();
+			graphics_ecs.rigid_mats [e] = rotate (translate (mat4 (1.0f), vec3 (0.0f, -1.5f, 0.125f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+			graphics_ecs.diffuse_colors [e] = vec3 (0.5f);
+			graphics_ecs.meshes [e] = (MeshKey)EMesh::Bench;
+			opaque.renderables [e];
+		}
+		
+		graphics_ecs.passes [graphics_ecs.add_entity ()] = opaque;
 		
 		// Render
 		graphics.render (graphics_ecs, screen_opts);
