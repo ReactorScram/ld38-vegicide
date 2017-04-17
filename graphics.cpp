@@ -18,6 +18,9 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTru
 	auto model_mat = ecs.rigid_mats.at (e);
 	auto color = ecs.diffuse_colors.at (e);
 	auto mesh = ecs.meshes.at (e);
+	if (ecs.textures.count (e) >= 1) {
+		textures.bind (ecs.textures.at (e));
+	}
 	
 	current_shader ()->setMvpMatrix (proj_view_mat * model_mat);
 	
@@ -38,6 +41,7 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTru
 	
 	glVertexAttribPointer (current_shader ()->vertPosAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + 0);
 	glVertexAttribPointer (current_shader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
+	glVertexAttribPointer (current_shader ()->vertTexCoordAttribute, 2, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * 3);
 	
 	meshes.currentMesh ()->renderPlacementIndexed (0);
 }

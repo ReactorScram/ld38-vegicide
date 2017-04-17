@@ -18,6 +18,9 @@ using namespace std;
 using namespace Colorado;
 
 enum class ETexture {
+	BenchAo,
+	Gear8,
+	Gear32,
 	Noise,
 };
 
@@ -35,8 +38,12 @@ void load_graphics (Graphics & g, Terf::Archive & terf) {
 	
 	g.attrib_set.insert (g.current_shader ()->vertPosAttribute);
 	g.attrib_set.insert (g.current_shader ()->vertNormAttribute);
+	g.attrib_set.insert (g.current_shader ()->vertTexCoordAttribute);
 	
 	g.textures.add ((TextureKey)ETexture::Noise, new Texture (terf, "hexture/noise.png"));
+	g.textures.add ((TextureKey)ETexture::BenchAo, new Texture (terf, "textures/bench-ao.png"));
+	g.textures.add ((TextureKey)ETexture::Gear8, new Texture (terf, "textures/gear8-ao.png"));
+	g.textures.add ((TextureKey)ETexture::Gear32, new Texture (terf, "textures/gear32-ao.png"));
 	
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	
@@ -56,6 +63,7 @@ Entity gear_32 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
 	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale, gear_scale, 0.5f));
 	ecs.diffuse_colors [gear] = color;
 	ecs.meshes [gear] = (MeshKey)EMesh::Gear32;
+	ecs.textures [gear] = (TextureKey)ETexture::Gear32;
 	
 	return gear;
 }
@@ -70,6 +78,7 @@ Entity gear_8 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
 	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale, gear_scale, 0.5f));
 	ecs.diffuse_colors [gear] = color;
 	ecs.meshes [gear] = (MeshKey)EMesh::Gear8;
+	ecs.textures [gear] = (TextureKey)ETexture::Gear8;
 	
 	return gear;
 }
@@ -152,6 +161,7 @@ int main () {
 			graphics_ecs.rigid_mats [e] = rotate (translate (mat4 (1.0f), vec3 (0.0f, -1.5f, 0.125f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
 			graphics_ecs.diffuse_colors [e] = vec3 (0.5f);
 			graphics_ecs.meshes [e] = (MeshKey)EMesh::Bench;
+			graphics_ecs.textures [e] = (TextureKey)ETexture::BenchAo;
 			opaque.renderables [e];
 		}
 		

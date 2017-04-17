@@ -6,6 +6,7 @@
 #include "gl-state-tracker.h"
 #include "mesh-binder.h"
 #include "shader-binder.h"
+#include "texture-binder.h"
 
 typedef int32_t Entity;
 
@@ -33,4 +34,5 @@ struct GraphicsEcs : Ecs {
 	Components <glm::mat4> rigid_mats;
 	Components <glm::vec3> diffuse_colors;
 	Components <MeshKey> meshes;
+	Components <TextureKey> textures;
 };
