@@ -170,7 +170,13 @@ int main () {
 		
 		opaque.renderables [gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.25), axles [2], red)];
 		
-		auto shadow_mat = scale (translate (mat4 (1.0f), vec3 (0.0, -1.49, 0.0)), vec3 (1.0, 0.0, 1.0));
+		mat4 shadow_mat;
+		shadow_mat [1][1] = 0.0f;
+		shadow_mat [1][0] = -0.25f;
+		shadow_mat [1][2] = 0.25f;
+		
+		shadow_mat = translate (translate (mat4 (1.0f), vec3 (0.0, -1.49, 0.0)) * shadow_mat, vec3 (0.0, 1.49, 0.0));
+		
 		auto shadow_color = vec3 (0.125f);
 		
 		// Add all the gears to the shadow pass
