@@ -21,6 +21,9 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTru
 	if (ecs.textures.count (e) >= 1) {
 		textures.bind (ecs.textures.at (e));
 	}
+	else {
+		glBindTexture (GL_TEXTURE_2D, 0);
+	}
 	
 	current_shader ()->setMvpMatrix (proj_view_mat * model_mat);
 	
@@ -48,7 +51,7 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTru
 
 void Graphics::render_pass (const GraphicsEcs & ecs, const ScreenOptions & screen_opts, const pair <Entity, Pass> & p)
 {
-	shaders.bind ((ShaderKey)EShader::Debug);
+	shaders.bind (p.second.shader);
 	
 	ae.enableAttributes (attrib_set);
 	

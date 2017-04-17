@@ -22,13 +22,20 @@ enum class ETexture {
 	Gear8,
 	Gear32,
 	Noise,
+	White,
 };
 
 enum class EMesh {
 	Bench,
+	BenchUpper,
 	Gear8,
 	Gear32,
 	Square,
+};
+
+enum class EShader {
+	Debug,
+	Shadow,
 };
 
 void load_graphics (Graphics & g, Terf::Archive & terf) {
@@ -40,14 +47,18 @@ void load_graphics (Graphics & g, Terf::Archive & terf) {
 	g.attrib_set.insert (g.current_shader ()->vertNormAttribute);
 	g.attrib_set.insert (g.current_shader ()->vertTexCoordAttribute);
 	
+	g.shaders.addShader ((ShaderKey)EShader::Shadow, newShader (terf, "shader.vert", "shadow.frag"));
+	
 	g.textures.add ((TextureKey)ETexture::Noise, new Texture (terf, "hexture/noise.png"));
 	g.textures.add ((TextureKey)ETexture::BenchAo, new Texture (terf, "textures/bench-ao.png"));
 	g.textures.add ((TextureKey)ETexture::Gear8, new Texture (terf, "textures/gear8-ao.png"));
 	g.textures.add ((TextureKey)ETexture::Gear32, new Texture (terf, "textures/gear32-ao.png"));
+	g.textures.add ((TextureKey)ETexture::White, new Texture (terf, "textures/white.png"));
 	
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	
 	g.meshes.add_iqm ((MeshKey)EMesh::Bench, terf.lookupFile ("meshes/bench.iqm"));
+	g.meshes.add_iqm ((MeshKey)EMesh::BenchUpper, terf.lookupFile ("meshes/bench-upper.iqm"));
 	g.meshes.add_iqm ((MeshKey)EMesh::Square, terf.lookupFile ("meshes/square.iqm"));
 	g.meshes.add_iqm ((MeshKey)EMesh::Gear8, terf.lookupFile ("meshes/gear8.iqm"));
 	g.meshes.add_iqm ((MeshKey)EMesh::Gear32, terf.lookupFile ("meshes/gear32.iqm"));
@@ -149,16 +160,50 @@ int main () {
 		Pass opaque;
 		opaque.shader = (ShaderKey)EShader::Debug;
 		
+		Pass shadow;
+		shadow.shader = (ShaderKey)EShader::Shadow;
+		
 		opaque.renderables [gear_8 (graphics_ecs, vec3 (-1.25, 0.0, 0.0), axles [0], cyan)];
 		
 		opaque.renderables [gear_32 (graphics_ecs, vec3 (0.0, 0.0, 0.0), axles [1], cyan)];
-		opaque.renderables [gear_8 (graphics_ecs, vec3 (0.0, 0.0, 0.125), axles [1], red)];
+		opaque.renderables [gear_8 (graphics_ecs, vec3 (0.0, 0.0, 0.25), axles [1], red)];
 		
-		opaque.renderables [gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.125), axles [2], red)];
+		opaque.renderables [gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.25), axles [2], red)];
+		
+		auto shadow_mat = scale (translate (mat4 (1.0f), vec3 (0.0, -1.49, 0.0)), vec3 (1.0, 0.0, 1.0));
+		auto shadow_color = vec3 (0.125f);
+		
+		// Add all the gears to the shadow pass
+		for (auto pair: opaque.renderables) {
+			auto old_e = pair.first;
+			
+			auto e = graphics_ecs.add_entity ();
+			
+			auto old_model_mat = graphics_ecs.rigid_mats [old_e];
+			
+			graphics_ecs.rigid_mats [e] = shadow_mat * old_model_mat;
+			graphics_ecs.diffuse_colors [e] = shadow_color;
+			graphics_ecs.meshes [e] = graphics_ecs.meshes [old_e];
+			graphics_ecs.textures [e] = (TextureKey)ETexture::White;
+			
+			shadow.renderables [e];
+		}
+		
+		auto bench_mat = rotate (translate (mat4 (1.0f), vec3 (0.0f, -1.5f, 0.125f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+		
+		// Also add this bogus shadow caster
+		{
+			auto e = graphics_ecs.add_entity ();
+			
+			graphics_ecs.rigid_mats [e] = shadow_mat * bench_mat;
+			graphics_ecs.diffuse_colors [e] = shadow_color;
+			graphics_ecs.meshes [e] = (MeshKey)EMesh::BenchUpper;
+			shadow.renderables [e];
+		}
 		
 		{
 			Entity e = graphics_ecs.add_entity ();
-			graphics_ecs.rigid_mats [e] = rotate (translate (mat4 (1.0f), vec3 (0.0f, -1.5f, 0.125f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+			graphics_ecs.rigid_mats [e] = bench_mat;
 			graphics_ecs.diffuse_colors [e] = vec3 (0.5f);
 			graphics_ecs.meshes [e] = (MeshKey)EMesh::Bench;
 			graphics_ecs.textures [e] = (TextureKey)ETexture::BenchAo;
@@ -166,6 +211,7 @@ int main () {
 		}
 		
 		graphics_ecs.passes [graphics_ecs.add_entity ()] = opaque;
+		graphics_ecs.passes [graphics_ecs.add_entity ()] = shadow;
 		
 		// Render
 		graphics.render (graphics_ecs, screen_opts);

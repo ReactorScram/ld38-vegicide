@@ -9,10 +9,6 @@
 #include "shader-binder.h"
 #include "texture-binder.h"
 
-enum class EShader {
-	Debug,
-};
-
 struct Graphics {
 	ShaderBinder shaders;
 	Colorado::AttributeEnabler ae;
