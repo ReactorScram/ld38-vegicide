@@ -24,10 +24,11 @@ void Graphics::render (const GraphicsEcs & ecs, const ScreenOptions & screen_opt
 	//textures.bind ((TextureKey)ETexture::Noise);
 	
 	Camera camera;
+	camera.fov = 0.25;
 	auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
 	
 	auto view_mat = mat4 (1.0f);
-	view_mat = translate (view_mat, vec3 (0.0f, 0.0f, -3.0f));
+	view_mat = translate (view_mat, vec3 (-0.5f, 0.0f, -10.0f));
 	
 	auto proj_view_mat = proj_mat * view_mat;
 	

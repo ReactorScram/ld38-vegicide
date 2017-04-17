@@ -49,29 +49,32 @@ Entity add_gear (GraphicsEcs & ecs) {
 	
 	ecs.opaque_pass [gear] = EcsTrue ();
 	
-	
 	return gear;
 }
 
-Entity add_gear_32 (GraphicsEcs & ecs, Entity gear, vec3 pos, double revolutions) {
+Entity add_gear_32 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
+	auto gear = add_gear (ecs);
+	
 	float radians = (mod (revolutions, 1.0)) * 2.0 * 3.1415926535;
 	
 	float gear_scale = 2.0 / ((2.097 + 2.0) * 0.5);
 	
 	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale));
-	ecs.diffuse_colors [gear] = vec3 (1.0, 0.5, 0.5);
+	ecs.diffuse_colors [gear] = color;
 	ecs.meshes [gear] = (MeshKey)EMesh::Gear32;
 	
 	return gear;
 }
 
-Entity add_gear_8 (GraphicsEcs & ecs, Entity gear, vec3 pos, double revolutions) {
+Entity add_gear_8 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
+	auto gear = add_gear (ecs);
+	
 	float radians = (mod (revolutions, 1.0)) * 2.0 * 3.1415926535;
 	
 	float gear_scale = 0.5 / ((0.597 + 0.5) * 0.5);
 	
 	ecs.rigid_mats [gear] = scale (rotate (translate (mat4 (1.0f), pos), radians, vec3 (0.0f, 0.0f, 1.0f)), vec3 (gear_scale));
-	ecs.diffuse_colors [gear] = vec3 (0.5, 1.0, 1.0);
+	ecs.diffuse_colors [gear] = color;
 	ecs.meshes [gear] = (MeshKey)EMesh::Gear8;
 	
 	return gear;
@@ -84,7 +87,7 @@ int main () {
 	screen_opts.height = 480;
 	
 	Colorado::Game game (screen_opts);
-	SDL_WM_SetCaption ("Colorado Hexture Map", nullptr);
+	SDL_WM_SetCaption ("ReactorScram LD38 warmup", nullptr);
 	
 	GLeeInit ();
 	
@@ -134,14 +137,17 @@ int main () {
 		axles [1] = -0.25 * axles [0] + (9.5 / 32.0);
 		axles [2] = -0.25 * axles [1] + (5.5 / 32.0);
 		
+		vec3 red (1.0, 0.5, 0.5);
+		vec3 cyan (0.5, 1.0, 1.0);
+		
 		GraphicsEcs graphics_ecs;
 		
-		add_gear_8 (graphics_ecs, add_gear (graphics_ecs), vec3 (-1.25, 0.0, 0.0), axles [0]);
+		add_gear_8 (graphics_ecs, vec3 (-1.25, 0.0, 0.0), axles [0], cyan);
 		
-		add_gear_32 (graphics_ecs, add_gear (graphics_ecs), vec3 (0.0, 0.0, 0.0), axles [1]);
-		add_gear_8 (graphics_ecs, add_gear (graphics_ecs), vec3 (0.0, 0.0, 0.0), axles [1]);
+		add_gear_32 (graphics_ecs, vec3 (0.0, 0.0, 0.0), axles [1], cyan);
+		add_gear_8 (graphics_ecs, vec3 (0.0, 0.0, 0.75), axles [1], red);
 		
-		add_gear_32 (graphics_ecs, add_gear (graphics_ecs), vec3 (1.25, 0.0, 0.0), axles [2]);
+		add_gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.75), axles [2], red);
 		
 		// Render
 		graphics.render (graphics_ecs, screen_opts);
