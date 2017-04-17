@@ -94,6 +94,85 @@ Entity gear_8 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
 	return gear;
 }
 
+GraphicsEcs animate (long frames) {
+	double revolutions = (double)frames / 60.0;
+	
+	double axles [3];
+	axles [0] = revolutions;
+	axles [1] = -0.25 * axles [0] + (9.5 / 32.0);
+	axles [2] = -0.25 * axles [1] + (5.5 / 32.0);
+	
+	vec3 red (1.0, 0.5, 0.5);
+	vec3 cyan (0.5, 1.0, 1.0);
+	
+	GraphicsEcs graphics_ecs;
+	
+	// Add everything to a normal opaque pass
+	Pass opaque;
+	opaque.shader = (ShaderKey)EShader::Debug;
+	
+	Pass shadow;
+	shadow.shader = (ShaderKey)EShader::Shadow;
+	
+	opaque.renderables [gear_8 (graphics_ecs, vec3 (-1.25, 0.0, 0.0), axles [0], cyan)];
+	
+	opaque.renderables [gear_32 (graphics_ecs, vec3 (0.0, 0.0, 0.0), axles [1], cyan)];
+	opaque.renderables [gear_8 (graphics_ecs, vec3 (0.0, 0.0, 0.25), axles [1], red)];
+	
+	opaque.renderables [gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.25), axles [2], red)];
+	
+	mat4 shadow_mat;
+	shadow_mat [1][1] = 0.0f;
+	shadow_mat [1][0] = -0.25f;
+	shadow_mat [1][2] = 0.25f;
+	
+	shadow_mat = translate (translate (mat4 (1.0f), vec3 (0.0, -1.49, 0.0)) * shadow_mat, vec3 (0.0, 1.49, 0.0));
+	
+	auto shadow_color = vec3 (0.125f);
+	
+	// Add all the gears to the shadow pass
+	for (auto pair: opaque.renderables) {
+		auto old_e = pair.first;
+		
+		auto e = graphics_ecs.add_entity ();
+		
+		auto old_model_mat = graphics_ecs.rigid_mats [old_e];
+		
+		graphics_ecs.rigid_mats [e] = shadow_mat * old_model_mat;
+		graphics_ecs.diffuse_colors [e] = shadow_color;
+		graphics_ecs.meshes [e] = graphics_ecs.meshes [old_e];
+		graphics_ecs.textures [e] = (TextureKey)ETexture::White;
+		
+		shadow.renderables [e];
+	}
+	
+	auto bench_mat = rotate (translate (mat4 (1.0f), vec3 (0.0f, -1.5f, 0.125f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+	
+	// Also add this bogus shadow caster
+	{
+		auto e = graphics_ecs.add_entity ();
+		
+		graphics_ecs.rigid_mats [e] = shadow_mat * bench_mat;
+		graphics_ecs.diffuse_colors [e] = shadow_color;
+		graphics_ecs.meshes [e] = (MeshKey)EMesh::BenchUpper;
+		shadow.renderables [e];
+	}
+	
+	{
+		Entity e = graphics_ecs.add_entity ();
+		graphics_ecs.rigid_mats [e] = bench_mat;
+		graphics_ecs.diffuse_colors [e] = vec3 (0.5f);
+		graphics_ecs.meshes [e] = (MeshKey)EMesh::Bench;
+		graphics_ecs.textures [e] = (TextureKey)ETexture::BenchAo;
+		opaque.renderables [e];
+	}
+	
+	graphics_ecs.passes [graphics_ecs.add_entity ()] = opaque;
+	graphics_ecs.passes [graphics_ecs.add_entity ()] = shadow;
+	
+	return graphics_ecs;
+}
+
 int main () {
 	ScreenOptions screen_opts;
 	screen_opts.fullscreen = false;
@@ -143,88 +222,15 @@ int main () {
 		}
 		
 		if (numSteps == 0) {
-			continue;
+			SDL_Delay (2);
 		}
-		
-		// Animate
-		
-		double revolutions = (double)frames / 60.0;
-		
-		double axles [3];
-		axles [0] = revolutions;
-		axles [1] = -0.25 * axles [0] + (9.5 / 32.0);
-		axles [2] = -0.25 * axles [1] + (5.5 / 32.0);
-		
-		vec3 red (1.0, 0.5, 0.5);
-		vec3 cyan (0.5, 1.0, 1.0);
-		
-		GraphicsEcs graphics_ecs;
-		
-		// Add everything to a normal opaque pass
-		Pass opaque;
-		opaque.shader = (ShaderKey)EShader::Debug;
-		
-		Pass shadow;
-		shadow.shader = (ShaderKey)EShader::Shadow;
-		
-		opaque.renderables [gear_8 (graphics_ecs, vec3 (-1.25, 0.0, 0.0), axles [0], cyan)];
-		
-		opaque.renderables [gear_32 (graphics_ecs, vec3 (0.0, 0.0, 0.0), axles [1], cyan)];
-		opaque.renderables [gear_8 (graphics_ecs, vec3 (0.0, 0.0, 0.25), axles [1], red)];
-		
-		opaque.renderables [gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.25), axles [2], red)];
-		
-		mat4 shadow_mat;
-		shadow_mat [1][1] = 0.0f;
-		shadow_mat [1][0] = -0.25f;
-		shadow_mat [1][2] = 0.25f;
-		
-		shadow_mat = translate (translate (mat4 (1.0f), vec3 (0.0, -1.49, 0.0)) * shadow_mat, vec3 (0.0, 1.49, 0.0));
-		
-		auto shadow_color = vec3 (0.125f);
-		
-		// Add all the gears to the shadow pass
-		for (auto pair: opaque.renderables) {
-			auto old_e = pair.first;
+		else {
+			// Animate
+			auto graphics_ecs = animate (frames);
 			
-			auto e = graphics_ecs.add_entity ();
-			
-			auto old_model_mat = graphics_ecs.rigid_mats [old_e];
-			
-			graphics_ecs.rigid_mats [e] = shadow_mat * old_model_mat;
-			graphics_ecs.diffuse_colors [e] = shadow_color;
-			graphics_ecs.meshes [e] = graphics_ecs.meshes [old_e];
-			graphics_ecs.textures [e] = (TextureKey)ETexture::White;
-			
-			shadow.renderables [e];
+			// Render
+			graphics.render (graphics_ecs, screen_opts);
 		}
-		
-		auto bench_mat = rotate (translate (mat4 (1.0f), vec3 (0.0f, -1.5f, 0.125f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
-		
-		// Also add this bogus shadow caster
-		{
-			auto e = graphics_ecs.add_entity ();
-			
-			graphics_ecs.rigid_mats [e] = shadow_mat * bench_mat;
-			graphics_ecs.diffuse_colors [e] = shadow_color;
-			graphics_ecs.meshes [e] = (MeshKey)EMesh::BenchUpper;
-			shadow.renderables [e];
-		}
-		
-		{
-			Entity e = graphics_ecs.add_entity ();
-			graphics_ecs.rigid_mats [e] = bench_mat;
-			graphics_ecs.diffuse_colors [e] = vec3 (0.5f);
-			graphics_ecs.meshes [e] = (MeshKey)EMesh::Bench;
-			graphics_ecs.textures [e] = (TextureKey)ETexture::BenchAo;
-			opaque.renderables [e];
-		}
-		
-		graphics_ecs.passes [graphics_ecs.add_entity ()] = opaque;
-		graphics_ecs.passes [graphics_ecs.add_entity ()] = shadow;
-		
-		// Render
-		graphics.render (graphics_ecs, screen_opts);
 	}
 	
 	return 0;
