@@ -142,6 +142,10 @@ int main () {
 			frames++;
 		}
 		
+		if (numSteps == 0) {
+			continue;
+		}
+		
 		// Animate
 		
 		double revolutions = (double)frames / 60.0;
