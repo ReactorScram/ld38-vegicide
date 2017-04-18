@@ -5,9 +5,6 @@
 #include "colorado/screen-options.h"
 
 #include "ecs.h"
-#include "mesh-binder.h"
-#include "shader-binder.h"
-#include "texture-binder.h"
 
 struct Graphics {
 	ShaderBinder shaders;
