@@ -1,10 +1,12 @@
-/bin
-/build
+bin
+build
 /gimp
 /hexture
-/Ld38-Warmup.exe
 /meshes
 /meshes-blender
 /screenshots
 /textures
+
 .release_time
+
+*.exe

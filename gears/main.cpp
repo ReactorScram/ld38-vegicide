@@ -10,7 +10,7 @@
 #include "colorado/triangle-shader.h"
 #include "terf/terf.h"
 
-#include "graphics.h"
+#include "graphics/graphics.h"
 
 using namespace glm;
 using namespace std;
