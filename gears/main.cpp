@@ -116,6 +116,7 @@ GraphicsEcs animate (long frames) {
 	GlState shadow_state;
 	shadow_state.bools [GL_DEPTH_TEST] = true;
 	shadow_state.bools [GL_CULL_FACE] = true;
+	shadow_state.bools [GL_STENCIL_TEST] = true;
 	shadow_state.depthFunc = GL_ALWAYS;
 	shadow_state.stencilFunc [0] = GL_EQUAL;
 	shadow_state.stencilFunc [1] = 0x01;
@@ -128,6 +129,7 @@ GraphicsEcs animate (long frames) {
 	GlState shadow_stencil_state;
 	shadow_stencil_state.bools [GL_DEPTH_TEST] = true;
 	shadow_stencil_state.bools [GL_CULL_FACE] = true;
+	shadow_stencil_state.bools [GL_STENCIL_TEST] = true;
 	shadow_stencil_state.frontFace = GL_CCW;
 	shadow_stencil_state.stencilFunc [0] = GL_ALWAYS;
 	shadow_stencil_state.stencilFunc [1] = 0x01;
