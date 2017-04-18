@@ -58,7 +58,7 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTru
 	current_shader ()->setMvpMatrix (proj_view_mat * model_mat);
 	
 	auto light_mat = inverse (model_mat);
-	auto object_up = light_mat * vec4 (0.0, 1.0, 0.0, 0.0);
+	auto object_up = light_mat * vec4 (normalize (vec3 (-0.1f, 1.0f, 0.2f)), 0.0);
 	
 	// TODO: Cache per-shader
 	auto uni_up = current_shader ()->uniformLocation ("up");

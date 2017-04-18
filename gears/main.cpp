@@ -159,12 +159,14 @@ GraphicsEcs animate (long frames) {
 	shadow.shader = (ShaderKey)EShader::Shadow;
 	shadow.gl_state = shadow_state;
 	
-	casters.renderables [gear_8 (graphics_ecs, vec3 (-1.25, 0.0, 0.0), axles [0], cyan)];
+	float gear_y = 0.0f;
 	
-	casters.renderables [gear_32 (graphics_ecs, vec3 (0.0, 0.0, 0.0), axles [1], cyan)];
-	casters.renderables [gear_8 (graphics_ecs, vec3 (0.0, 0.0, 0.25), axles [1], red)];
+	casters.renderables [gear_8 (graphics_ecs, vec3 (-1.25, gear_y, 0.0), axles [0], cyan)];
 	
-	casters.renderables [gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.25), axles [2], red)];
+	casters.renderables [gear_32 (graphics_ecs, vec3 (0.0, gear_y, 0.0), axles [1], cyan)];
+	casters.renderables [gear_8 (graphics_ecs, vec3 (0.0, gear_y, 0.25), axles [1], red)];
+	
+	casters.renderables [gear_32 (graphics_ecs, vec3 (1.25, gear_y, 0.25), axles [2], red)];
 	
 	vec3 bench_color (1.0f);
 	auto bench_mat = rotate (translate (mat4 (1.0f), vec3 (0.0f, -1.5f, 0.125f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
