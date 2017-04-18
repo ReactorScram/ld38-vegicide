@@ -38,30 +38,25 @@ enum class EShader {
 	Shadow,
 };
 
-void load_graphics (Graphics & g, Terf::Archive & terf) {
-	g.shaders.addShader ((ShaderKey)EShader::Debug, newShader (terf, "shader.vert", "shader.frag"));
+ResourceTable make_resource_table () {
+	ResourceTable rc;
 	
-	g.shaders.bind ((ShaderKey)EShader::Debug);
+	rc.shaders [(ShaderKey)EShader::Debug] = ShaderFiles {"shader.vert", "shader.frag"};
+	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shader.vert", "shadow.frag"};
 	
-	g.attrib_set.insert (g.current_shader ()->vertPosAttribute);
-	g.attrib_set.insert (g.current_shader ()->vertNormAttribute);
-	g.attrib_set.insert (g.current_shader ()->vertTexCoordAttribute);
+	rc.textures [(TextureKey)ETexture::Noise] = "hexture/noise.png";
+	rc.textures [(TextureKey)ETexture::BenchAo] = "textures/bench-ao.png";
+	rc.textures [(TextureKey)ETexture::Gear8] = "textures/gear8-ao.png";
+	rc.textures [(TextureKey)ETexture::Gear32] = "textures/gear32-ao.png";
+	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
 	
-	g.shaders.addShader ((ShaderKey)EShader::Shadow, newShader (terf, "shader.vert", "shadow.frag"));
+	rc.meshes [(MeshKey)EMesh::Bench] = "meshes/bench.iqm";
+	rc.meshes [(MeshKey)EMesh::BenchUpper] = "meshes/bench-upper.iqm";
+	rc.meshes [(MeshKey)EMesh::Gear8] = "meshes/gear8.iqm";
+	rc.meshes [(MeshKey)EMesh::Gear32] = "meshes/gear32.iqm";
+	rc.meshes [(MeshKey)EMesh::Square] = "meshes/square.iqm";
 	
-	g.textures.add ((TextureKey)ETexture::Noise, new Texture (terf, "hexture/noise.png"));
-	g.textures.add ((TextureKey)ETexture::BenchAo, new Texture (terf, "textures/bench-ao.png"));
-	g.textures.add ((TextureKey)ETexture::Gear8, new Texture (terf, "textures/gear8-ao.png"));
-	g.textures.add ((TextureKey)ETexture::Gear32, new Texture (terf, "textures/gear32-ao.png"));
-	g.textures.add ((TextureKey)ETexture::White, new Texture (terf, "textures/white.png"));
-	
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	
-	g.meshes.add_iqm ((MeshKey)EMesh::Bench, terf.lookupFile ("meshes/bench.iqm"));
-	g.meshes.add_iqm ((MeshKey)EMesh::BenchUpper, terf.lookupFile ("meshes/bench-upper.iqm"));
-	g.meshes.add_iqm ((MeshKey)EMesh::Square, terf.lookupFile ("meshes/square.iqm"));
-	g.meshes.add_iqm ((MeshKey)EMesh::Gear8, terf.lookupFile ("meshes/gear8.iqm"));
-	g.meshes.add_iqm ((MeshKey)EMesh::Gear32, terf.lookupFile ("meshes/gear32.iqm"));
+	return rc;
 }
 
 Entity gear_32 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
@@ -199,7 +194,8 @@ int main () {
 	
 	Graphics graphics;
 	// TODO: Learn move constructors
-	load_graphics (graphics, terf);
+	ResourceTable rc = make_resource_table ();
+	graphics.load (terf, rc);
 	
 	long frames = 0;
 	

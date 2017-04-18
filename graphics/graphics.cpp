@@ -4,10 +4,35 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "colorado/camera.h"
+#include "terf/terf.h"
 
 using namespace Colorado;
 using namespace glm;
 using namespace std;
+
+void Graphics::load (const Terf::Archive & terf, const ResourceTable & rc) {
+	for (auto pair: rc.shaders) {
+		shaders.addShader (pair.first, newShader (terf, pair.second.vert_fn, pair.second.frag_fn));
+		
+		shaders.bind (pair.first);
+		
+		unordered_set <int> attrib_set;
+		auto s = current_shader ();
+		attrib_set.insert (s->vertPosAttribute);
+		attrib_set.insert (s->vertNormAttribute);
+		attrib_set.insert (s->vertTexCoordAttribute);
+		
+		attrib_sets [pair.first] = attrib_set;
+	}
+	
+	for (auto pair: rc.textures) {
+		textures.add (pair.first, new Texture (terf, pair.second));
+	}
+	
+	for (auto pair: rc.meshes) {
+		meshes.add_iqm (pair.first, terf.lookupFile (pair.second));
+	}
+}
 
 const Colorado::TriangleShader * Graphics::current_shader () const {
 	return shaders.currentShader ();
@@ -51,9 +76,11 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTru
 
 void Graphics::render_pass (const GraphicsEcs & ecs, const ScreenOptions & screen_opts, const pair <Entity, Pass> & p)
 {
-	shaders.bind (p.second.shader);
+	ShaderKey shader_key = p.second.shader;
 	
-	ae.enableAttributes (attrib_set);
+	shaders.bind (shader_key);
+	
+	ae.enableAttributes (attrib_sets.at (shader_key));
 	
 	Camera camera;
 	camera.fov = 0.25;
