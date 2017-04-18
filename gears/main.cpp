@@ -6,8 +6,6 @@
 
 #include "colorado/game.h"
 #include "colorado/fixed-timestep.h"
-#include "colorado/gl.h"
-#include "colorado/triangle-shader.h"
 #include "terf/terf.h"
 
 #include "graphics/graphics.h"
@@ -34,14 +32,14 @@ enum class EMesh {
 };
 
 enum class EShader {
-	Debug,
+	Opaque,
 	Shadow,
 };
 
 ResourceTable make_resource_table () {
 	ResourceTable rc;
 	
-	rc.shaders [(ShaderKey)EShader::Debug] = ShaderFiles {"shader.vert", "shader.frag"};
+	rc.shaders [(ShaderKey)EShader::Opaque] = ShaderFiles {"shader.vert", "shader.frag"};
 	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shader.vert", "shadow.frag"};
 	
 	rc.textures [(TextureKey)ETexture::Noise] = "hexture/noise.png";
@@ -102,31 +100,103 @@ GraphicsEcs animate (long frames) {
 	
 	GraphicsEcs graphics_ecs;
 	
-	// Add everything to a normal opaque pass
-	Pass opaque;
-	opaque.shader = (ShaderKey)EShader::Debug;
+	// TODO: Cache these!
+	// GL states
+	GlState opaque_state;
+	opaque_state.bools [GL_DEPTH_TEST] = true;
+	opaque_state.bools [GL_CULL_FACE] = true;
+	opaque_state.frontFace = GL_CW;
+	
+	GlState opaque_backface_state;
+	opaque_backface_state.bools [GL_DEPTH_TEST] = true;
+	opaque_backface_state.bools [GL_CULL_FACE] = true;
+	opaque_backface_state.frontFace = GL_CCW;
+	
+	// Pulls shadows from the stencil buffer
+	GlState shadow_state;
+	shadow_state.bools [GL_DEPTH_TEST] = true;
+	shadow_state.bools [GL_CULL_FACE] = true;
+	shadow_state.depthFunc = GL_ALWAYS;
+	shadow_state.stencilFunc [0] = GL_EQUAL;
+	shadow_state.stencilFunc [1] = 0x01;
+	shadow_state.stencilFunc [2] = 0x01;
+	shadow_state.stencilOp [0] = GL_KEEP;
+	shadow_state.stencilOp [1] = GL_KEEP;
+	shadow_state.stencilOp [2] = GL_KEEP;
+	
+	// Renders shadows into the stencil for later
+	GlState shadow_stencil_state;
+	shadow_stencil_state.bools [GL_DEPTH_TEST] = true;
+	shadow_stencil_state.bools [GL_CULL_FACE] = true;
+	shadow_stencil_state.frontFace = GL_CCW;
+	shadow_stencil_state.stencilFunc [0] = GL_ALWAYS;
+	shadow_stencil_state.stencilFunc [1] = 0x01;
+	shadow_stencil_state.stencilFunc [2] = 0x01;
+	shadow_stencil_state.stencilOp [0] = GL_KEEP;
+	shadow_stencil_state.stencilOp [1] = GL_KEEP;
+	shadow_stencil_state.stencilOp [2] = GL_REPLACE;
+	
+	// Passes
+	Pass casters;
+	casters.shader = (ShaderKey)EShader::Opaque;
+	casters.gl_state = opaque_state;
+	
+	Pass receivers_backface;
+	receivers_backface.shader = (ShaderKey)EShader::Shadow;
+	receivers_backface.gl_state = opaque_backface_state;
+	
+	Pass shadow_stencil;
+	shadow_stencil.shader = (ShaderKey)EShader::Shadow;
+	shadow_stencil.gl_state = shadow_stencil_state;
+	
+	Pass receivers;
+	receivers.shader = (ShaderKey)EShader::Opaque;
+	receivers.gl_state = opaque_state;
 	
 	Pass shadow;
 	shadow.shader = (ShaderKey)EShader::Shadow;
+	shadow.gl_state = shadow_state;
 	
-	opaque.renderables [gear_8 (graphics_ecs, vec3 (-1.25, 0.0, 0.0), axles [0], cyan)];
+	casters.renderables [gear_8 (graphics_ecs, vec3 (-1.25, 0.0, 0.0), axles [0], cyan)];
 	
-	opaque.renderables [gear_32 (graphics_ecs, vec3 (0.0, 0.0, 0.0), axles [1], cyan)];
-	opaque.renderables [gear_8 (graphics_ecs, vec3 (0.0, 0.0, 0.25), axles [1], red)];
+	casters.renderables [gear_32 (graphics_ecs, vec3 (0.0, 0.0, 0.0), axles [1], cyan)];
+	casters.renderables [gear_8 (graphics_ecs, vec3 (0.0, 0.0, 0.25), axles [1], red)];
 	
-	opaque.renderables [gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.25), axles [2], red)];
+	casters.renderables [gear_32 (graphics_ecs, vec3 (1.25, 0.0, 0.25), axles [2], red)];
+	
+	vec3 bench_color (1.0f);
+	auto bench_mat = rotate (translate (mat4 (1.0f), vec3 (0.0f, -1.5f, 0.125f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+	
+	{
+		auto e = graphics_ecs.add_entity ();
+		
+		graphics_ecs.rigid_mats [e] = bench_mat;
+		graphics_ecs.diffuse_colors [e] = bench_color;
+		graphics_ecs.meshes [e] = (MeshKey)EMesh::BenchUpper;
+		graphics_ecs.textures [e] = (TextureKey)ETexture::BenchAo;
+		casters.renderables [e];
+	}
+	
+	{
+		Entity e = graphics_ecs.add_entity ();
+		graphics_ecs.rigid_mats [e] = bench_mat;
+		graphics_ecs.diffuse_colors [e] = bench_color;
+		graphics_ecs.meshes [e] = (MeshKey)EMesh::Bench;
+		graphics_ecs.textures [e] = (TextureKey)ETexture::BenchAo;
+		receivers.renderables [e];
+	}
 	
 	mat4 shadow_mat;
 	shadow_mat [1][1] = 0.0f;
 	shadow_mat [1][0] = -0.25f;
 	shadow_mat [1][2] = 0.25f;
 	
-	shadow_mat = translate (translate (mat4 (1.0f), vec3 (0.0, -1.49, 0.0)) * shadow_mat, vec3 (0.0, 1.49, 0.0));
+	shadow_mat = translate (translate (mat4 (1.0f), vec3 (0.0, -1.5, 0.0)) * shadow_mat, vec3 (0.0, 1.5, 0.0));
 	
-	auto shadow_color = vec3 (0.125f);
+	auto shadow_color = vec3 (0.125f, 0.0f, 0.125f);
 	
 	// Add all the gears to the shadow pass
-	for (auto pair: opaque.renderables) {
+	for (auto pair: casters.renderables) {
 		auto old_e = pair.first;
 		
 		auto e = graphics_ecs.add_entity ();
@@ -141,61 +211,60 @@ GraphicsEcs animate (long frames) {
 		shadow.renderables [e];
 	}
 	
-	auto bench_mat = rotate (translate (mat4 (1.0f), vec3 (0.0f, -1.5f, 0.125f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
-	
-	// Also add this bogus shadow caster
-	{
-		auto e = graphics_ecs.add_entity ();
+	// Add receivers to the shadow pass so they can occlude shadows
+	// with their backfaces
+	for (auto pair: receivers.renderables) {
+		auto old_e = pair.first;
 		
-		graphics_ecs.rigid_mats [e] = shadow_mat * bench_mat;
-		graphics_ecs.diffuse_colors [e] = shadow_color;
-		graphics_ecs.meshes [e] = (MeshKey)EMesh::BenchUpper;
-		shadow.renderables [e];
+		auto e = graphics_ecs.add_entity ();
+		auto old_model_mat = graphics_ecs.rigid_mats [old_e];
+		graphics_ecs.rigid_mats [e] = old_model_mat;
+		graphics_ecs.diffuse_colors [e] = vec3 (1.0f, 0.0f, 1.0f);
+		graphics_ecs.meshes [e] = graphics_ecs.meshes [old_e];
+		graphics_ecs.textures [e] = (TextureKey)ETexture::White;
+		
+		// No don't do that
+		//shadow.renderables [e];
 	}
 	
-	{
-		Entity e = graphics_ecs.add_entity ();
-		graphics_ecs.rigid_mats [e] = bench_mat;
-		graphics_ecs.diffuse_colors [e] = vec3 (0.5f);
-		graphics_ecs.meshes [e] = (MeshKey)EMesh::Bench;
-		graphics_ecs.textures [e] = (TextureKey)ETexture::BenchAo;
-		opaque.renderables [e];
-	}
+	receivers_backface.renderables = receivers.renderables;
+	shadow_stencil.renderables = shadow.renderables;
 	
-	graphics_ecs.passes [graphics_ecs.add_entity ()] = opaque;
-	graphics_ecs.passes [graphics_ecs.add_entity ()] = shadow;
+	graphics_ecs.passes.push_back (casters);
+	graphics_ecs.passes.push_back (receivers_backface);
+	graphics_ecs.passes.push_back (shadow_stencil);
+	graphics_ecs.passes.push_back (receivers);
+	graphics_ecs.passes.push_back (shadow);
+	
 	
 	return graphics_ecs;
 }
 
 int main () {
+	string window_title = "ReactorScram LD38 warmup";
+	Terf::Archive terf ("rom.tar", "rom.tar.index");
+	terf.enableTerfLookup = false;
+	ResourceTable rc = make_resource_table ();
+	
+	// End of game-specific bits
+	
 	ScreenOptions screen_opts;
 	screen_opts.fullscreen = false;
 	screen_opts.width = 800;
 	screen_opts.height = 480;
 	
 	Colorado::Game game (screen_opts);
-	SDL_WM_SetCaption ("ReactorScram LD38 warmup", nullptr);
-	
-	GLeeInit ();
-	
-	Terf::Archive terf ("rom.tar", "rom.tar.index");
-	terf.enableTerfLookup = false;
 	
 	FixedTimestep timestep (60, 1);
 	auto last_frame_time = SDL_GetTicks ();
 	
-	glEnable (GL_DEPTH_TEST);
-	//glEnable (GL_CULL_FACE);
-	glEnable (GL_TEXTURE_2D);
-	glFrontFace (GL_CW);
-	
 	bool running = true;
 	
-	Graphics graphics;
 	// TODO: Learn move constructors
-	ResourceTable rc = make_resource_table ();
+	Graphics graphics;
 	graphics.load (terf, rc);
+	
+	SDL_WM_SetCaption (window_title.c_str (), nullptr);
 	
 	long frames = 0;
 	

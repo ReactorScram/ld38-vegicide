@@ -16,6 +16,8 @@ struct GlState {
 	bool colorMask [4];
 	int stencilMask;
 	
+	int frontFace;
+	int depthFunc;
 	int blendFunc [2];
 	int stencilOp [3];
 	int stencilFunc [3];

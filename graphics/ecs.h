@@ -27,10 +27,13 @@ struct Pass {
 	ShaderKey shader;
 	// All rigid right now but may have further typing
 	Components <EcsTrue> renderables;
+	
+	// Dumb hack to try to get shadows working
+	bool clear_depth_before;
 };
 
 struct GraphicsEcs : Ecs {
-	Components <Pass> passes;
+	std::vector <Pass> passes;
 	Components <glm::mat4> rigid_mats;
 	Components <glm::vec3> diffuse_colors;
 	Components <MeshKey> meshes;

@@ -4,11 +4,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "colorado/camera.h"
+#include "colorado/gl.h"
 #include "terf/terf.h"
 
 using namespace Colorado;
 using namespace glm;
 using namespace std;
+
+Graphics::Graphics () {
+	GLeeInit ();
+}
 
 void Graphics::load (const Terf::Archive & terf, const ResourceTable & rc) {
 	for (auto pair: rc.shaders) {
@@ -74,13 +79,19 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTru
 	meshes.currentMesh ()->renderPlacementIndexed (0);
 }
 
-void Graphics::render_pass (const GraphicsEcs & ecs, const ScreenOptions & screen_opts, const pair <Entity, Pass> & p)
+void Graphics::render_pass (const GraphicsEcs & ecs, const ScreenOptions & screen_opts, const Pass & pass)
 {
-	ShaderKey shader_key = p.second.shader;
+	if (pass.clear_depth_before) {
+		//glClear (GL_DEPTH_BUFFER_BIT);
+	}
+	
+	ShaderKey shader_key = pass.shader;
 	
 	shaders.bind (shader_key);
 	
 	ae.enableAttributes (attrib_sets.at (shader_key));
+	
+	state_tracker.Match (pass.gl_state);
 	
 	Camera camera;
 	camera.fov = 0.25;
@@ -92,16 +103,16 @@ void Graphics::render_pass (const GraphicsEcs & ecs, const ScreenOptions & scree
 	auto proj_view_mat = proj_mat * view_mat;
 	
 	// Assuming they are all rigid
-	for (const auto pair: p.second.renderables) {
+	for (const auto pair: pass.renderables) {
 		render_rigid (ecs, pair, proj_view_mat);
 	}
 }
 
 void Graphics::render (const GraphicsEcs & ecs, const ScreenOptions & screen_opts) {
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	
-	for (const auto pass_pair: ecs.passes) {
-		render_pass (ecs, screen_opts, pass_pair);
+	for (const auto & pass: ecs.passes) {
+		render_pass (ecs, screen_opts, pass);
 	}
 	
 	Colorado::swapBuffers ();

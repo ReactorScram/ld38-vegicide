@@ -30,6 +30,9 @@ struct Graphics {
 	std::map <ShaderKey, std::unordered_set <int> > attrib_sets;
 	TextureBinder textures;
 	MeshBinder meshes;
+	GlStateTracker state_tracker;
+	
+	Graphics ();
 	
 	void load (const Terf::Archive & terf, const ResourceTable & rc);
 	
@@ -37,7 +40,7 @@ struct Graphics {
 	
 	void render_rigid (const GraphicsEcs & ecs, const std::pair <Entity, EcsTrue> & p, const glm::mat4 & proj_view_mat);
 	
-	void render_pass (const GraphicsEcs & ecs, const Colorado::ScreenOptions & screen_opts, const std::pair <Entity, Pass> & p);
+	void render_pass (const GraphicsEcs & ecs, const Colorado::ScreenOptions & screen_opts, const Pass & pass);
 	
 	void render (const GraphicsEcs & ecs, const Colorado::ScreenOptions & screen_opts);
 };

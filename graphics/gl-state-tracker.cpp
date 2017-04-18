@@ -10,7 +10,9 @@ using namespace std;
 GlState::GlState () :
 	bools (),
 	depthMask (true),
-	stencilMask (0xff)
+	stencilMask (0xff),
+	frontFace (GL_CW),
+	depthFunc (GL_LEQUAL)
 {
 	bools [GL_BLEND] = false;
 	bools [GL_CULL_FACE] = false;
@@ -29,6 +31,9 @@ const GlState & GlState::operator = (const GlState & o) {
 	bools = o.bools;
 	
 	depthMask = o.depthMask;
+	
+	depthFunc = o.depthFunc;
+	frontFace = o.frontFace;
 	
 	memcpy (clearColor, o.clearColor, sizeof (clearColor));
 	memcpy (colorMask, o.colorMask, sizeof (colorMask));
@@ -80,6 +85,9 @@ void GlState::Force () const {
 		auto sf = stencilFunc;
 		glStencilFunc (sf [0], sf [1], sf [2]);
 	}
+	
+	glDepthFunc (depthFunc);
+	glFrontFace (frontFace);
 }
 
 // Matches the GL state with optimization
@@ -127,6 +135,14 @@ void GlState::Match (const GlState & o) const {
 			auto sf = o.stencilFunc;
 			glStencilFunc (sf [0], sf [1], sf [2]);
 		}
+	}
+	
+	if (o.depthFunc != depthFunc) {
+		glDepthFunc (o.depthFunc);
+	}
+	
+	if (o.frontFace != frontFace) {
+		glFrontFace (o.frontFace);
 	}
 }
 
