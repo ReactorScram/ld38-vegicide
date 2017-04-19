@@ -109,6 +109,7 @@ void Graphics::render_pass (const GraphicsEcs & ecs, const ScreenOptions & scree
 }
 
 void Graphics::render (const GraphicsEcs & ecs, const ScreenOptions & screen_opts) {
+	glDepthMask (true);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	
 	for (const auto & pass: ecs.passes) {

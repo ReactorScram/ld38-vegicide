@@ -33,14 +33,16 @@ enum class EMesh {
 
 enum class EShader {
 	Opaque,
+	Particle,
 	Shadow,
 };
 
 ResourceTable make_resource_table () {
 	ResourceTable rc;
 	
-	rc.shaders [(ShaderKey)EShader::Opaque] = ShaderFiles {"shader.vert", "shader.frag"};
-	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shader.vert", "shadow.frag"};
+	rc.shaders [(ShaderKey)EShader::Opaque] = ShaderFiles {"shaders/shader.vert", "shaders/shader.frag"};
+	rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
+	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
 	
 	rc.textures [(TextureKey)ETexture::Noise] = "hexture/noise.png";
 	rc.textures [(TextureKey)ETexture::BenchAo] = "textures/bench-ao.png";
@@ -85,6 +87,23 @@ Entity gear_8 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
 	ecs.textures [gear] = (TextureKey)ETexture::Gear8;
 	
 	return gear;
+}
+
+mat4 get_billboard_mat (const vec3 & pos, const vec3 & camera_pos)
+{
+	vec3 towardsCamera = vec3 (camera_pos) - pos;
+	towardsCamera.y = 0.0f;
+	towardsCamera = normalize (towardsCamera);
+	vec3 up (0.0f, 1.0f, 0.0f);
+	vec3 sideways = cross (towardsCamera, up);
+	
+	float scale = 1.0f;
+	
+	return mat4 (
+		vec4 (-scale * sideways, 0.0f), 
+		vec4 (-scale * towardsCamera, 0.0f),
+		vec4 (scale * up, 0.0f),
+		vec4 (pos, 1.0f));
 }
 
 GraphicsEcs animate (long frames) {
@@ -138,6 +157,14 @@ GraphicsEcs animate (long frames) {
 	shadow_stencil_state.stencilOp [1] = GL_KEEP;
 	shadow_stencil_state.stencilOp [2] = GL_REPLACE;
 	
+	GlState transparent_state;
+	transparent_state.bools [GL_DEPTH_TEST] = true;
+	transparent_state.bools [GL_BLEND] = true;
+	transparent_state.bools [GL_CULL_FACE] = true;
+	transparent_state.depthMask = false;
+	transparent_state.blendFunc [0] = GL_SRC_ALPHA;
+	transparent_state.blendFunc [1] = GL_ONE_MINUS_SRC_ALPHA;
+	
 	// Passes
 	Pass casters;
 	casters.shader = (ShaderKey)EShader::Opaque;
@@ -158,6 +185,10 @@ GraphicsEcs animate (long frames) {
 	Pass shadow;
 	shadow.shader = (ShaderKey)EShader::Shadow;
 	shadow.gl_state = shadow_state;
+	
+	Pass transparent;
+	transparent.shader = (ShaderKey)EShader::Particle;
+	transparent.gl_state = transparent_state;
 	
 	float gear_y = 0.0f;
 	
@@ -215,31 +246,34 @@ GraphicsEcs animate (long frames) {
 		shadow.renderables [e];
 	}
 	
-	// Add receivers to the shadow pass so they can occlude shadows
-	// with their backfaces
-	for (auto pair: receivers.renderables) {
-		auto old_e = pair.first;
-		
-		auto e = graphics_ecs.add_entity ();
-		auto old_model_mat = graphics_ecs.rigid_mats [old_e];
-		graphics_ecs.rigid_mats [e] = old_model_mat;
-		graphics_ecs.diffuse_colors [e] = vec3 (1.0f, 0.0f, 1.0f);
-		graphics_ecs.meshes [e] = graphics_ecs.meshes [old_e];
-		graphics_ecs.textures [e] = (TextureKey)ETexture::White;
-		
-		// No don't do that
-		//shadow.renderables [e];
-	}
-	
 	receivers_backface.renderables = receivers.renderables;
 	shadow_stencil.renderables = shadow.renderables;
+	
+	// Add particles I guess
+	{
+		auto e = graphics_ecs.add_entity ();
+		
+		auto pos = vec4 (-1.5f, 0.0f, 0.0f, 1.0f);
+		
+		// TODO: Extract from graphics.cpp
+		auto view_mat = mat4 (1.0f);
+		view_mat = rotate (rotate (translate (view_mat, vec3 (-0.0f, 0.5f, 	-15.0f)), radians (20.0f), vec3 (1.0f, 0.0f, 0.0f)), radians (30.0f), vec3 (0.0f, 1.0f, 0.0f));
+		auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
+		
+		graphics_ecs.rigid_mats [e] = get_billboard_mat (pos, camera_pos);
+		graphics_ecs.diffuse_colors [e] = vec3 (1.0f);
+		graphics_ecs.meshes [e] = (MeshKey)EMesh::Square;
+		graphics_ecs.textures [e] = (TextureKey)ETexture::White;
+		
+		transparent.renderables [e];
+	}
 	
 	graphics_ecs.passes.push_back (casters);
 	graphics_ecs.passes.push_back (receivers_backface);
 	graphics_ecs.passes.push_back (shadow_stencil);
 	graphics_ecs.passes.push_back (receivers);
 	graphics_ecs.passes.push_back (shadow);
-	
+	graphics_ecs.passes.push_back (transparent);
 	
 	return graphics_ecs;
 }
