@@ -19,6 +19,7 @@ enum class ETexture {
 	BenchAo,
 	Gear8,
 	Gear32,
+	Lenna,
 	Noise,
 	White,
 };
@@ -44,6 +45,7 @@ ResourceTable make_resource_table () {
 	rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
 	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
 	
+	rc.textures [(TextureKey)ETexture::Lenna] = "textures/Lenna.png";
 	rc.textures [(TextureKey)ETexture::Noise] = "hexture/noise.png";
 	rc.textures [(TextureKey)ETexture::BenchAo] = "textures/bench-ao.png";
 	rc.textures [(TextureKey)ETexture::Gear8] = "textures/gear8-ao.png";
@@ -97,7 +99,7 @@ mat4 get_billboard_mat (const vec3 & pos, const vec3 & camera_pos)
 	vec3 up (0.0f, 1.0f, 0.0f);
 	vec3 sideways = cross (towardsCamera, up);
 	
-	float scale = 1.0f;
+	float scale = 0.5f;
 	
 	return mat4 (
 		vec4 (-scale * sideways, 0.0f), 
@@ -263,7 +265,7 @@ GraphicsEcs animate (long frames) {
 		graphics_ecs.rigid_mats [e] = get_billboard_mat (pos, camera_pos);
 		graphics_ecs.diffuse_colors [e] = vec3 (1.0f);
 		graphics_ecs.meshes [e] = (MeshKey)EMesh::Square;
-		graphics_ecs.textures [e] = (TextureKey)ETexture::White;
+		graphics_ecs.textures [e] = (TextureKey)ETexture::Lenna;
 		
 		transparent.renderables [e];
 	}
