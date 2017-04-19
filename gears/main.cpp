@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <unordered_set>
 
 #include <glm/glm.hpp>
@@ -111,6 +112,19 @@ mat4 get_billboard_mat (const vec3 & pos, const vec3 & camera_pos)
 struct ParticlePos {
 	vec4 color;
 	vec3 pos;
+};
+
+struct SpriteSorter {
+	vec3 cameraPos;
+	
+	SpriteSorter (vec3 p) : cameraPos (p) {}
+	
+	// Voodoo!
+	bool operator () (const ParticlePos & a, const ParticlePos & b) const {
+		auto whateverA = a.pos - cameraPos;
+		auto whateverB = b.pos - cameraPos;
+		return dot (whateverA, whateverA) > dot (whateverB, whateverB);
+	}
 };
 
 GraphicsEcs animate (long frames) {
@@ -276,11 +290,22 @@ GraphicsEcs animate (long frames) {
 			const float t = (float)i / n;
 			
 			ParticlePos p;
-			p.color = vec4 (t, 1.0f - t, 1.0f - t, 1.0f);
-			p.pos = vec4 (-1.5f + 3.0f * t, 0.0f, 0.0f, 1.0f);
+			p.color = vec4 (1.0f, 1.0f - t, 0.5f, 0.5f);
+			
+			vec3 base (-1.5f + 3.0f * t, 0.0f, 1.0f);
+			
+			float radius = 0.5f;
+			
+			float theta = (mod (revolutions / 4.0, 1.0) + t / 4.0) * 2 * 3.1415926535;
+			vec3 offset (cos (theta), 0.0, -sin (theta));
+			
+			p.pos = vec4 (base + radius * offset, 1.0f);
 			
 			particles.push_back (p);
 		}
+		
+		SpriteSorter sorter (camera_pos);
+		sort (particles.begin (), particles.end (), sorter);
 		
 		for (const ParticlePos & p: particles) {
 			lennas.particles.push_back (Particle {

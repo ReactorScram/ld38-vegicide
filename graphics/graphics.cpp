@@ -101,7 +101,7 @@ void Graphics::render_particle_array (const GraphicsEcs & ecs, const Entity e, c
 		current_shader ()->setMvpMatrix (proj_view_mat * p.mat);
 		
 		auto color = p.color;
-		glUniform3f (uni_color, color.r, color.g, color.b);
+		glUniform4f (uni_color, color.r, color.g, color.b, color.a);
 		
 		mesh->renderPlacementIndexed (0);
 	}
