@@ -43,7 +43,8 @@ const Colorado::TriangleShader * Graphics::current_shader () const {
 	return shaders.currentShader ();
 }
 
-void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTrue> & p, const mat4 & proj_view_mat) {
+void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTrue> & p, const mat4 & proj_view_mat) 
+{
 	auto e = p.first;
 	auto model_mat = ecs.rigid_mats.at (e);
 	auto color = ecs.diffuse_colors.at (e);
@@ -79,6 +80,33 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTru
 	meshes.currentMesh ()->renderPlacementIndexed (0);
 }
 
+void Graphics::render_particle_array (const GraphicsEcs & ecs, const Entity e, const mat4 & proj_view_mat) 
+{
+	const ParticleArray & particle_array = ecs.particle_arrays.at (e);
+	
+	textures.bind (particle_array.texture);
+	meshes.bind (particle_array.mesh);
+	
+	const int floats_per_vert = 3 + 2 + 3 + 4;
+	const int stride = sizeof (GLfloat) * floats_per_vert;
+	
+	glVertexAttribPointer (current_shader ()->vertPosAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + 0);
+	glVertexAttribPointer (current_shader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
+	glVertexAttribPointer (current_shader ()->vertTexCoordAttribute, 2, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * 3);
+	
+	auto uni_color = current_shader ()->uniformLocation ("diffuseColor");
+	auto mesh = meshes.currentMesh ();
+	
+	for (const Particle & p: particle_array.particles) {
+		current_shader ()->setMvpMatrix (proj_view_mat * p.mat);
+		
+		auto color = p.color;
+		glUniform3f (uni_color, color.r, color.g, color.b);
+		
+		mesh->renderPlacementIndexed (0);
+	}
+}
+
 void Graphics::render_pass (const GraphicsEcs & ecs, const ScreenOptions & screen_opts, const Pass & pass)
 {
 	if (pass.clear_depth_before) {
@@ -105,6 +133,11 @@ void Graphics::render_pass (const GraphicsEcs & ecs, const ScreenOptions & scree
 	// Assuming they are all rigid
 	for (const auto pair: pass.renderables) {
 		render_rigid (ecs, pair, proj_view_mat);
+	}
+	
+	// TODO: This looks dumb
+	for (Entity e: pass.particle_arrays) {
+		render_particle_array (ecs, e, proj_view_mat);
 	}
 }
 

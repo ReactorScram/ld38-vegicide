@@ -108,6 +108,11 @@ mat4 get_billboard_mat (const vec3 & pos, const vec3 & camera_pos)
 		vec4 (pos, 1.0f));
 }
 
+struct ParticlePos {
+	vec4 color;
+	vec3 pos;
+};
+
 GraphicsEcs animate (long frames) {
 	double revolutions = (double)frames / 60.0;
 	
@@ -253,21 +258,39 @@ GraphicsEcs animate (long frames) {
 	
 	// Add particles I guess
 	{
-		auto e = graphics_ecs.add_entity ();
-		
-		auto pos = vec4 (-1.5f, 0.0f, 0.0f, 1.0f);
-		
 		// TODO: Extract from graphics.cpp
 		auto view_mat = mat4 (1.0f);
 		view_mat = rotate (rotate (translate (view_mat, vec3 (-0.0f, 0.5f, 	-15.0f)), radians (20.0f), vec3 (1.0f, 0.0f, 0.0f)), radians (30.0f), vec3 (0.0f, 1.0f, 0.0f));
 		auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
 		
-		graphics_ecs.rigid_mats [e] = get_billboard_mat (pos, camera_pos);
-		graphics_ecs.diffuse_colors [e] = vec3 (1.0f);
-		graphics_ecs.meshes [e] = (MeshKey)EMesh::Square;
-		graphics_ecs.textures [e] = (TextureKey)ETexture::Lenna;
+		auto e = graphics_ecs.add_entity ();
+		ParticleArray lennas;
 		
-		transparent.renderables [e];
+		lennas.mesh = (MeshKey)EMesh::Square;
+		lennas.texture = (TextureKey)ETexture::Lenna;
+		
+		vector <ParticlePos> particles;
+		
+		const int n = 10;
+		for (int i = 0; i < n; i++) {
+			const float t = (float)i / n;
+			
+			ParticlePos p;
+			p.color = vec4 (t, 1.0f - t, 1.0f - t, 1.0f);
+			p.pos = vec4 (-1.5f + 3.0f * t, 0.0f, 0.0f, 1.0f);
+			
+			particles.push_back (p);
+		}
+		
+		for (const ParticlePos & p: particles) {
+			lennas.particles.push_back (Particle {
+				get_billboard_mat (p.pos, camera_pos),
+				p.color
+			});
+		}
+		
+		transparent.particle_arrays.push_back (e);
+		graphics_ecs.particle_arrays [e] = lennas;
 	}
 	
 	graphics_ecs.passes.push_back (casters);

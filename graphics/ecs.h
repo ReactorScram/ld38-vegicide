@@ -27,9 +27,21 @@ struct Pass {
 	ShaderKey shader;
 	// All rigid right now but may have further typing
 	Components <EcsTrue> renderables;
+	std::vector <Entity> particle_arrays;
 	
 	// Dumb hack to try to get shadows working
 	bool clear_depth_before;
+};
+
+struct Particle {
+	glm::mat4 mat;
+	glm::vec4 color;
+};
+
+struct ParticleArray {
+	std::vector <Particle> particles;
+	MeshKey mesh;
+	TextureKey texture;
 };
 
 struct GraphicsEcs : Ecs {
@@ -38,4 +50,5 @@ struct GraphicsEcs : Ecs {
 	Components <glm::vec3> diffuse_colors;
 	Components <MeshKey> meshes;
 	Components <TextureKey> textures;
+	Components <ParticleArray> particle_arrays;
 };
