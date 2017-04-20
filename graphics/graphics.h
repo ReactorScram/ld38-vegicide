@@ -42,9 +42,9 @@ struct Graphics {
 	
 	void render_particle_array (const GraphicsEcs & ecs, const Entity e, const glm::mat4 & proj_view_mat);
 	
-	void render_pass (const GraphicsEcs & ecs, const Colorado::ScreenOptions & screen_opts, const Pass & pass);
+	void render_pass (const GraphicsEcs & ecs, const Pass & pass);
 	
-	void render (const GraphicsEcs & ecs, const Colorado::ScreenOptions & screen_opts);
+	void render (const GraphicsEcs & ecs);
 };
 
 #endif

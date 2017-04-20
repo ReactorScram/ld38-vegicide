@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <SDL/SDL.h>
 
+#include "colorado/camera.h"
 #include "colorado/game.h"
 #include "colorado/fixed-timestep.h"
 #include "terf/terf.h"
@@ -127,7 +128,7 @@ struct SpriteSorter {
 	}
 };
 
-GraphicsEcs animate (long frames) {
+GraphicsEcs animate (long frames, const ScreenOptions & screen_opts) {
 	double revolutions = (double)frames / 60.0;
 	
 	double axles [3];
@@ -137,6 +138,15 @@ GraphicsEcs animate (long frames) {
 	
 	vec3 red (1.0, 0.5, 0.5);
 	vec3 cyan (0.5, 1.0, 1.0);
+	
+	Camera camera;
+	camera.fov = 0.25;
+	auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
+	
+	auto view_mat = mat4 (1.0f);
+	view_mat = rotate (rotate (translate (view_mat, vec3 (-0.0f, 0.5f, -15.0f)), radians (20.0f), vec3 (1.0f, 0.0f, 0.0f)), radians (30.0f), vec3 (0.0f, 1.0f, 0.0f));
+	
+	auto proj_view_mat = proj_mat * view_mat;
 	
 	GraphicsEcs graphics_ecs;
 	
@@ -190,26 +200,32 @@ GraphicsEcs animate (long frames) {
 	Pass casters;
 	casters.shader = (ShaderKey)EShader::Opaque;
 	casters.gl_state = opaque_state;
+	casters.proj_view_mat = proj_view_mat;
 	
 	Pass receivers_backface;
 	receivers_backface.shader = (ShaderKey)EShader::Shadow;
 	receivers_backface.gl_state = opaque_backface_state;
+	receivers_backface.proj_view_mat = proj_view_mat;
 	
 	Pass shadow_stencil;
 	shadow_stencil.shader = (ShaderKey)EShader::Shadow;
 	shadow_stencil.gl_state = shadow_stencil_state;
+	shadow_stencil.proj_view_mat = proj_view_mat;
 	
 	Pass receivers;
 	receivers.shader = (ShaderKey)EShader::Opaque;
 	receivers.gl_state = opaque_state;
+	receivers.proj_view_mat = proj_view_mat;
 	
 	Pass shadow;
 	shadow.shader = (ShaderKey)EShader::Shadow;
 	shadow.gl_state = shadow_state;
+	shadow.proj_view_mat = proj_view_mat;
 	
 	Pass transparent;
 	transparent.shader = (ShaderKey)EShader::Particle;
 	transparent.gl_state = transparent_state;
+	transparent.proj_view_mat = proj_view_mat;
 	
 	float gear_y = 0.0f;
 	
@@ -379,10 +395,10 @@ int main () {
 		}
 		else {
 			// Animate
-			auto graphics_ecs = animate (frames);
+			auto graphics_ecs = animate (frames, screen_opts);
 			
 			// Render
-			graphics.render (graphics_ecs, screen_opts);
+			graphics.render (graphics_ecs);
 		}
 	}
 	

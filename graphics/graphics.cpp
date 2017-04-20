@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "colorado/camera.h"
 #include "colorado/gl.h"
 #include "terf/terf.h"
 
@@ -107,12 +106,8 @@ void Graphics::render_particle_array (const GraphicsEcs & ecs, const Entity e, c
 	}
 }
 
-void Graphics::render_pass (const GraphicsEcs & ecs, const ScreenOptions & screen_opts, const Pass & pass)
+void Graphics::render_pass (const GraphicsEcs & ecs, const Pass & pass)
 {
-	if (pass.clear_depth_before) {
-		//glClear (GL_DEPTH_BUFFER_BIT);
-	}
-	
 	ShaderKey shader_key = pass.shader;
 	
 	shaders.bind (shader_key);
@@ -121,32 +116,23 @@ void Graphics::render_pass (const GraphicsEcs & ecs, const ScreenOptions & scree
 	
 	state_tracker.Match (pass.gl_state);
 	
-	Camera camera;
-	camera.fov = 0.25;
-	auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
-	
-	auto view_mat = mat4 (1.0f);
-	view_mat = rotate (rotate (translate (view_mat, vec3 (-0.0f, 0.5f, -15.0f)), radians (20.0f), vec3 (1.0f, 0.0f, 0.0f)), radians (30.0f), vec3 (0.0f, 1.0f, 0.0f));
-	
-	auto proj_view_mat = proj_mat * view_mat;
-	
 	// Assuming they are all rigid
 	for (const auto pair: pass.renderables) {
-		render_rigid (ecs, pair, proj_view_mat);
+		render_rigid (ecs, pair, pass.proj_view_mat);
 	}
 	
 	// TODO: This looks dumb
 	for (Entity e: pass.particle_arrays) {
-		render_particle_array (ecs, e, proj_view_mat);
+		render_particle_array (ecs, e, pass.proj_view_mat);
 	}
 }
 
-void Graphics::render (const GraphicsEcs & ecs, const ScreenOptions & screen_opts) {
+void Graphics::render (const GraphicsEcs & ecs) {
 	glDepthMask (true);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	
 	for (const auto & pass: ecs.passes) {
-		render_pass (ecs, screen_opts, pass);
+		render_pass (ecs, pass);
 	}
 	
 	Colorado::swapBuffers ();

@@ -29,8 +29,7 @@ struct Pass {
 	Components <EcsTrue> renderables;
 	std::vector <Entity> particle_arrays;
 	
-	// Dumb hack to try to get shadows working
-	bool clear_depth_before;
+	glm::mat4 proj_view_mat;
 };
 
 struct Particle {
@@ -46,6 +45,9 @@ struct ParticleArray {
 
 struct GraphicsEcs : Ecs {
 	std::vector <Pass> passes;
+	glm::mat4 proj_mat;
+	glm::mat4 view_mat;
+	
 	Components <glm::mat4> rigid_mats;
 	Components <glm::vec3> diffuse_colors;
 	Components <MeshKey> meshes;
