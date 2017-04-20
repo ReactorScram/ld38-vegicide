@@ -93,9 +93,8 @@ Entity gear_8 (GraphicsEcs & ecs, vec3 pos, double revolutions, vec3 color) {
 	return gear;
 }
 
-mat4 get_billboard_mat (const vec3 & pos, const vec3 & camera_pos)
-{
-	vec3 towardsCamera = vec3 (camera_pos) - pos;
+mat4 get_billboard_mat_2 (const vec3 & pos, const vec3 & camera_forward) {
+	vec3 towardsCamera = -camera_forward;
 	towardsCamera.y = 0.0f;
 	towardsCamera = normalize (towardsCamera);
 	vec3 up (0.0f, 1.0f, 0.0f);
@@ -108,6 +107,11 @@ mat4 get_billboard_mat (const vec3 & pos, const vec3 & camera_pos)
 		vec4 (-scale * towardsCamera, 0.0f),
 		vec4 (scale * up, 0.0f),
 		vec4 (pos, 1.0f));
+}
+
+mat4 get_billboard_mat (const vec3 & pos, const vec3 & camera_pos)
+{
+	return get_billboard_mat_2 (pos, pos - camera_pos);
 }
 
 struct ParticlePos {
@@ -149,6 +153,7 @@ GraphicsEcs animate (long frames, const ScreenOptions & screen_opts) {
 	auto view_mat = mat4 (1.0f);
 	view_mat = rotate (rotate (translate (view_mat, vec3 (-0.0f, 0.5f, -15.0f)), radians (phi), vec3 (1.0f, 0.0f, 0.0f)), radians (theta), vec3 (0.0f, 1.0f, 0.0f));
 	auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
+	auto camera_forward = inverse (view_mat) * vec4 (0.0, 0.0, -1.0, 0.0);
 	
 	auto proj_view_mat = proj_mat * view_mat;
 	
@@ -300,19 +305,21 @@ GraphicsEcs animate (long frames, const ScreenOptions & screen_opts) {
 		
 		vector <ParticlePos> particles;
 		
+		mat4 particle_mat = get_billboard_mat_2 (vec3 (0.0f), camera_forward);
+		
 		const int n = 10;
 		for (int i = 0; i < n; i++) {
 			const float t = (float)i / n;
 			
 			ParticlePos p;
-			p.color = vec4 (1.0f, 1.0f - t, 1.0f, 1.0f);
+			p.color = vec4 (1.0f, 1.0f - t, 1.0f, 0.5f);
 			
-			vec3 base (-1.5f + 3.0f * t, 0.0f, 1.0f);
+			vec3 base (-1.5f + 2.0f * (i - n / 2), 0.0f, 1.0f);
 			
 			float radius = 0.5f;
 			
 			float theta = (mod (revolutions / 4.0, 1.0) + t / 4.0) * 2 * 3.1415926535;
-			vec3 offset (cos (theta), -sin (theta), 0.0);
+			vec3 offset (0.0, 0.0, sin (theta));
 			
 			p.pos = vec4 (base + radius * offset, 1.0f);
 			
@@ -324,7 +331,7 @@ GraphicsEcs animate (long frames, const ScreenOptions & screen_opts) {
 		
 		for (const ParticlePos & p: particles) {
 			lennas.particles.push_back (Particle {
-				get_billboard_mat (p.pos, camera_pos),
+				translate (particle_mat, p.pos),
 				p.color
 			});
 		}
