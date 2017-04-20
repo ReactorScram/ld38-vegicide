@@ -1,6 +1,6 @@
 #### PROJECT SETTINGS ####
 # The name of the executable to be created
-BIN_NAME := Gears.exe
+BIN_NAME := Platformer.exe
 # Space-separated pkg-config libraries used by this project
 LIBS = openal opusfile luajit sdl sqlite3
 # Add additional include paths
