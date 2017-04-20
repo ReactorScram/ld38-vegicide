@@ -143,8 +143,12 @@ GraphicsEcs animate (long frames, const ScreenOptions & screen_opts) {
 	camera.fov = 0.25;
 	auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
 	
+	float phi = 0.0f; //20.0f;
+	float theta = 0.0f; //30.0f;
+	
 	auto view_mat = mat4 (1.0f);
-	view_mat = rotate (rotate (translate (view_mat, vec3 (-0.0f, 0.5f, -15.0f)), radians (20.0f), vec3 (1.0f, 0.0f, 0.0f)), radians (30.0f), vec3 (0.0f, 1.0f, 0.0f));
+	view_mat = rotate (rotate (translate (view_mat, vec3 (-0.0f, 0.5f, -15.0f)), radians (phi), vec3 (1.0f, 0.0f, 0.0f)), radians (theta), vec3 (0.0f, 1.0f, 0.0f));
+	auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
 	
 	auto proj_view_mat = proj_mat * view_mat;
 	
@@ -288,11 +292,6 @@ GraphicsEcs animate (long frames, const ScreenOptions & screen_opts) {
 	
 	// Add particles I guess
 	{
-		// TODO: Extract from graphics.cpp
-		auto view_mat = mat4 (1.0f);
-		view_mat = rotate (rotate (translate (view_mat, vec3 (-0.0f, 0.5f, 	-15.0f)), radians (20.0f), vec3 (1.0f, 0.0f, 0.0f)), radians (30.0f), vec3 (0.0f, 1.0f, 0.0f));
-		auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
-		
 		auto e = graphics_ecs.add_entity ();
 		ParticleArray lennas;
 		
@@ -306,14 +305,14 @@ GraphicsEcs animate (long frames, const ScreenOptions & screen_opts) {
 			const float t = (float)i / n;
 			
 			ParticlePos p;
-			p.color = vec4 (1.0f, 1.0f - t, 0.5f, 0.5f);
+			p.color = vec4 (1.0f, 1.0f - t, 1.0f, 1.0f);
 			
 			vec3 base (-1.5f + 3.0f * t, 0.0f, 1.0f);
 			
 			float radius = 0.5f;
 			
 			float theta = (mod (revolutions / 4.0, 1.0) + t / 4.0) * 2 * 3.1415926535;
-			vec3 offset (cos (theta), 0.0, -sin (theta));
+			vec3 offset (cos (theta), -sin (theta), 0.0);
 			
 			p.pos = vec4 (base + radius * offset, 1.0f);
 			
