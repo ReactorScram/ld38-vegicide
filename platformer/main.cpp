@@ -29,6 +29,8 @@ using namespace Colorado;
 
 enum class ETexture {
 	BenchAo,
+	Carrot,
+	Farm,
 	Gear8,
 	Gear32,
 	Lenna,
@@ -58,6 +60,8 @@ ResourceTable make_resource_table () {
 	rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
 	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
 	
+	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
+	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
 	rc.textures [(TextureKey)ETexture::Lenna] = "textures/Lenna.png";
 	rc.textures [(TextureKey)ETexture::Noise] = "hexture/noise.png";
 	rc.textures [(TextureKey)ETexture::BenchAo] = "textures/bench-ao.png";
@@ -154,11 +158,8 @@ GraphicsEcs animate_vegicide_demo (long /*frames*/, const ScreenOptions & screen
 	
 	auto proj_mat = scale (glm::ortho (-aspect, aspect, -1.0f, 1.0f), vec3 (1.0f / 8.0f));
 	
-	float phi = 0.0f; //20.0f;
-	float theta = 0.0f; //30.0f;
-	
 	auto view_mat = mat4 (1.0f);
-	view_mat = rotate (rotate (translate (view_mat, vec3 (0.0f, 0.0f, 0.0f)), radians (phi), vec3 (1.0f, 0.0f, 0.0f)), radians (theta), vec3 (0.0f, 1.0f, 0.0f));
+	view_mat = translate (view_mat, vec3 (0.0f, 0.0f, 0.0f));
 	//auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
 	//auto camera_forward = inverse (view_mat) * vec4 (0.0, 0.0, -1.0, 0.0);
 	
@@ -188,6 +189,18 @@ GraphicsEcs animate_vegicide_demo (long /*frames*/, const ScreenOptions & screen
 	transparent.proj_view_mat = proj_view_mat;
 	
 	GraphicsEcs ecs;
+	
+	// Farm
+	{
+		auto e = ecs.add_entity ();
+		
+		ecs.rigid_mats [e] = rotate (scale (mat4 (1.0f), vec3 (-aspect * 8.0f, 8.0f, 1.0f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+		ecs.diffuse_colors [e] = vec3 (1.0f);
+		ecs.meshes [e] = (MeshKey)EMesh::Square;
+		ecs.textures [e] = (TextureKey)ETexture::Farm;
+		
+		opaque.renderables [e];
+	}
 	
 	// Venus
 	{
