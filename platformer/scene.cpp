@@ -140,6 +140,14 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		auto tex = ETexture::Carrot;
 		vec3 color (1.0f);
 		
+		{
+			auto targeted_it = scene.targeted.find (old_e);
+			if ((frames % 16) < 8 && targeted_it != scene.targeted.end () && (*targeted_it).second) 
+			{
+				color = vec3 (1.0f, 0.0f, 0.0f);
+			}
+		}
+		
 		auto e = add_sprite (ecs, base_pos + jump, size, color, tex);
 		
 		transparent.renderables [e];

@@ -13,7 +13,9 @@ struct Venus {
 struct SceneEcs : Ecs {
 	Components <glm::vec3> positions;
 	Components <glm::vec3> velocities;
+	Components <bool> targeted;
 	Components <float> anim_t;
+	Components <bool> pouncables;
 	Components <EcsTrue> carrots;
 	Components <Venus> venuses;
 	Components <EcsTrue> player_input;
