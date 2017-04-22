@@ -148,13 +148,17 @@ GraphicsEcs animate_vegicide_demo (long /*frames*/, const ScreenOptions & screen
 {
 	Camera camera;
 	camera.fov = 0.25;
-	auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
+	//auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
+	
+	float aspect = (double)screen_opts.width / (double)screen_opts.height;
+	
+	auto proj_mat = scale (glm::ortho (-aspect, aspect, -1.0f, 1.0f), vec3 (1.0f / 8.0f));
 	
 	float phi = 0.0f; //20.0f;
 	float theta = 0.0f; //30.0f;
 	
 	auto view_mat = mat4 (1.0f);
-	view_mat = rotate (rotate (translate (view_mat, vec3 (-0.0f, 0.5f, -15.0f)), radians (phi), vec3 (1.0f, 0.0f, 0.0f)), radians (theta), vec3 (0.0f, 1.0f, 0.0f));
+	view_mat = rotate (rotate (translate (view_mat, vec3 (0.0f, 0.0f, 0.0f)), radians (phi), vec3 (1.0f, 0.0f, 0.0f)), radians (theta), vec3 (0.0f, 1.0f, 0.0f));
 	//auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
 	//auto camera_forward = inverse (view_mat) * vec4 (0.0, 0.0, -1.0, 0.0);
 	
