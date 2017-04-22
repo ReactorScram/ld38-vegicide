@@ -58,14 +58,15 @@ void Logic::step (const InputFrame & input) {
 		if (venus_it != scene.venuses.end ()) {
 			auto & venus = (*venus_it).second;
 			
-			float pounce_range = 10.0f;
+			vec2 pounce_vec (10.0f, 0.0f);
 			
 			if (venus.pounce_anim == 1.0f) {
 				can_pounce = true;
 				// Search right for pouncables
 				
 				auto closest_victim = -1;
-				auto closest_range = pounce_range;
+				vec2 closest_vec;
+				const auto pounce_range = 10.0f;
 				
 				// Find closest pouncable
 				for (auto pair : scene.pouncables) {
@@ -77,11 +78,11 @@ void Logic::step (const InputFrame & input) {
 					
 					auto victim_pos = scene.positions.at (victim_e);
 					
-					auto diff = victim_pos - pos;
-					if (diff.x > 0.0f && diff.x <= pounce_range && diff.y == 0.0f) {
-						if (closest_victim == -1 || diff.x < closest_range) {
+					const auto diff = vec2 (victim_pos - pos);
+					if (length (diff) > 0.0f && length (diff) <= pounce_range && dot (normalize (diff), vec2 (1.0, 0.0)) >= 0.707f) {
+						if (closest_victim == -1 || length (diff) < length (closest_vec)) {
 							closest_victim = victim_e;
-							closest_range = diff.x;
+							closest_vec = diff;
 						}
 					}
 				}
@@ -91,7 +92,7 @@ void Logic::step (const InputFrame & input) {
 				if (closest_victim >= 0) {
 					scene.targeted [closest_victim] = true;
 					scene.pounce_target [closest_victim] = EcsTrue ();
-					pounce_range = closest_range;
+					pounce_vec = closest_vec;
 				}
 			}
 			
@@ -104,7 +105,8 @@ void Logic::step (const InputFrame & input) {
 			else {
 				if (venus.pounce_anim == 1.0f) {
 					// Pounce!
-					scene.velocities [e] = vec3 (40.0f * pounce_range / 10.0f / 60.0f, 0.0f, 1.0f);
+					vec2 pounce_xy = pounce_vec * 40.0f / 10.0f / 60.0f;
+					scene.velocities [e] = vec3 (pounce_xy.x, pounce_xy.y, 1.0f);
 					venus.pounce_anim = 0.0f;
 				}
 				else {
