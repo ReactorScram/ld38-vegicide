@@ -141,8 +141,15 @@ void Logic::step (const InputFrame & input) {
 			else {
 				if (venus.pounce_anim == 1.0f) {
 					// Pounce!
-					vec2 pounce_xy = normalize (pounce_vec) * 40.0f / 60.0f;
-					scene.velocities [e] = vec3 (pounce_xy.x, pounce_xy.y, 1.0f * length (pounce_vec) / pounce_range);
+					float jump_power = 1.0f;
+					vec2 pounce_xy (0.0f);
+					
+					if (length (pounce_vec) > 0.0f) {
+						jump_power = length (pounce_vec) / pounce_range;
+						pounce_xy = normalize (pounce_vec) * 40.0f / 60.0f;
+					}
+					
+					scene.velocities [e] = vec3 (pounce_xy.x, pounce_xy.y, 1.0f * jump_power);
 					venus.pounce_anim = 0.0f;
 				}
 				else {
