@@ -6,11 +6,15 @@
 // TODO: Move ECS out of graphics
 #include "graphics/ecs.h"
 
+struct Venus {
+	float pounce_anim;
+};
+
 struct SceneEcs : Ecs {
-	Components <glm::vec2> positions;
+	Components <glm::vec3> positions;
 	Components <float> anim_t;
 	Components <EcsTrue> carrots;
-	Components <EcsTrue> venuses;
+	Components <Venus> venuses;
 	Components <EcsTrue> player_input;
 };
 

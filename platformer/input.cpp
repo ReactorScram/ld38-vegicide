@@ -38,6 +38,8 @@ InputButton map_key (int key) {
 		case SDLK_s:
 		case SDLK_k:
 			return InputButton::Down;
+		case SDLK_SPACE:
+			return InputButton::Pounce;
 		default:
 			return InputButton::NUM_BUTTONS;
 	}
@@ -65,7 +67,7 @@ void Input::process (const SDL_Event & ev) {
 		case SDL_KEYUP: {
 			InputButton b = map_key (ev.key.keysym.sym);
 			if (b < InputButton::NUM_BUTTONS) {
-				frame.buttons [(int)b] = true;
+				frame.buttons [(int)b] = false;
 				if (debug) {
 					cerr << (int)b << ", false" << endl;
 				}

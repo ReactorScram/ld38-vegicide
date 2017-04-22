@@ -57,8 +57,8 @@ Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const
 	return e;
 }
 
-vec3 two2three (vec2 v) {
-	return vec3 (v.x, v.y, 0.0f);
+vec3 two2three (vec3 v) {
+	return vec3 (v.x, v.y + v.z, 0.0f);
 }
 
 GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenOptions & screen_opts) 
@@ -155,6 +155,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 	// Venus
 	for (auto pair : scene.venuses) {
 		auto old_e = pair.first;
+		auto venus = pair.second;
 		auto e = ecs.add_entity ();
 		
 		vec3 base_pos = two2three (scene.positions.at (old_e));
@@ -166,11 +167,22 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 			shadows.renderables [s];
 		}
 		
-		vec3 size (1.0f - 0.125f * sin (t), 1.0f + 0.125f * sin (t), 1.0f);
+		vec3 breathe_size (1.0f - 0.125f * sin (t), 1.0f + 0.125f * sin (t), 1.0f);
+		
+		vec3 tense_size (1.0f + 0.125f, 0.75f, 1.0f);
+		
+		vec3 size = mix (breathe_size, tense_size, venus.pounce_anim);
+		
 		vec3 pos = base_pos + vec3 (0.0f, size.y, 0.0f);
 		
 		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), pos), size);
-		ecs.diffuse_colors [e] = vec3 (0.005f, 0.228f, 0.047f);
+		
+		if (venus.pounce_anim == 1.0f && (frames % 16) < 8) {
+			ecs.diffuse_colors [e] = vec3 (1.0f, 0.1f, 0.1f);
+		}
+		else {
+			ecs.diffuse_colors [e] = vec3 (0.005f, 0.228f, 0.047f);
+		}
 		ecs.meshes [e] = (MeshKey)EMesh::Venus;
 		ecs.textures [e] = (TextureKey)ETexture::White;
 		
