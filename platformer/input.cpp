@@ -38,7 +38,9 @@ InputButton map_key (int key) {
 		case SDLK_s:
 		case SDLK_k:
 			return InputButton::Down;
-		case SDLK_SPACE:
+		//case SDLK_SPACE:
+		case SDLK_LCTRL:
+		case SDLK_RCTRL:
 			return InputButton::Pounce;
 		default:
 			return InputButton::NUM_BUTTONS;

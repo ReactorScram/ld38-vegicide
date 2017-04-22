@@ -17,6 +17,7 @@ struct SceneEcs : Ecs {
 	Components <float> anim_t;
 	Components <bool> pouncables;
 	Components <EcsTrue> pounce_target;
+	Components <glm::vec2> pounce_vec;
 	Components <bool> dead;
 	Components <EcsTrue> carrots;
 	Components <Venus> venuses;
