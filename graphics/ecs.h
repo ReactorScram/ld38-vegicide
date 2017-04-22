@@ -1,3 +1,6 @@
+#ifndef COLORADO_ECS_H
+#define COLORADO_ECS_H
+
 #include <map>
 #include <stdint.h>
 
@@ -54,3 +57,5 @@ struct GraphicsEcs : Ecs {
 	Components <TextureKey> textures;
 	Components <ParticleArray> particle_arrays;
 };
+
+#endif
