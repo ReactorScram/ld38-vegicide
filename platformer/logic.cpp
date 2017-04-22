@@ -15,7 +15,9 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 	scene.pouncables [e] = true;
 }
 
-Logic::Logic () {
+SceneEcs reset_scene () {
+	SceneEcs scene;
+	
 	place_carrot (scene, vec3 (3.0f, -3.0f, 0.0f));
 	place_carrot (scene, vec3 (3.0f, -5.0f, 0.0f));
 	place_carrot (scene, vec3 (3.0f, -4.0f, 0.0f));
@@ -32,10 +34,20 @@ Logic::Logic () {
 		scene.venuses [e] = Venus ();
 		scene.player_input [e] = EcsTrue ();
 	}
+	
+	return scene;
+}
+
+Logic::Logic () {
+	scene = reset_scene ();
 }
 
 void Logic::step (const InputFrame & input) {
 	scene.targeted.clear ();
+	
+	if (input.taps [(int)InputButton::Reset]) {
+		scene = reset_scene ();
+	}
 	
 	for (auto pair : scene.player_input) {
 		auto e = pair.first;
@@ -94,7 +106,7 @@ void Logic::step (const InputFrame & input) {
 			
 			const auto pounce_range = 10.0f;
 			
-			if (venus.pounce_anim == 1.0f) {
+			if (venus.pounce_anim >= 4.0f / 60.0f) {
 				can_pounce = true;
 				// Search right for pouncables
 				
@@ -112,7 +124,11 @@ void Logic::step (const InputFrame & input) {
 					auto victim_pos = scene.positions.at (victim_e);
 					
 					const auto diff = vec2 (victim_pos - pos);
-					if (length (diff) > 0.0f && length (diff) <= pounce_range && dot (normalize (diff), pounce_vec) >= 0.707f) {
+					bool can_pounce_enemy = length (diff) <= venus.pounce_anim * pounce_range && dot (normalize (diff), pounce_vec) >= 0.707f;
+					
+					bool already_on_enemy = length (diff) == 0.0f;
+					
+					if (already_on_enemy || can_pounce_enemy) {
 						if (closest_victim == -1 || length (diff) < length (closest_vec)) {
 							closest_victim = victim_e;
 							closest_vec = diff;
@@ -128,7 +144,7 @@ void Logic::step (const InputFrame & input) {
 					pounce_vec = closest_vec;
 				}
 				else {
-					pounce_vec *= pounce_range;
+					pounce_vec *= pounce_range * venus.pounce_anim;
 				}
 			}
 			
@@ -139,8 +155,9 @@ void Logic::step (const InputFrame & input) {
 				can_move = false;
 			}
 			else {
-				if (venus.pounce_anim == 1.0f) {
+				if (can_pounce) {
 					// Pounce!
+					// Default vertical jump
 					float jump_power = 1.0f;
 					vec2 pounce_xy (0.0f);
 					
@@ -148,6 +165,8 @@ void Logic::step (const InputFrame & input) {
 						jump_power = length (pounce_vec) / pounce_range;
 						pounce_xy = normalize (pounce_vec) * 40.0f / 60.0f;
 					}
+					
+					jump_power = glm::max (0.25f / pounce_range, jump_power);
 					
 					scene.velocities [e] = vec3 (pounce_xy.x, pounce_xy.y, 1.0f * jump_power);
 					venus.pounce_anim = 0.0f;

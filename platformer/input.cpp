@@ -42,6 +42,8 @@ InputButton map_key (int key) {
 		case SDLK_LCTRL:
 		case SDLK_RCTRL:
 			return InputButton::Pounce;
+		case SDLK_r:
+			return InputButton::Reset;
 		default:
 			return InputButton::NUM_BUTTONS;
 	}
@@ -52,7 +54,7 @@ void Input::clear_taps () {
 }
 
 void Input::process (const SDL_Event & ev) {
-	bool debug = false;
+	bool debug = false; //true;
 	
 	switch (ev.type) {
 		case SDL_KEYDOWN: {

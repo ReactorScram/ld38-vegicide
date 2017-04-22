@@ -7,6 +7,7 @@ enum class InputButton {
 	Left,
 	Down,
 	Pounce,
+	Reset,
 	NUM_BUTTONS,
 };
 

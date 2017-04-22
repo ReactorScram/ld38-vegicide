@@ -178,7 +178,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		
 		vec3 size = mix (breathe_size, tense_size, venus.pounce_anim);
 		
-		bool add_danger_zone = venus.pounce_anim > 0.0f;
+		bool add_danger_zone = venus.pounce_anim > 1.0f / 10.0f;
 		
 		if (venus.pounce_anim == 1.0f) {
 			if ((frames % 16) < 8) {
@@ -205,7 +205,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 			pounce_mat [1][0] = pounce_vec.y;
 			pounce_mat [1][1] = -pounce_vec.x;
 			
-			ecs.rigid_mats [zone_e] = scale (translate (mat4 (1.0f), base_pos), vec3 (10.0f)) * pounce_mat;
+			ecs.rigid_mats [zone_e] = scale (translate (mat4 (1.0f), base_pos), vec3 (10.0f * venus.pounce_anim)) * pounce_mat;
 			ecs.diffuse_colors [zone_e] = vec4 (1.0f, 0.1f, 0.1f, 0.25f);
 			ecs.meshes [zone_e] = (MeshKey)EMesh::DangerZone;
 			ecs.textures [zone_e] = (TextureKey)ETexture::White;
