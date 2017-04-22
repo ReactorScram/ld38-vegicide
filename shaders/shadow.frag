@@ -6,5 +6,6 @@ varying mediump vec2 varyingTexCoord;
 varying lowp float varyingAoStrength;
 
 void main (void) {
-	gl_FragColor = vec4 (diffuseColor, 1.0);
+	vec4 rgba = texture2D (color_tex, varyingTexCoord);
+	gl_FragColor = vec4 (mix (vec3 (1.0), rgba.rgb * diffuseColor, rgba.a), 1.0);
 }

@@ -35,6 +35,7 @@ enum class ETexture {
 	Gear32,
 	Lenna,
 	Noise,
+	Shadow,
 	White,
 };
 
@@ -60,19 +61,22 @@ ResourceTable make_resource_table () {
 	rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
 	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
 	
+	//rc.textures [(TextureKey)ETexture::Lenna] = "textures/Lenna.png";
+	//rc.textures [(TextureKey)ETexture::Noise] = "hexture/noise.png";
+	//rc.textures [(TextureKey)ETexture::BenchAo] = "textures/bench-ao.png";
+	//rc.textures [(TextureKey)ETexture::Gear8] = "textures/gear8-ao.png";
+	//rc.textures [(TextureKey)ETexture::Gear32] = "textures/gear32-ao.png";
+	
 	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
 	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
-	rc.textures [(TextureKey)ETexture::Lenna] = "textures/Lenna.png";
-	rc.textures [(TextureKey)ETexture::Noise] = "hexture/noise.png";
-	rc.textures [(TextureKey)ETexture::BenchAo] = "textures/bench-ao.png";
-	rc.textures [(TextureKey)ETexture::Gear8] = "textures/gear8-ao.png";
-	rc.textures [(TextureKey)ETexture::Gear32] = "textures/gear32-ao.png";
+	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
 	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
 	
-	rc.meshes [(MeshKey)EMesh::Bench] = "meshes/bench.iqm";
-	rc.meshes [(MeshKey)EMesh::BenchUpper] = "meshes/bench-upper.iqm";
-	rc.meshes [(MeshKey)EMesh::Gear8] = "meshes/gear8.iqm";
-	rc.meshes [(MeshKey)EMesh::Gear32] = "meshes/gear32.iqm";
+	//rc.meshes [(MeshKey)EMesh::Bench] = "meshes/bench.iqm";
+	//rc.meshes [(MeshKey)EMesh::BenchUpper] = "meshes/bench-upper.iqm";
+	//rc.meshes [(MeshKey)EMesh::Gear8] = "meshes/gear8.iqm";
+	//rc.meshes [(MeshKey)EMesh::Gear32] = "meshes/gear32.iqm";
+	
 	rc.meshes [(MeshKey)EMesh::Square] = "meshes/square.iqm";
 	rc.meshes [(MeshKey)EMesh::Venus] = "meshes/venus.iqm";
 	
@@ -148,6 +152,18 @@ struct SpriteSorter {
 	}
 };
 
+Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const vec3 & color, ETexture texture) 
+{
+	auto e = ecs.add_entity ();
+	
+	ecs.rigid_mats [e] = rotate (scale (translate (mat4 (1.0f), pos), size), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+	ecs.diffuse_colors [e] = color;
+	ecs.meshes [e] = (MeshKey)EMesh::Square;
+	ecs.textures [e] = (TextureKey)texture;
+	
+	return e;
+}
+
 GraphicsEcs animate_vegicide_demo (long frames, const ScreenOptions & screen_opts) 
 {
 	Camera camera;
@@ -176,10 +192,22 @@ GraphicsEcs animate_vegicide_demo (long frames, const ScreenOptions & screen_opt
 	transparent_state.blendFunc [0] = GL_SRC_ALPHA;
 	transparent_state.blendFunc [1] = GL_ONE_MINUS_SRC_ALPHA;
 	
+	GlState shadow_state;
+	shadow_state.bools [GL_DEPTH_TEST] = false;
+	shadow_state.bools [GL_BLEND] = true;
+	shadow_state.bools [GL_CULL_FACE] = false;
+	shadow_state.blendFunc [0] = GL_DST_COLOR;
+	shadow_state.blendFunc [1] = GL_ZERO;
+	
 	Pass opaque;
 	opaque.shader = (ShaderKey)EShader::Opaque;
 	opaque.gl_state = opaque_state;
 	opaque.proj_view_mat = proj_view_mat;
+	
+	Pass shadows;
+	shadows.shader = (ShaderKey)EShader::Shadow;
+	shadows.gl_state = shadow_state;
+	shadows.proj_view_mat = proj_view_mat;
 	
 	Pass transparent;
 	transparent.shader = (ShaderKey)EShader::Opaque;
@@ -202,37 +230,55 @@ GraphicsEcs animate_vegicide_demo (long frames, const ScreenOptions & screen_opt
 	
 	float t = frames * 2.0 * 3.1415926535 / 60.0f;
 	
+	vec3 shadow_color (0.5f);
+	
 	// Carrot
 	{
-		auto e = ecs.add_entity ();
+		vec3 base_pos (0.0f, 0.0f, 0.0f);
 		
-		vec3 pos (0.0f, 1.0f + abs (sin (t)), 0.0f);
+		vec3 jump (0.0f, 1.0f + abs (sin (t)), 0.0f);
 		vec3 size (1.0f);
+		auto tex = ETexture::Carrot;
+		vec3 color (1.0f);
 		
-		ecs.rigid_mats [e] = rotate (translate (scale (mat4 (1.0f), size), pos), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
-		ecs.diffuse_colors [e] = vec3 (1.0f);
-		ecs.meshes [e] = (MeshKey)EMesh::Square;
-		ecs.textures [e] = (TextureKey)ETexture::Carrot;
+		auto e = add_sprite (ecs, base_pos + jump, size, color, tex);
 		
 		transparent.renderables [e];
+		
+		{
+			float shadow_scale = 0.25f;
+			auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), shadow_color, ETexture::Shadow);
+			
+			shadows.renderables [s];
+		}
 	}
 	
 	// Venus
 	{
 		auto e = ecs.add_entity ();
 		
-		vec3 pos (0.0f, -2.0f, 0.0f);
+		vec3 base_pos (0.0f, -4.0f, 0.0f);
+		
+		{
+			float shadow_scale = 0.5f;
+			auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), shadow_color, ETexture::Shadow);
+			
+			shadows.renderables [s];
+		}
+		
 		vec3 size (1.0f - 0.125f * sin (t), 1.0f + 0.125f * sin (t), 1.0f);
+		vec3 pos = base_pos + vec3 (0.0f, size.y, 0.0f);
 		
 		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), pos), size);
 		ecs.diffuse_colors [e] = vec3 (0.005f, 0.228f, 0.047f);
 		ecs.meshes [e] = (MeshKey)EMesh::Venus;
 		ecs.textures [e] = (TextureKey)ETexture::White;
 		
-		opaque.renderables [e];
+		transparent.renderables [e];
 	}
 	
 	ecs.passes.push_back (opaque);
+	ecs.passes.push_back (shadows);
 	ecs.passes.push_back (transparent);
 	
 	return ecs;
