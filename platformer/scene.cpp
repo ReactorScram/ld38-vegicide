@@ -16,6 +16,7 @@ ResourceTable make_resource_table () {
 	rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
 	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
 	
+	rc.textures [(TextureKey)ETexture::Blood] = "textures/blood.png";
 	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
 	rc.textures [(TextureKey)ETexture::CarrotDead] = "textures/carrot-dead.png";
 	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
@@ -135,12 +136,14 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		
 		vec4 blood_color = shadow_color;
 		float shadow_scale = 0.25f;
+		auto shadow_tex = ETexture::Shadow;
 		
 		if (dead) {
 			tex = ETexture::CarrotDead;
 			jump = vec3 (0.0f);
 			blood_color = vec4 (117.0f / 256, 28.0f / 256, 0.0f / 256, 1.0f);
-			shadow_scale *= 3.0f;
+			shadow_scale *= 4.0f;
+			shadow_tex = ETexture::Blood;
 		}
 		
 		{
@@ -156,7 +159,11 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		transparent.renderables [e];
 		
 		{
-			auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), blood_color, ETexture::Shadow);
+			auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), blood_color, shadow_tex);
+			
+			if (dead) {
+				ecs.rigid_mats [s] = rotate (scale (translate (mat4 (1.0f), two2three (base_pos)), vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale)), (float)old_e, vec3 (0.0f, 0.0f, 1.0f));
+			}
 			
 			shadows.renderables [s];
 		}

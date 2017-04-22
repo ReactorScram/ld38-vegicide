@@ -11,24 +11,16 @@ struct ScreenOptions;
 }
 
 enum class ETexture {
-	BenchAo,
+	Blood,
 	Carrot,
 	CarrotDead,
 	Farm,
-	Gear8,
-	Gear32,
-	Lenna,
-	Noise,
 	Shadow,
 	White,
 };
 
 enum class EMesh {
-	Bench,
-	BenchUpper,
 	DangerZone,
-	Gear8,
-	Gear32,
 	Square,
 	Venus,
 };
