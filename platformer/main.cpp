@@ -102,6 +102,7 @@ int main () {
 			auto graphics_ecs = animate_vegicide (logic.scene, frames, screen_opts);
 			
 			// Render
+			glViewport (0, 0, 800, 480);
 			graphics.render (graphics_ecs);
 			
 			// Video encoder isn't working - SAD!

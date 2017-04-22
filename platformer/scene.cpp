@@ -84,7 +84,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 	Pass opaque;
 	opaque.shader = (ShaderKey)EShader::Opaque;
 	opaque.gl_state = opaque_state;
-	opaque.proj_view_mat = glm::ortho (-40.0f, 40.0f, -24.0f, 24.0f);
+	opaque.proj_view_mat = glm::ortho (0.0f, 800.0f, 0.0f, 480.0f);
 	//opaque.proj_view_mat = proj_mat;
 	
 	Pass shadows;
@@ -103,7 +103,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 	{
 		auto e = ecs.add_entity ();
 		
-		ecs.rigid_mats [e] = scale (mat4 (1.0f), vec3 (40.0f, 24.0f, 0.0f));
+		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (512.0f, 240.0f - 16.0f, 0.0f)), vec3 (512.0f, 256.0f, 0.0f));
 		ecs.diffuse_colors [e] = vec4 (1.0f);
 		ecs.meshes [e] = (MeshKey)EMesh::Square;
 		ecs.textures [e] = (TextureKey)ETexture::Farm;
