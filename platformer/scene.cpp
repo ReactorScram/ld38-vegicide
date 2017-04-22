@@ -125,31 +125,38 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		vec3 jump (0.0f, 0.0f, 1.0f + abs (sin (t)));
 		vec3 size (1.0f);
 		auto tex = ETexture::Carrot;
-		vec4 color (1.0f);
+		vec4 base_color (1.0f);
 		
+		bool dead = false;
 		{
 			auto dead_it = scene.dead.find (old_e);
-			if (dead_it != scene.dead.end () && (*dead_it).second) {
-				tex = ETexture::CarrotDead;
-				jump = vec3 (0.0f);
-			}
+			dead = dead_it != scene.dead.end () && (*dead_it).second;
+		}
+		
+		vec4 blood_color = shadow_color;
+		float shadow_scale = 0.25f;
+		
+		if (dead) {
+			tex = ETexture::CarrotDead;
+			jump = vec3 (0.0f);
+			blood_color = vec4 (117.0f / 256, 28.0f / 256, 0.0f / 256, 1.0f);
+			shadow_scale *= 3.0f;
 		}
 		
 		{
 			auto targeted_it = scene.targeted.find (old_e);
 			if ((frames % 16) < 8 && targeted_it != scene.targeted.end () && (*targeted_it).second) 
 			{
-				color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
+				blood_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
 			}
 		}
 		
-		auto e = add_sprite (ecs, base_pos + jump, size, color, tex);
+		auto e = add_sprite (ecs, base_pos + jump, size, base_color, tex);
 		
 		transparent.renderables [e];
 		
 		{
-			float shadow_scale = 0.25f;
-			auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), shadow_color, ETexture::Shadow);
+			auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), blood_color, ETexture::Shadow);
 			
 			shadows.renderables [s];
 		}
