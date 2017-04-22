@@ -26,6 +26,7 @@ enum class ETexture {
 enum class EMesh {
 	Bench,
 	BenchUpper,
+	DangerZone,
 	Gear8,
 	Gear32,
 	Square,

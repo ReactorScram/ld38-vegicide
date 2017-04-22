@@ -1,6 +1,6 @@
 default: all
 
-MODULES = graphics gears platformer
+MODULES = graphics platformer
 
 .PHONY: clean debug all $(MODULES)
 

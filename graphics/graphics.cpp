@@ -32,6 +32,9 @@ void Graphics::load (const Terf::Archive & terf, const ResourceTable & rc) {
 	
 	for (auto pair: rc.textures) {
 		textures.add (pair.first, new Texture (terf, pair.second));
+		textures.bind (pair.first);
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 	
 	for (auto pair: rc.meshes) {
@@ -65,7 +68,7 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, Entity e, const mat4 & pro
 	auto uni_color = current_shader ()->uniformLocation ("diffuseColor");
 	
 	glUniform3f (uni_up, object_up.x, object_up.y, object_up.z);
-	glUniform3f (uni_color, color.r, color.g, color.b);
+	glUniform4f (uni_color, color.r, color.g, color.b, color.a);
 	
 	meshes.bind (mesh);
 	

@@ -22,6 +22,7 @@ ResourceTable make_resource_table () {
 	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
 	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
 	
+	rc.meshes [(MeshKey)EMesh::DangerZone] = "meshes/danger-zone.iqm";
 	rc.meshes [(MeshKey)EMesh::Square] = "meshes/square.iqm";
 	rc.meshes [(MeshKey)EMesh::Venus] = "meshes/venus.iqm";
 	
@@ -32,11 +33,11 @@ vec3 two2three (vec3 v) {
 	return vec3 (v.x, v.y + v.z, 0.0f);
 }
 
-Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const vec3 & color, ETexture texture) 
+Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const vec4 & color, ETexture texture) 
 {
 	auto e = ecs.add_entity ();
 	
-	ecs.rigid_mats [e] = rotate (scale (translate (mat4 (1.0f), two2three (pos)), size), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+	ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), two2three (pos)), size);
 	ecs.diffuse_colors [e] = color;
 	ecs.meshes [e] = (MeshKey)EMesh::Square;
 	ecs.textures [e] = (TextureKey)texture;
@@ -83,7 +84,8 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 	Pass opaque;
 	opaque.shader = (ShaderKey)EShader::Opaque;
 	opaque.gl_state = opaque_state;
-	opaque.proj_view_mat = proj_view_mat;
+	opaque.proj_view_mat = glm::ortho (-40.0f, 40.0f, -24.0f, 24.0f);
+	//opaque.proj_view_mat = proj_mat;
 	
 	Pass shadows;
 	shadows.shader = (ShaderKey)EShader::Shadow;
@@ -101,8 +103,8 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 	{
 		auto e = ecs.add_entity ();
 		
-		ecs.rigid_mats [e] = rotate (scale (mat4 (1.0f), vec3 (aspect * 8.0f, 8.0f, 1.0f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
-		ecs.diffuse_colors [e] = vec3 (1.0f);
+		ecs.rigid_mats [e] = scale (mat4 (1.0f), vec3 (40.0f, 24.0f, 0.0f));
+		ecs.diffuse_colors [e] = vec4 (1.0f);
 		ecs.meshes [e] = (MeshKey)EMesh::Square;
 		ecs.textures [e] = (TextureKey)ETexture::Farm;
 		ecs.transparent_z [e] = 0.0f;
@@ -112,7 +114,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 	
 	float t = frames * 2.0 * 3.1415926535 / 60.0f;
 	
-	vec3 shadow_color (0.5f);
+	vec4 shadow_color (vec3 (0.5f), 1.0f);
 	
 	// Carrot
 	for (auto pair : scene.carrots) {
@@ -123,7 +125,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		vec3 jump (0.0f, 0.0f, 1.0f + abs (sin (t)));
 		vec3 size (1.0f);
 		auto tex = ETexture::Carrot;
-		vec3 color (1.0f);
+		vec4 color (1.0f);
 		
 		{
 			auto dead_it = scene.dead.find (old_e);
@@ -137,7 +139,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 			auto targeted_it = scene.targeted.find (old_e);
 			if ((frames % 16) < 8 && targeted_it != scene.targeted.end () && (*targeted_it).second) 
 			{
-				color = vec3 (1.0f, 0.0f, 0.0f);
+				color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
 			}
 		}
 		
@@ -176,14 +178,34 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		
 		vec3 size = mix (breathe_size, tense_size, venus.pounce_anim);
 		
-		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), base_pos + vec3 (0.0f, size.y, 0.0f)), size);
+		bool add_danger_zone = venus.pounce_anim > 0.0f;
 		
-		if (venus.pounce_anim == 1.0f && (frames % 16) < 8) {
-			ecs.diffuse_colors [e] = vec3 (1.0f, 0.1f, 0.1f);
+		if (venus.pounce_anim == 1.0f) {
+			if ((frames % 16) < 8) {
+				ecs.diffuse_colors [e] = vec4 (1.0f, 0.1f, 0.1f, 1.0f);
+				add_danger_zone = false;
+			}
+			else {
+				ecs.diffuse_colors [e] = vec4 (0.005f, 0.228f, 0.047f, 1.0f);
+				add_danger_zone = true;
+			}
 		}
 		else {
-			ecs.diffuse_colors [e] = vec3 (0.005f, 0.228f, 0.047f);
+			ecs.diffuse_colors [e] = vec4 (0.005f, 0.228f, 0.047f, 1.0f);
 		}
+		
+		if (add_danger_zone) {
+			auto zone_e = ecs.add_entity ();
+			ecs.rigid_mats [zone_e] = scale (translate (mat4 (1.0f), base_pos), vec3 (10.0f));
+			ecs.diffuse_colors [zone_e] = vec4 (1.0f, 0.1f, 0.1f, 0.25f);
+			ecs.meshes [zone_e] = (MeshKey)EMesh::DangerZone;
+			ecs.textures [zone_e] = (TextureKey)ETexture::White;
+			ecs.transparent_z [zone_e] = -100.0f;
+			
+			transparent.renderables [zone_e];
+		}
+		
+		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), base_pos + vec3 (0.0f, size.y, 0.0f)), size);
 		ecs.meshes [e] = (MeshKey)EMesh::Venus;
 		ecs.textures [e] = (TextureKey)ETexture::White;
 		ecs.transparent_z [e] = base_pos.y;

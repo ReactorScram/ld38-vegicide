@@ -53,7 +53,7 @@ struct GraphicsEcs : Ecs {
 	
 	Components <float> transparent_z;
 	Components <glm::mat4> rigid_mats;
-	Components <glm::vec3> diffuse_colors;
+	Components <glm::vec4> diffuse_colors;
 	Components <MeshKey> meshes;
 	Components <TextureKey> textures;
 	Components <ParticleArray> particle_arrays;
