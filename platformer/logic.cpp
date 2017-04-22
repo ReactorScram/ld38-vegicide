@@ -83,6 +83,21 @@ void player_walk (SceneEcs & scene, Entity e, const InputFrame & input) {
 	}
 }
 
+void kill_pounce_victims (SceneEcs & scene, const vec3 & venus_pos) {
+	// Pounced onto target?
+	for (auto pair : scene.pounce_target) {
+		Entity pouncee_e = pair.first;
+		
+		auto pos = scene.positions.at (pouncee_e);
+		
+		if (length (pos - venus_pos) < 0.5f) {
+			// Yes
+			scene.dead [pouncee_e] = true;
+			scene.pouncables [pouncee_e] = false;
+		}
+	}
+}
+
 void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input) 
 {
 	auto pos = scene.positions.at (e);
@@ -220,20 +235,10 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 	if (pos.z > 0.0f || vel.z > 0.0f) {
 		// Mid-pounce
 		scene.velocities [e] = vel + vec3 (0.0f, 0.0f, -0.125f);
-		scene.positions [e] = pos + scene.velocities.at (e);
+		pos += scene.velocities.at (e);
+		scene.positions [e] = pos;
 		
-		// Pounced onto target?
-		for (auto pair : scene.pounce_target) {
-			Entity pouncee_e = pair.first;
-			
-			auto pos = scene.positions.at (pouncee_e);
-			
-			if (length (pos - scene.positions.at (e)) < 0.5f) {
-				// Yes
-				scene.dead [pouncee_e] = true;
-				scene.pouncables [pouncee_e] = false;
-			}
-		}
+		kill_pounce_victims (scene, pos);
 	}
 	
 	bool debug = false;
