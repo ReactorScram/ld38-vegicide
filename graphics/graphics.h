@@ -38,7 +38,7 @@ struct Graphics {
 	
 	const Colorado::TriangleShader * current_shader () const;
 	
-	void render_rigid (const GraphicsEcs & ecs, const std::pair <Entity, EcsTrue> & p, const glm::mat4 & proj_view_mat);
+	void render_rigid (const GraphicsEcs & ecs, Entity e, const glm::mat4 & proj_view_mat);
 	
 	void render_particle_array (const GraphicsEcs & ecs, const Entity e, const glm::mat4 & proj_view_mat);
 	

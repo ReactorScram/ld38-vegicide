@@ -13,6 +13,7 @@ struct ScreenOptions;
 enum class ETexture {
 	BenchAo,
 	Carrot,
+	CarrotDead,
 	Farm,
 	Gear8,
 	Gear32,

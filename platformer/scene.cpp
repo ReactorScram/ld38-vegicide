@@ -9,24 +9,6 @@
 using namespace Colorado;
 using namespace glm;
 
-struct ParticlePos {
-	vec4 color;
-	vec3 pos;
-};
-
-struct SpriteSorter {
-	vec3 cameraPos;
-	
-	SpriteSorter (vec3 p) : cameraPos (p) {}
-	
-	// Voodoo!
-	bool operator () (const ParticlePos & a, const ParticlePos & b) const {
-		auto whateverA = a.pos - cameraPos;
-		auto whateverB = b.pos - cameraPos;
-		return dot (whateverA, whateverA) > dot (whateverB, whateverB);
-	}
-};
-
 ResourceTable make_resource_table () {
 	ResourceTable rc;
 	
@@ -35,6 +17,7 @@ ResourceTable make_resource_table () {
 	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
 	
 	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
+	rc.textures [(TextureKey)ETexture::CarrotDead] = "textures/carrot-dead.png";
 	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
 	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
 	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
@@ -45,20 +28,21 @@ ResourceTable make_resource_table () {
 	return rc;
 }
 
+vec3 two2three (vec3 v) {
+	return vec3 (v.x, v.y + v.z, 0.0f);
+}
+
 Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const vec3 & color, ETexture texture) 
 {
 	auto e = ecs.add_entity ();
 	
-	ecs.rigid_mats [e] = rotate (scale (translate (mat4 (1.0f), pos), size), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+	ecs.rigid_mats [e] = rotate (scale (translate (mat4 (1.0f), two2three (pos)), size), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
 	ecs.diffuse_colors [e] = color;
 	ecs.meshes [e] = (MeshKey)EMesh::Square;
 	ecs.textures [e] = (TextureKey)texture;
+	ecs.transparent_z [e] = pos.y;
 	
 	return e;
-}
-
-vec3 two2three (vec3 v) {
-	return vec3 (v.x, v.y + v.z, 0.0f);
 }
 
 GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenOptions & screen_opts) 
@@ -121,6 +105,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		ecs.diffuse_colors [e] = vec3 (1.0f);
 		ecs.meshes [e] = (MeshKey)EMesh::Square;
 		ecs.textures [e] = (TextureKey)ETexture::Farm;
+		ecs.transparent_z [e] = 0.0f;
 		
 		opaque.renderables [e];
 	}
@@ -135,10 +120,18 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		
 		vec3 base_pos = two2three (scene.positions.at (old_e));
 		
-		vec3 jump (0.0f, 1.0f + abs (sin (t)), 0.0f);
+		vec3 jump (0.0f, 0.0f, 1.0f + abs (sin (t)));
 		vec3 size (1.0f);
 		auto tex = ETexture::Carrot;
 		vec3 color (1.0f);
+		
+		{
+			auto dead_it = scene.dead.find (old_e);
+			if (dead_it != scene.dead.end () && (*dead_it).second) {
+				tex = ETexture::CarrotDead;
+				jump = vec3 (0.0f);
+			}
+		}
 		
 		{
 			auto targeted_it = scene.targeted.find (old_e);
@@ -193,6 +186,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		}
 		ecs.meshes [e] = (MeshKey)EMesh::Venus;
 		ecs.textures [e] = (TextureKey)ETexture::White;
+		ecs.transparent_z [e] = base_pos.y;
 		
 		transparent.renderables [e];
 	}

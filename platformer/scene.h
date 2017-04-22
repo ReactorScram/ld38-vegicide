@@ -16,6 +16,8 @@ struct SceneEcs : Ecs {
 	Components <bool> targeted;
 	Components <float> anim_t;
 	Components <bool> pouncables;
+	Components <EcsTrue> pounce_target;
+	Components <bool> dead;
 	Components <EcsTrue> carrots;
 	Components <Venus> venuses;
 	Components <EcsTrue> player_input;

@@ -7,22 +7,20 @@
 using namespace glm;
 using namespace std;
 
+void place_carrot (SceneEcs & scene, const vec3 & pos) {
+	auto e = scene.add_entity ();
+	scene.positions [e] = pos;
+	scene.anim_t [e] = 0.0f;
+	scene.carrots [e] = EcsTrue ();
+	scene.pouncables [e] = true;
+}
+
 Logic::Logic () {
-	{
-		auto e = scene.add_entity ();
-		scene.positions [e] = vec3 (3.0f, -4.0f, 0.0f);
-		scene.anim_t [e] = 0.0f;
-		scene.carrots [e] = EcsTrue ();
-		scene.pouncables [e] = true;
-	}
+	place_carrot (scene, vec3 (3.0f, -3.0f, 0.0f));
+	place_carrot (scene, vec3 (3.0f, -5.0f, 0.0f));
+	place_carrot (scene, vec3 (3.0f, -4.0f, 0.0f));
 	
-	{
-		auto e = scene.add_entity ();
-		scene.positions [e] = vec3 (7.0f, -4.0f, 0.0f);
-		scene.anim_t [e] = 0.0f;
-		scene.carrots [e] = EcsTrue ();
-		scene.pouncables [e] = true;
-	}
+	place_carrot (scene, vec3 (7.0f, -4.0f, 0.0f));
 	
 	{
 		auto e = scene.add_entity ();
@@ -72,6 +70,11 @@ void Logic::step (const InputFrame & input) {
 				// Find closest pouncable
 				for (auto pair : scene.pouncables) {
 					auto victim_e = pair.first;
+					
+					if (! pair.second) {
+						continue;
+					}
+					
 					auto victim_pos = scene.positions.at (victim_e);
 					
 					auto diff = victim_pos - pos;
@@ -83,8 +86,13 @@ void Logic::step (const InputFrame & input) {
 					}
 				}
 				
-				scene.targeted [closest_victim] = true;
-				pounce_range = closest_range;
+				scene.pounce_target.clear ();
+				
+				if (closest_victim >= 0) {
+					scene.targeted [closest_victim] = true;
+					scene.pounce_target [closest_victim] = EcsTrue ();
+					pounce_range = closest_range;
+				}
 			}
 			
 			if (input.buttons [(int)InputButton::Pounce] && pos.z == 
@@ -127,6 +135,19 @@ void Logic::step (const InputFrame & input) {
 			// Mid-pounce
 			scene.velocities [e] = vel + vec3 (0.0f, 0.0f, -0.125f);
 			scene.positions [e] = pos + scene.velocities.at (e);
+			
+			// Pounced onto target?
+			for (auto pair : scene.pounce_target) {
+				Entity pouncee_e = pair.first;
+				
+				auto pos = scene.positions.at (pouncee_e);
+				
+				if (length (pos - scene.positions.at (e)) < 0.5f) {
+					// Yes
+					scene.dead [pouncee_e] = true;
+					scene.pouncables [pouncee_e] = false;
+				}
+			}
 		}
 		
 		bool debug = false;

@@ -1,5 +1,6 @@
 #include "graphics.h"
 
+#include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -42,9 +43,8 @@ const Colorado::TriangleShader * Graphics::current_shader () const {
 	return shaders.currentShader ();
 }
 
-void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTrue> & p, const mat4 & proj_view_mat) 
+void Graphics::render_rigid (const GraphicsEcs & ecs, Entity e, const mat4 & proj_view_mat) 
 {
-	auto e = p.first;
 	auto model_mat = ecs.rigid_mats.at (e);
 	auto color = ecs.diffuse_colors.at (e);
 	auto mesh = ecs.meshes.at (e);
@@ -109,6 +109,18 @@ void Graphics::render_particle_array (const GraphicsEcs & ecs, const Entity e, c
 	}
 }
 
+struct SortableSprite {
+	Entity e;
+	float z;
+};
+
+struct SpriteSorter {
+	// Voodoo!
+	bool operator () (const SortableSprite & a, const SortableSprite & b) const {
+		return a.z > b.z;
+	}
+};
+
 void Graphics::render_pass (const GraphicsEcs & ecs, const Pass & pass)
 {
 	ShaderKey shader_key = pass.shader;
@@ -120,8 +132,16 @@ void Graphics::render_pass (const GraphicsEcs & ecs, const Pass & pass)
 	state_tracker.Match (pass.gl_state);
 	
 	// Assuming they are all rigid
+	SpriteSorter sorter;
+	vector <SortableSprite> sortables;
 	for (const auto pair: pass.renderables) {
-		render_rigid (ecs, pair, pass.proj_view_mat);
+		sortables.push_back (SortableSprite { pair.first, ecs.transparent_z.at (pair.first) });
+	}
+	
+	sort (sortables.begin (), sortables.end (), sorter);
+	
+	for (const auto & s: sortables) {
+		render_rigid (ecs, s.e, pass.proj_view_mat);
 	}
 	
 	// TODO: This looks dumb

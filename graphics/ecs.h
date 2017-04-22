@@ -51,6 +51,7 @@ struct GraphicsEcs : Ecs {
 	glm::mat4 proj_mat;
 	glm::mat4 view_mat;
 	
+	Components <float> transparent_z;
 	Components <glm::mat4> rigid_mats;
 	Components <glm::vec3> diffuse_colors;
 	Components <MeshKey> meshes;
