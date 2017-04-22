@@ -1,6 +1,10 @@
 #include <algorithm>
+#include <chrono>
 #include <unordered_set>
+#include <stdint.h>
+#include <sstream>
 
+//#include "boost/date_time/posix_time/posix_time.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <SDL/SDL.h>
@@ -9,11 +13,17 @@
 #include "colorado/game.h"
 #include "colorado/fixed-timestep.h"
 #include "terf/terf.h"
+#include "video-encoder/video-encoder.h"
 
 #include "graphics/graphics.h"
 
-using namespace glm;
+using glm::radians;
+using glm::vec3;
+using glm::vec4;
+using glm::mat4;
+using glm::mod;
 using namespace std;
+using namespace std::chrono;
 
 using namespace Colorado;
 
@@ -32,6 +42,7 @@ enum class EMesh {
 	Gear8,
 	Gear32,
 	Square,
+	Venus,
 };
 
 enum class EShader {
@@ -59,6 +70,7 @@ ResourceTable make_resource_table () {
 	rc.meshes [(MeshKey)EMesh::Gear8] = "meshes/gear8.iqm";
 	rc.meshes [(MeshKey)EMesh::Gear32] = "meshes/gear32.iqm";
 	rc.meshes [(MeshKey)EMesh::Square] = "meshes/square.iqm";
+	rc.meshes [(MeshKey)EMesh::Venus] = "meshes/venus.iqm";
 	
 	return rc;
 }
@@ -132,7 +144,66 @@ struct SpriteSorter {
 	}
 };
 
-GraphicsEcs animate (long frames, const ScreenOptions & screen_opts) {
+GraphicsEcs animate_vegicide_demo (long /*frames*/, const ScreenOptions & screen_opts) 
+{
+	Camera camera;
+	camera.fov = 0.25;
+	auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
+	
+	float phi = 0.0f; //20.0f;
+	float theta = 0.0f; //30.0f;
+	
+	auto view_mat = mat4 (1.0f);
+	view_mat = rotate (rotate (translate (view_mat, vec3 (-0.0f, 0.5f, -15.0f)), radians (phi), vec3 (1.0f, 0.0f, 0.0f)), radians (theta), vec3 (0.0f, 1.0f, 0.0f));
+	//auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
+	//auto camera_forward = inverse (view_mat) * vec4 (0.0, 0.0, -1.0, 0.0);
+	
+	auto proj_view_mat = proj_mat * view_mat;
+	
+	GlState opaque_state;
+	opaque_state.bools [GL_DEPTH_TEST] = false;
+	opaque_state.bools [GL_CULL_FACE] = false;
+	opaque_state.frontFace = GL_CW;
+	
+	GlState transparent_state;
+	transparent_state.bools [GL_DEPTH_TEST] = true;
+	transparent_state.bools [GL_BLEND] = true;
+	transparent_state.bools [GL_CULL_FACE] = true;
+	transparent_state.depthMask = false;
+	transparent_state.blendFunc [0] = GL_SRC_ALPHA;
+	transparent_state.blendFunc [1] = GL_ONE_MINUS_SRC_ALPHA;
+	
+	Pass opaque;
+	opaque.shader = (ShaderKey)EShader::Opaque;
+	opaque.gl_state = opaque_state;
+	opaque.proj_view_mat = proj_view_mat;
+	
+	Pass transparent;
+	transparent.shader = (ShaderKey)EShader::Particle;
+	transparent.gl_state = transparent_state;
+	transparent.proj_view_mat = proj_view_mat;
+	
+	GraphicsEcs ecs;
+	
+	// Venus
+	{
+		auto e = ecs.add_entity ();
+		
+		ecs.rigid_mats [e] = mat4 (1.0f);
+		ecs.diffuse_colors [e] = vec3 (0.005f, 0.228f, 0.047f);
+		ecs.meshes [e] = (MeshKey)EMesh::Venus;
+		ecs.textures [e] = (TextureKey)ETexture::White;
+		
+		opaque.renderables [e];
+	}
+	
+	ecs.passes.push_back (opaque);
+	ecs.passes.push_back (transparent);
+	
+	return ecs;
+}
+
+GraphicsEcs animate_gear_demo (long frames, const ScreenOptions & screen_opts) {
 	double revolutions = (double)frames / 60.0;
 	
 	double axles [3];
@@ -350,6 +421,11 @@ GraphicsEcs animate (long frames, const ScreenOptions & screen_opts) {
 	return graphics_ecs;
 }
 
+uint64_t get_epoch () {
+	auto now = std::chrono::system_clock::now().time_since_epoch ();
+	return duration_cast <milliseconds> (now).count ();
+}
+
 int main () {
 	string window_title = "ReactorScram LD38 warmup";
 	Terf::Archive terf ("rom.tar", "rom.tar.index");
@@ -376,6 +452,11 @@ int main () {
 	
 	SDL_WM_SetCaption (window_title.c_str (), nullptr);
 	
+	auto epoch = get_epoch ();
+	stringstream ss;
+	ss << "videos/" << epoch << ".mkv";
+	//VideoEncoder ve (ss.str ().c_str (), screen_opts.width, screen_opts.height, 44100);
+	
 	long frames = 0;
 	
 	while (running) {
@@ -401,10 +482,14 @@ int main () {
 		}
 		else {
 			// Animate
-			auto graphics_ecs = animate (frames, screen_opts);
+			auto graphics_ecs = animate_vegicide_demo (frames, screen_opts);
 			
 			// Render
 			graphics.render (graphics_ecs);
+			
+			// Video encoder isn't working - SAD!
+			//ve.accumulateFrameFromGL ();
+			//ve.encodeAccumulatedFrame (frames * 1000 / 60);
 		}
 	}
 	

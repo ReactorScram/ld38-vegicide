@@ -58,7 +58,7 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTru
 	current_shader ()->setMvpMatrix (proj_view_mat * model_mat);
 	
 	auto light_mat = inverse (model_mat);
-	auto object_up = light_mat * vec4 (normalize (vec3 (-0.1f, 1.0f, 0.2f)), 0.0);
+	auto object_up = light_mat * vec4 (normalize (vec3 (0.0f, 0.0f, 1.0f)), 0.0);
 	
 	// TODO: Cache per-shader
 	auto uni_up = current_shader ()->uniformLocation ("up");
@@ -76,7 +76,10 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, const pair <Entity, EcsTru
 	glVertexAttribPointer (current_shader ()->vertNormAttribute, 3, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * (3 + 2));
 	glVertexAttribPointer (current_shader ()->vertTexCoordAttribute, 2, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * 3);
 	
-	meshes.currentMesh ()->renderPlacementIndexed (0);
+	auto current_mesh = meshes.currentMesh ();
+	for (size_t i = 0; i < current_mesh->placements.size (); i++) {
+		current_mesh->renderPlacementIndexed (i);
+	}
 }
 
 void Graphics::render_particle_array (const GraphicsEcs & ecs, const Entity e, const mat4 & proj_view_mat) 
