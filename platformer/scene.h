@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-#include "graphics/ecs.h"
+#include "graphics/graphics.h"
 
 namespace Colorado {
 struct ScreenOptions;
@@ -44,6 +44,7 @@ enum class EShader {
 	Shadow,
 };
 
+ResourceTable make_resource_table ();
 GraphicsEcs animate_vegicide (const SceneEcs & ecs, long frames, const Colorado::ScreenOptions & screen_opts);
 
 #endif

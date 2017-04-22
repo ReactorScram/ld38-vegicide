@@ -8,6 +8,42 @@
 using namespace Colorado;
 using namespace glm;
 
+struct ParticlePos {
+	vec4 color;
+	vec3 pos;
+};
+
+struct SpriteSorter {
+	vec3 cameraPos;
+	
+	SpriteSorter (vec3 p) : cameraPos (p) {}
+	
+	// Voodoo!
+	bool operator () (const ParticlePos & a, const ParticlePos & b) const {
+		auto whateverA = a.pos - cameraPos;
+		auto whateverB = b.pos - cameraPos;
+		return dot (whateverA, whateverA) > dot (whateverB, whateverB);
+	}
+};
+
+ResourceTable make_resource_table () {
+	ResourceTable rc;
+	
+	rc.shaders [(ShaderKey)EShader::Opaque] = ShaderFiles {"shaders/shader.vert", "shaders/shader.frag"};
+	rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
+	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
+	
+	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
+	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
+	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
+	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
+	
+	rc.meshes [(MeshKey)EMesh::Square] = "meshes/square.iqm";
+	rc.meshes [(MeshKey)EMesh::Venus] = "meshes/venus.iqm";
+	
+	return rc;
+}
+
 Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const vec3 & color, ETexture texture) 
 {
 	auto e = ecs.add_entity ();

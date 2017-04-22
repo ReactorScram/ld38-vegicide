@@ -26,63 +26,6 @@ using namespace std::chrono;
 
 using namespace Colorado;
 
-ResourceTable make_resource_table () {
-	ResourceTable rc;
-	
-	rc.shaders [(ShaderKey)EShader::Opaque] = ShaderFiles {"shaders/shader.vert", "shaders/shader.frag"};
-	rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
-	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
-	
-	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
-	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
-	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
-	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
-	
-	rc.meshes [(MeshKey)EMesh::Square] = "meshes/square.iqm";
-	rc.meshes [(MeshKey)EMesh::Venus] = "meshes/venus.iqm";
-	
-	return rc;
-}
-
-mat4 get_billboard_mat_2 (const vec3 & pos, const vec3 & camera_forward) {
-	vec3 towardsCamera = -camera_forward;
-	towardsCamera.y = 0.0f;
-	towardsCamera = normalize (towardsCamera);
-	vec3 up (0.0f, 1.0f, 0.0f);
-	vec3 sideways = cross (towardsCamera, up);
-	
-	float scale = 0.5f;
-	
-	return mat4 (
-		vec4 (-scale * sideways, 0.0f), 
-		vec4 (-scale * towardsCamera, 0.0f),
-		vec4 (scale * up, 0.0f),
-		vec4 (pos, 1.0f));
-}
-
-mat4 get_billboard_mat (const vec3 & pos, const vec3 & camera_pos)
-{
-	return get_billboard_mat_2 (pos, pos - camera_pos);
-}
-
-struct ParticlePos {
-	vec4 color;
-	vec3 pos;
-};
-
-struct SpriteSorter {
-	vec3 cameraPos;
-	
-	SpriteSorter (vec3 p) : cameraPos (p) {}
-	
-	// Voodoo!
-	bool operator () (const ParticlePos & a, const ParticlePos & b) const {
-		auto whateverA = a.pos - cameraPos;
-		auto whateverB = b.pos - cameraPos;
-		return dot (whateverA, whateverA) > dot (whateverB, whateverB);
-	}
-};
-
 uint64_t get_epoch () {
 	auto now = std::chrono::system_clock::now().time_since_epoch ();
 	return duration_cast <milliseconds> (now).count ();
