@@ -57,7 +57,11 @@ Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const
 	return e;
 }
 
-GraphicsEcs animate_vegicide (const SceneEcs & /*scene*/, long frames, const ScreenOptions & screen_opts) 
+vec3 two2three (vec2 v) {
+	return vec3 (v.x, v.y, 0.0f);
+}
+
+GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenOptions & screen_opts) 
 {
 	Camera camera;
 	camera.fov = 0.25;
@@ -126,8 +130,10 @@ GraphicsEcs animate_vegicide (const SceneEcs & /*scene*/, long frames, const Scr
 	vec3 shadow_color (0.5f);
 	
 	// Carrot
-	{
-		vec3 base_pos (0.0f, 0.0f, 0.0f);
+	for (auto pair : scene.carrots) {
+		auto old_e = pair.first;
+		
+		vec3 base_pos = two2three (scene.positions.at (old_e));
 		
 		vec3 jump (0.0f, 1.0f + abs (sin (t)), 0.0f);
 		vec3 size (1.0f);
@@ -147,10 +153,11 @@ GraphicsEcs animate_vegicide (const SceneEcs & /*scene*/, long frames, const Scr
 	}
 	
 	// Venus
-	{
+	for (auto pair : scene.venuses) {
+		auto old_e = pair.first;
 		auto e = ecs.add_entity ();
 		
-		vec3 base_pos (0.0f, -4.0f, 0.0f);
+		vec3 base_pos = two2three (scene.positions.at (old_e));
 		
 		{
 			float shadow_scale = 0.5f;
