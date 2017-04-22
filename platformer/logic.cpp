@@ -180,17 +180,41 @@ void Logic::step (const InputFrame & input) {
 		}
 		
 		if (can_move) {
+			vec3 target_pos = pos;
+			
 			if (input.taps [(int)InputButton::Left]) {
-				scene.positions [e] = pos + vec3 (-1.0f, 0.0f, 0.0f);
+				target_pos = pos + vec3 (-1.0f, 0.0f, 0.0f);
 			}
 			if (input.taps [(int)InputButton::Right]) {
-				scene.positions [e] = pos + vec3 (1.0f, 0.0f, 0.0f);
+				target_pos = pos + vec3 (1.0f, 0.0f, 0.0f);
 			}
 			if (input.taps [(int)InputButton::Up]) {
-				scene.positions [e] = pos + vec3 (0.0f, 1.0f, 0.0f);
+				target_pos = pos + vec3 (0.0f, 1.0f, 0.0f);
 			}
 			if (input.taps [(int)InputButton::Down]) {
-				scene.positions [e] = pos + vec3 (0.0f, -1.0f, 0.0f);
+				target_pos = pos + vec3 (0.0f, -1.0f, 0.0f);
+			}
+			
+			bool can_move_there = true;
+			
+			for (auto pair : scene.pouncables) {
+				auto victim_e = pair.first;
+				
+				if (! pair.second) {
+					continue;
+				}
+				
+				auto victim_pos = scene.positions.at (victim_e);
+				
+				const auto diff = vec2 (victim_pos - target_pos);
+				if (length (diff) <= 0.5f) {
+					can_move_there = false;
+					break;
+				}
+			}
+			
+			if (can_move_there) {
+				scene.positions [e] = target_pos;
 			}
 		}
 		
