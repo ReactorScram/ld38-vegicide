@@ -150,7 +150,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 			auto targeted_it = scene.targeted.find (old_e);
 			if ((frames % 16) < 8 && targeted_it != scene.targeted.end () && (*targeted_it).second) 
 			{
-				blood_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
+				base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
 			}
 		}
 		

@@ -122,6 +122,23 @@ void kill_pounce_victims (SceneEcs & scene, const vec3 & venus_pos) {
 	}
 }
 
+void start_pounce (SceneEcs & scene, Entity e, const vec2 & pounce_vec, float pounce_range) 
+{
+	// Pounce!
+	// Default vertical jump
+	float jump_power = 1.0f;
+	vec2 pounce_xy (0.0f);
+	
+	if (length (pounce_vec) > 0.0f) {
+		jump_power = length (pounce_vec) / pounce_range;
+		pounce_xy = normalize (pounce_vec) * 40.0f / 60.0f;
+	}
+	
+	jump_power = glm::max (0.25f / pounce_range, jump_power);
+	
+	scene.velocities [e] = vec3 (pounce_xy.x, pounce_xy.y, 1.0f * jump_power);
+}
+
 void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFrame & input) 
 {
 	auto pos = scene.positions.at (e);
@@ -181,19 +198,7 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 	}
 	else {
 		if (can_pounce) {
-			// Pounce!
-			// Default vertical jump
-			float jump_power = 1.0f;
-			vec2 pounce_xy (0.0f);
-			
-			if (length (pounce_vec) > 0.0f) {
-				jump_power = length (pounce_vec) / pounce_range;
-				pounce_xy = normalize (pounce_vec) * 40.0f / 60.0f;
-			}
-			
-			jump_power = glm::max (0.25f / pounce_range, jump_power);
-			
-			scene.velocities [e] = vec3 (pounce_xy.x, pounce_xy.y, 1.0f * jump_power);
+			start_pounce (scene, e, pounce_vec, pounce_range);
 			venus.pounce_anim = 0.0f;
 		}
 		else {
