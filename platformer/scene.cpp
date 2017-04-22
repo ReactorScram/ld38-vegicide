@@ -101,7 +101,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 	{
 		auto e = ecs.add_entity ();
 		
-		ecs.rigid_mats [e] = rotate (scale (mat4 (1.0f), vec3 (-aspect * 8.0f, 8.0f, 1.0f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+		ecs.rigid_mats [e] = rotate (scale (mat4 (1.0f), vec3 (aspect * 8.0f, 8.0f, 1.0f)), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
 		ecs.diffuse_colors [e] = vec3 (1.0f);
 		ecs.meshes [e] = (MeshKey)EMesh::Square;
 		ecs.textures [e] = (TextureKey)ETexture::Farm;

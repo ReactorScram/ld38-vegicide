@@ -21,7 +21,7 @@ void main (void) {
 	
 	varyingColor = sqrt (vec3 (sun * 0.5 + sky * 0.5) * diffuseColor * diffuseColor);
 	
-	varyingTexCoord = attribTexCoord * vec2 (1.0, -1.0);
+	varyingTexCoord = attribTexCoord * vec2 (-1.0, -1.0);
 	
 	varyingAoStrength = 1.0 - 0.5 * sun;
 }
