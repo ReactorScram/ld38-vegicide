@@ -10,6 +10,14 @@ InputFrame::InputFrame () {
 	for (int i = 0; i < (int)InputButton::NUM_BUTTONS; i++) {
 		buttons [i] = false;
 	}
+	
+	clear_taps ();
+}
+
+void InputFrame::clear_taps () {
+	for (int i = 0; i < (int)InputButton::NUM_BUTTONS; i++) {
+		taps [i] = false;
+	}
 }
 
 InputButton map_key (int key) {
@@ -35,13 +43,22 @@ InputButton map_key (int key) {
 	}
 }
 
+void Input::clear_taps () {
+	frame.clear_taps ();
+}
+
 void Input::process (const SDL_Event & ev) {
+	bool debug = false;
+	
 	switch (ev.type) {
 		case SDL_KEYDOWN: {
 			InputButton b = map_key (ev.key.keysym.sym);
 			if (b < InputButton::NUM_BUTTONS) {
 				frame.buttons [(int)b] = true;
-				cerr << (int)b << ", true" << endl;
+				frame.taps [(int)b] = true;
+				if (debug) {
+					cerr << (int)b << ", true" << endl;
+				}
 			}
 		}
 			break;
@@ -49,7 +66,9 @@ void Input::process (const SDL_Event & ev) {
 			InputButton b = map_key (ev.key.keysym.sym);
 			if (b < InputButton::NUM_BUTTONS) {
 				frame.buttons [(int)b] = true;
-				cerr << (int)b << ", false" << endl;
+				if (debug) {
+					cerr << (int)b << ", false" << endl;
+				}
 			}
 		}
 			break;

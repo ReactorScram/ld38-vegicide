@@ -3,11 +3,8 @@
 
 #include <glm/glm.hpp>
 
-#include "graphics/graphics.h"
-
-namespace Colorado {
-struct ScreenOptions;
-}
+// TODO: Move ECS out of graphics
+#include "graphics/ecs.h"
 
 struct SceneEcs : Ecs {
 	Components <glm::vec2> positions;
@@ -16,35 +13,5 @@ struct SceneEcs : Ecs {
 	Components <EcsTrue> venuses;
 	Components <EcsTrue> player_input;
 };
-
-enum class ETexture {
-	BenchAo,
-	Carrot,
-	Farm,
-	Gear8,
-	Gear32,
-	Lenna,
-	Noise,
-	Shadow,
-	White,
-};
-
-enum class EMesh {
-	Bench,
-	BenchUpper,
-	Gear8,
-	Gear32,
-	Square,
-	Venus,
-};
-
-enum class EShader {
-	Opaque,
-	Particle,
-	Shadow,
-};
-
-ResourceTable make_resource_table ();
-GraphicsEcs animate_vegicide (const SceneEcs & ecs, long frames, const Colorado::ScreenOptions & screen_opts);
 
 #endif

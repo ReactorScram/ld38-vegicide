@@ -12,8 +12,10 @@ enum class InputButton {
 
 struct InputFrame {
 	bool buttons [(int)InputButton::NUM_BUTTONS];
+	bool taps [(int)InputButton::NUM_BUTTONS];
 	
 	InputFrame ();
+	void clear_taps ();
 };
 
 union SDL_Event;
@@ -21,6 +23,7 @@ union SDL_Event;
 struct Input {
 	InputFrame frame;
 	
+	void clear_taps ();
 	void process (const SDL_Event & ev);
 };
 

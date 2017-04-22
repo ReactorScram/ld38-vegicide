@@ -1,3 +1,4 @@
+#include "animation.h"
 #include "scene.h"
 
 #include <glm/gtc/matrix_transform.hpp>

@@ -13,8 +13,10 @@
 #include "terf/terf.h"
 #include "video-encoder/video-encoder.h"
 
+#include "animation.h"
 #include "graphics/graphics.h"
 #include "input.h"
+#include "logic.h"
 #include "scene.h"
 
 using glm::radians;
@@ -65,8 +67,8 @@ int main () {
 	
 	long frames = 0;
 	
-	SceneEcs ecs;
 	Input input;
+	Logic logic;
 	
 	while (running) {
 		SDL_Event ev;
@@ -86,6 +88,9 @@ int main () {
 		
 		for (int i = 0; i < numSteps; i++) {
 			// Step
+			logic.step (input.frame);
+			input.clear_taps ();
+			
 			frames++;
 		}
 		
@@ -94,7 +99,7 @@ int main () {
 		}
 		else {
 			// Animate
-			auto graphics_ecs = animate_vegicide (ecs, frames, screen_opts);
+			auto graphics_ecs = animate_vegicide (logic.scene, frames, screen_opts);
 			
 			// Render
 			graphics.render (graphics_ecs);
