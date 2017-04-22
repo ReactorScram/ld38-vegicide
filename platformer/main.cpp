@@ -14,6 +14,7 @@
 #include "video-encoder/video-encoder.h"
 
 #include "graphics/graphics.h"
+#include "input.h"
 #include "scene.h"
 
 using glm::radians;
@@ -65,6 +66,7 @@ int main () {
 	long frames = 0;
 	
 	SceneEcs ecs;
+	Input input;
 	
 	while (running) {
 		SDL_Event ev;
@@ -72,6 +74,9 @@ int main () {
 		while (SDL_PollEvent (&ev)) {
 			if (ev.type == SDL_QUIT) {
 				running = false;
+			}
+			else {
+				input.process (ev);
 			}
 		}
 		
