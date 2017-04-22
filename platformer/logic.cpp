@@ -28,5 +28,14 @@ void Logic::step (const InputFrame & input) {
 		if (input.taps [(int)InputButton::Left]) {
 			scene.positions [e] = scene.positions [e] + vec2 (-1.0f, 0.0f);
 		}
+		if (input.taps [(int)InputButton::Right]) {
+			scene.positions [e] = scene.positions [e] + vec2 (1.0f, 0.0f);
+		}
+		if (input.taps [(int)InputButton::Up]) {
+			scene.positions [e] = scene.positions [e] + vec2 (0.0f, 1.0f);
+		}
+		if (input.taps [(int)InputButton::Down]) {
+			scene.positions [e] = scene.positions [e] + vec2 (0.0f, -1.0f);
+		}
 	}
 }
