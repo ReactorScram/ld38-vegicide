@@ -5,8 +5,11 @@ build
 /meshes
 /meshes-blender
 /screenshots
+/svg
 /textures
+/videos
 
 .release_time
 
 *.exe
+*.zip
