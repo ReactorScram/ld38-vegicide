@@ -42,6 +42,30 @@ Logic::Logic () {
 	scene = reset_scene ();
 }
 
+vec2 get_pounce_vec (const InputFrame & input) {
+	vec2 pounce_vec (0.0f, 0.0f);
+	
+	if (input.buttons [(int)InputButton::Left]) {
+		pounce_vec.x = -1.0f;
+	}
+	else if (input.buttons [(int)InputButton::Right]) {
+		pounce_vec.x = 1.0f;
+	}
+	
+	if (input.buttons [(int)InputButton::Up]) {
+		pounce_vec.y = 1.0f;
+	}
+	else if (input.buttons [(int)InputButton::Down]) {
+		pounce_vec.y = -1.0f;
+	}
+	
+	if (length (pounce_vec) > 1.0f) {
+		pounce_vec = normalize (pounce_vec);
+	}
+	
+	return pounce_vec;
+}
+
 // Everything from here down is a system I guess yay
 void player_walk (SceneEcs & scene, Entity e, const InputFrame & input) {
 	auto pos = scene.positions.at (e);
@@ -120,35 +144,7 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 	if (venus_it != scene.venuses.end ()) {
 		auto & venus = (*venus_it).second;
 		
-		vec2 pounce_vec (0.0f, 0.0f);
-		
-		bool got_input = false;
-		
-		if (input.buttons [(int)InputButton::Left]) {
-			pounce_vec.x = -1.0f;
-			got_input = true;
-		}
-		else if (input.buttons [(int)InputButton::Right]) {
-			pounce_vec.x = 1.0f;
-			got_input = true;
-		}
-		
-		if (input.buttons [(int)InputButton::Up]) {
-			pounce_vec.y = 1.0f;
-			got_input = true;
-		}
-		else if (input.buttons [(int)InputButton::Down]) {
-			pounce_vec.y = -1.0f;
-			got_input = true;
-		}
-		
-		if (!got_input && scene.pounce_vec.find (e) != scene.pounce_vec.end ()) {
-			//pounce_vec = scene.pounce_vec.at (e);
-		}
-		
-		if (length (pounce_vec) > 1.0f) {
-			pounce_vec = normalize (pounce_vec);
-		}
+		vec2 pounce_vec = get_pounce_vec (input);
 		
 		scene.pounce_vec [e] = pounce_vec;
 		
