@@ -158,11 +158,13 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		auto venus = pair.second;
 		auto e = ecs.add_entity ();
 		
-		vec3 base_pos = two2three (scene.positions.at (old_e));
+		auto pos = scene.positions.at (old_e);
+		
+		vec3 base_pos = two2three (pos);
 		
 		{
 			float shadow_scale = 0.5f;
-			auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), shadow_color, ETexture::Shadow);
+			auto s = add_sprite (ecs, two2three (pos * vec3 (1.0f, 1.0f, 0.0f)), vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), shadow_color, ETexture::Shadow);
 			
 			shadows.renderables [s];
 		}
@@ -173,9 +175,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		
 		vec3 size = mix (breathe_size, tense_size, venus.pounce_anim);
 		
-		vec3 pos = base_pos + vec3 (0.0f, size.y, 0.0f);
-		
-		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), pos), size);
+		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), base_pos + vec3 (0.0f, size.y, 0.0f)), size);
 		
 		if (venus.pounce_anim == 1.0f && (frames % 16) < 8) {
 			ecs.diffuse_colors [e] = vec3 (1.0f, 0.1f, 0.1f);
