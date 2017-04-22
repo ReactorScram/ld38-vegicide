@@ -148,7 +148,7 @@ struct SpriteSorter {
 	}
 };
 
-GraphicsEcs animate_vegicide_demo (long /*frames*/, const ScreenOptions & screen_opts) 
+GraphicsEcs animate_vegicide_demo (long frames, const ScreenOptions & screen_opts) 
 {
 	Camera camera;
 	camera.fov = 0.25;
@@ -168,13 +168,11 @@ GraphicsEcs animate_vegicide_demo (long /*frames*/, const ScreenOptions & screen
 	GlState opaque_state;
 	opaque_state.bools [GL_DEPTH_TEST] = false;
 	opaque_state.bools [GL_CULL_FACE] = false;
-	opaque_state.frontFace = GL_CW;
 	
 	GlState transparent_state;
-	transparent_state.bools [GL_DEPTH_TEST] = true;
+	transparent_state.bools [GL_DEPTH_TEST] = false;
 	transparent_state.bools [GL_BLEND] = true;
-	transparent_state.bools [GL_CULL_FACE] = true;
-	transparent_state.depthMask = false;
+	transparent_state.bools [GL_CULL_FACE] = false;
 	transparent_state.blendFunc [0] = GL_SRC_ALPHA;
 	transparent_state.blendFunc [1] = GL_ONE_MINUS_SRC_ALPHA;
 	
@@ -184,7 +182,7 @@ GraphicsEcs animate_vegicide_demo (long /*frames*/, const ScreenOptions & screen
 	opaque.proj_view_mat = proj_view_mat;
 	
 	Pass transparent;
-	transparent.shader = (ShaderKey)EShader::Particle;
+	transparent.shader = (ShaderKey)EShader::Opaque;
 	transparent.gl_state = transparent_state;
 	transparent.proj_view_mat = proj_view_mat;
 	
@@ -202,11 +200,31 @@ GraphicsEcs animate_vegicide_demo (long /*frames*/, const ScreenOptions & screen
 		opaque.renderables [e];
 	}
 	
+	float t = frames * 2.0 * 3.1415926535 / 60.0f;
+	
+	// Carrot
+	{
+		auto e = ecs.add_entity ();
+		
+		vec3 pos (0.0f, 1.0f + abs (sin (t)), 0.0f);
+		vec3 size (1.0f);
+		
+		ecs.rigid_mats [e] = rotate (translate (scale (mat4 (1.0f), size), pos), radians (-90.0f), vec3 (1.0f, 0.0f, 0.0f));
+		ecs.diffuse_colors [e] = vec3 (1.0f);
+		ecs.meshes [e] = (MeshKey)EMesh::Square;
+		ecs.textures [e] = (TextureKey)ETexture::Carrot;
+		
+		transparent.renderables [e];
+	}
+	
 	// Venus
 	{
 		auto e = ecs.add_entity ();
 		
-		ecs.rigid_mats [e] = mat4 (1.0f);
+		vec3 pos (0.0f, -2.0f, 0.0f);
+		vec3 size (1.0f - 0.125f * sin (t), 1.0f + 0.125f * sin (t), 1.0f);
+		
+		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), pos), size);
 		ecs.diffuse_colors [e] = vec3 (0.005f, 0.228f, 0.047f);
 		ecs.meshes [e] = (MeshKey)EMesh::Venus;
 		ecs.textures [e] = (TextureKey)ETexture::White;
