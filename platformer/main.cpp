@@ -15,6 +15,7 @@
 #include "video-encoder/video-encoder.h"
 
 #include "animation.h"
+#include "audio/audio.h"
 #include "graphics/graphics.h"
 #include "input.h"
 #include "logic.h"
@@ -91,6 +92,8 @@ int main () {
 	GameState game_state = GameState::Title;
 	float curtain_t = 0.0f;
 	
+	Audio audio (terf);
+	
 	while (running) {
 		SDL_Event ev;
 		
@@ -131,6 +134,8 @@ int main () {
 					break;
 			}
 			input.clear_taps ();
+			
+			audio.update (AudioFrame ());
 			
 			frames++;
 		}

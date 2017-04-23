@@ -1,6 +1,6 @@
 default: all
 
-MODULES = graphics platformer
+MODULES = graphics audio platformer
 
 .PHONY: clean debug all $(MODULES)
 

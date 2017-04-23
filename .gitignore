@@ -13,5 +13,6 @@ build
 .release_time
 
 *.exe
+*.flac
 *.mp3
 *.zip
