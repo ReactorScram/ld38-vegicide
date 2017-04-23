@@ -13,11 +13,14 @@ struct Venus {
 struct SceneEcs : Ecs {
 	Components <glm::vec3> positions;
 	Components <glm::vec3> velocities;
+	Components <float> radii;
 	Components <bool> targeted;
 	Components <float> anim_t;
 	Components <bool> pouncables;
 	Components <EcsTrue> pounce_target;
+	// Different meaning before and during pounce
 	Components <glm::vec2> pounce_vec;
+	Components <glm::vec3> pounce_vel;
 	// Doubles as invuln frames on enemies with big health
 	Components <long> damage_flash;
 	Components <bool> dead;

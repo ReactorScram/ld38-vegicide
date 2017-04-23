@@ -140,6 +140,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 {
 	const float t = frames * 2.0 * 3.1415926535 / 60.0f;
 	float screen_shake = scene.screenshake_t;
+	bool flash = (frames % 16) < 8;
 	
 	float noise = 0;
 	if (screen_shake > 0.0f) {
@@ -226,9 +227,26 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 			dead = dead_it != scene.dead.end () && (*dead_it).second;
 		}
 		
-		float breathe = 0.2f * sin (t / 4.0);
+		float breathe = 0.2f * sin (t * 0.25f);
 		auto tex = ETexture::Pumpking;
 		vec4 base_color (1.0f);
+		
+		{
+			auto it = scene.targeted.find (old_e);
+			if (it != scene.targeted.end () && (*it).second) 
+			{
+				base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
+			}
+		}
+		{
+			auto it = scene.damage_flash.find (old_e);
+			if (flash && it != scene.damage_flash.end () && (*it).second > frames) 
+			{
+				
+				base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
+				//breathe = 0.3f * sin (t * 0.5f);
+			}
+		}
 		
 		vec4 blood_color = shadow_color;
 		float shadow_scale = max (0.0f, 2.0f / (base_pos.z + 1.0f));
@@ -243,23 +261,6 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		}
 		
 		vec3 size (2.0f + breathe, 2.0f - breathe, 0.0f);
-		
-		bool flash = (frames % 16) < 8;
-		
-		{
-			auto it = scene.targeted.find (old_e);
-			if (it != scene.targeted.end () && (*it).second) 
-			{
-				base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
-			}
-		}
-		{
-			auto it = scene.damage_flash.find (old_e);
-			if (flash && it != scene.damage_flash.end () && (*it).second > frames) 
-			{
-				base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
-			}
-		}
 		
 		auto e = add_sprite (ecs, base_pos + vec3 (0.0f, 0.0f, -0.5f + size.y), size, base_color, tex);
 		

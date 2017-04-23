@@ -23,6 +23,7 @@ void place_pumpking (SceneEcs & scene, const vec3 & pos) {
 	scene.pumpkings [e] = EcsTrue ();
 	scene.pouncables [e] = true;
 	scene.hp [e] = 10;
+	scene.radii [e] = 2.0f;
 }
 
 vec2 tmx_to_vg (vec2 v) {
@@ -55,7 +56,7 @@ vec2 get_camera_target (const SceneEcs & scene, Entity e) {
 	}
 	else {
 		// Walking
-		camera_target = obj_to_camera (vec2 (pos) + scene.last_walk * vec2 (7.5f, 5.0f));
+		camera_target = obj_to_camera (vec2 (pos) + scene.last_walk * vec2 (4.0f, 2.4f));
 	}
 	
 	camera_target.x = clamp (camera_target.x, 32.0f, 2048 - 800 - 32.0f);
@@ -172,6 +173,7 @@ vec3 get_walk_pos (const SceneEcs & scene, Entity e, const InputFrame & input)
 	
 	for (auto pair : scene.pouncables) {
 		auto victim_e = pair.first;
+		float radius = get_component (scene.radii, victim_e, 1.0f);
 		
 		if (! pair.second) {
 			continue;
@@ -180,7 +182,7 @@ vec3 get_walk_pos (const SceneEcs & scene, Entity e, const InputFrame & input)
 		auto victim_pos = scene.positions.at (victim_e);
 		
 		const auto diff = vec2 (victim_pos - target_pos);
-		if (length (diff) <= 0.5f) {
+		if (length (diff) < radius) {
 			can_move_there = false;
 			break;
 		}
@@ -218,21 +220,31 @@ vector <Entity> get_pounce_victims (const SceneEcs & scene, const vec3 & venus_p
 	return result;
 }
 
-void kill_enemies (SceneEcs & scene, const vector <Entity> & victims, long t) 
+enum class EPounceResult {
+	Missed,
+	Killed,
+	Bounce,
+};
+
+EPounceResult kill_enemies (SceneEcs & scene, const vector <Entity> & victims, long t) 
 {
 	for (Entity pouncee_e : victims) {
 		if (get_component (scene.damage_flash, pouncee_e, (long)0) <= t) {
 			scene.hp [pouncee_e] -= 1;
+			shake_screen (scene, 0.375f);
 			if (scene.hp.at (pouncee_e) <= 0) {
 				scene.dead [pouncee_e] = true;
 				scene.pouncables [pouncee_e] = false;
+				return EPounceResult::Killed;
 			}
 			else {
 				scene.damage_flash [pouncee_e] = t + 30;
+				// Bounce the venus back
+				return EPounceResult::Bounce;
 			}
-			shake_screen (scene, 0.375f);
 		}
 	}
+	return EPounceResult::Missed;
 }
 
 vec3 get_pounce_velocity (const vec2 & pounce_vec, float pounce_range) {
@@ -330,7 +342,9 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 				venus.pounce_anim += 2.0f / 60.0f;
 			}
 			else if (pounce_charged) {
-				start_pounce (scene, e, get_pounce_velocity (pounce_vec_2, pounce_range));
+				auto vel = get_pounce_velocity (pounce_vec_2, pounce_range);
+				scene.pounce_vel [e] = vel;
+				start_pounce (scene, e, vel);
 				venus.pounce_anim = 0.0f;
 			}
 			else {
@@ -348,19 +362,38 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input, long t) 
 {
 	auto pos = scene.positions.at (e);
+	auto vel = scene.velocities.at (e);
 	
 	bool can_move = true;
 	
 	if (pos.z > 0.0f) {
 		can_move = false;
 	}
-	else {
+	else if (pos.z < 0.0f || vel.z < 0.0f) {
+		//cerr << "Untz" << endl;
 		scene.velocities [e] = vec3 (0.0f);
 		pos.x = floor (pos.x + 1.0f) - 0.5f;
 		pos.y = floor (pos.y + 1.0f) - 0.5f;
 		pos.z = 0.0f;
 		scene.positions [e] = pos;
+		
+		auto pounce_result = kill_enemies (scene, get_pounce_victims (scene, pos), t);
+		
+		switch (pounce_result) {
+			case EPounceResult::Bounce:
+			{
+				scene.positions [e] = scene.positions.at (e) * vec3 (1.0f, 1.0f, 0.0f);
+				scene.pounce_vel [e] = scene.pounce_vel.at (e) * vec3 (-1.0f, -1.0f, 1.0f);
+				start_pounce (scene, e, scene.pounce_vel.at (e));
+			}
+				break;
+			default:
+				break;
+		}
 	}
+	
+	pos = scene.positions.at (e);
+	vel = scene.velocities.at (e);
 	
 	if (input.buttons [(int)InputButton::Pounce]) {
 		can_move = false;
@@ -382,17 +415,16 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input, l
 		pos = new_pos;
 	}
 	
-	const auto vel = scene.velocities.at (e);
+	
 	if (pos.z > 0.0f || vel.z > 0.0f) {
 		// Mid-pounce
 		scene.velocities [e] = vel + vec3 (0.0f, 0.0f, -0.125f);
 		pos += scene.velocities.at (e);
-		
-		kill_enemies (scene, get_pounce_victims (scene, pos), t);
 	}
 	
 	pos.x = clamp (pos.x, 1.5f, 2048.0f / 32.0f - 1.5f);
 	pos.y = clamp (pos.y, 1.5f, 1024.0f / 32.0f - 1.5f);
+	pos.z = clamp (pos.z, 0.0f, 100.0f);
 	
 	scene.positions [e] = pos;
 	
