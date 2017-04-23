@@ -41,10 +41,10 @@
  </layer>
  <objectgroup name="Object Layer 1">
   <object id="1" type="Pumpking" x="576" y="288" width="96" height="95"/>
-  <object id="3" type="Carrot" x="448" y="288" width="32" height="32"/>
+  <object id="3" type="Carrot" x="352" y="256" width="32" height="32"/>
   <object id="4" type="Venus" x="64" y="320" width="32" height="32"/>
   <object id="7" type="Carrot" x="352" y="288" width="32" height="32"/>
   <object id="15" type="Carrot" x="384" y="288" width="32" height="32"/>
-  <object id="16" type="Carrot" x="416" y="288" width="32" height="32"/>
+  <object id="16" type="Carrot" x="352" y="320" width="32" height="32"/>
  </objectgroup>
 </map>

@@ -55,7 +55,7 @@ Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const
 	ecs.diffuse_colors [e] = color;
 	ecs.meshes [e] = (MeshKey)EMesh::Square;
 	ecs.textures [e] = (TextureKey)texture;
-	ecs.transparent_z [e] = pos.y;
+	ecs.transparent_z [e] = -pos.y;
 	
 	return e;
 }
@@ -218,7 +218,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	for (auto pair : scene.pumpkings) {
 		auto old_e = pair.first;
 		
-		vec3 base_pos = two2three (scene.positions.at (old_e));
+		vec3 base_pos = scene.positions.at (old_e);
 		
 		bool dead = false;
 		{
@@ -252,7 +252,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 			}
 		}
 		
-		auto e = add_sprite (ecs, base_pos + vec3 (0.0f, 0.5f - size.y, 0.0f), size, base_color, tex);
+		auto e = add_sprite (ecs, base_pos + vec3 (0.0f, 0.0f, -0.5f + size.y), size, base_color, tex);
 		
 		transparent.renderables [e];
 		
@@ -271,7 +271,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	for (auto pair : scene.carrots) {
 		auto old_e = pair.first;
 		
-		vec3 base_pos = two2three (scene.positions.at (old_e));
+		vec3 base_pos = scene.positions.at (old_e);
 		
 		bool dead = false;
 		{
@@ -338,7 +338,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		
 		{
 			float shadow_scale = max (0.0f, 0.5f / (pos.z + 1.0f));
-			auto s = add_sprite (ecs, two2three (pos * vec3 (1.0f, 1.0f, 0.0f)), vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), shadow_color, ETexture::Shadow);
+			auto s = add_sprite (ecs, pos * vec3 (1.0f, 1.0f, 0.0f), vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), shadow_color, ETexture::Shadow);
 			
 			shadows.renderables [s];
 		}
@@ -388,7 +388,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), base_pos + vec3 (0.0f, -size.y, 0.0f)), size * vec3 (1.0f, -1.0f, 1.0f));
 		ecs.meshes [e] = (MeshKey)EMesh::Venus;
 		ecs.textures [e] = (TextureKey)ETexture::White;
-		ecs.transparent_z [e] = base_pos.y;
+		ecs.transparent_z [e] = -base_pos.y;
 		
 		transparent.renderables [e];
 	}

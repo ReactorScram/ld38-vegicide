@@ -61,10 +61,11 @@ Audio::Audio (const Terf::Archive & terf)
 	//alSourcePlay (musicSource);
 	*/
 	
-	music_vorbis = terf.lookupFile ("music/boss.ogg");
+	encoded_music [EMusic::Ambient] = terf.lookupFile ("music/ambient.ogg");
+	encoded_music [EMusic::Boss] = terf.lookupFile ("music/boss.ogg");
 	music_opus = terf.lookupFile ("music/boss.opus");
 	
-	vorbis_decoder = unique_ptr <VorbisDecoder> (new VorbisDecoder (music_vorbis));
+	vorbis_decoder = unique_ptr <VorbisDecoder> (new VorbisDecoder (encoded_music.at (EMusic::Ambient)));
 	opus_decoder = unique_ptr <OpusDecoder> (new OpusDecoder (music_opus));
 	
 	use_vorbis = true;
