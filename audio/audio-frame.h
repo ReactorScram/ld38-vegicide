@@ -9,20 +9,21 @@ enum class EMusic {
 	Boss,
 };
 
+enum class ESound {
+	KingPain,
+	KingRoar,
+	NUM_SOUNDS,
+};
+
 struct AudioFrame {
-	bool boostActivated;
-	float throttle;
-	bool dirt;
-	
 	EMusic bgm;
-	
-	std::string voiceTrigger;
+	bool sounds [(int)ESound::NUM_SOUNDS];
 	
 	AudioFrame () {
-		boostActivated = false;
-		throttle = 0.0f;
-		dirt = false;
 		bgm = EMusic::Boss;
+		for (int i = 0; i < (int)ESound::NUM_SOUNDS; i++) {
+			sounds [i] = false;
+		}
 	}
 };
 

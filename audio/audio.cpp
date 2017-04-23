@@ -43,11 +43,11 @@ Audio::Audio (const Terf::Archive & terf)
 	loadVorbises (terf);
 	//sounds ["spirulence_bgm"] = loadOpus (terf, "spirulence_bgm");
 	
-	alGenSources (1, &throttleSource);
+	//alGenSources (1, &throttleSource);
 	//alSourcei (throttleSource, AL_BUFFER, sounds ["engine_hum"]);
-	alSourcef (throttleSource, AL_GAIN, 0.25f);
-	alSourcef (throttleSource, AL_PITCH, 1.0f);
-	alSourcei (throttleSource, AL_LOOPING, AL_TRUE);
+	//alSourcef (throttleSource, AL_GAIN, 0.25f);
+	//alSourcef (throttleSource, AL_PITCH, 1.0f);
+	//alSourcei (throttleSource, AL_LOOPING, AL_TRUE);
 	//alSourcePlay (throttleSource);
 	
 	// Stereo?!??!
@@ -80,7 +80,7 @@ Audio::Audio (const Terf::Archive & terf)
 		cerr << "Opus" << endl;
 	}
 	
-	alGenSources (1, &voiceSource);
+	//alGenSources (1, &voiceSource);
 }
 
 Audio::~Audio () {
@@ -92,9 +92,9 @@ Audio::~Audio () {
 	sounds.clear ();
 	
 	// These will be destroyed automatically anyway
-	alDeleteSources (1, &throttleSource);
+	//alDeleteSources (1, &throttleSource);
 	//alDeleteSources (1, &musicSource);
-	alDeleteSources (1, &voiceSource);
+	//alDeleteSources (1, &voiceSource);
 	
 	alcMakeContextCurrent (nullptr);
 	alcDestroyContext (context);

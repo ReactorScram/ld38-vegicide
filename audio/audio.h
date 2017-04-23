@@ -119,13 +119,10 @@ protected:
 	std::map <std::string, ALuint> sounds;
 	std::map <EMusic, std::vector <uint8_t> > encoded_music;
 	
-	//std::map <std::string, AudioStream> streams;
+	//ALuint throttleSource;
+	//ALuint voiceSource;
+	//ALuint musicSource;
 	
-	ALuint throttleSource;
-	ALuint voiceSource;
-	ALuint musicSource;
-	
-	//std::vector <uint8_t> music_vorbis;
 	std::unique_ptr <VorbisDecoder> vorbis_decoder;
 	
 	std::vector <uint8_t> music_opus;
