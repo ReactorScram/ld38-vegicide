@@ -142,11 +142,11 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	
 	vec3 camera (floor (10 + noise), floor (0), 0);
 	
-	float aspect = (double)screen_opts.width / (double)screen_opts.height;
+	const float aspect = (double)screen_opts.width / (double)screen_opts.height;
 	
-	const float mob_scale = 1.0f / 7.5f;
+	const float mob_scale = 1.0f / 15.0f;
 	
-	const auto proj_mat = glm::ortho (-aspect, aspect, -1.0f, 1.0f);
+	const auto proj_mat = glm::ortho (0.0f, aspect, 0.0f, 1.0f);
 	
 	const auto view_mat = translate (scale (mat4 (1.0f), vec3 (mob_scale)), -camera / 32.0f);
 	//auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
@@ -212,19 +212,25 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		
 		vec3 base_pos = two2three (scene.positions.at (old_e));
 		
-		vec3 jump (0.0f, 0.0f, 1.0f + abs (sin (t)));
-		vec3 size (1.0f);
-		auto tex = ETexture::Carrot;
-		vec4 base_color (1.0f);
-		
 		bool dead = false;
 		{
 			auto dead_it = scene.dead.find (old_e);
 			dead = dead_it != scene.dead.end () && (*dead_it).second;
 		}
 		
+		float jump_ofs = abs (sin (t));
+		if (dead) {
+			jump_ofs = 0.0f;
+		}
+		vec3 jump (0.0f, 0.0f, 1.0f + jump_ofs);
+		vec3 size (1.0f);
+		auto tex = ETexture::Carrot;
+		vec4 base_color (1.0f);
+		
+		
+		
 		vec4 blood_color = shadow_color;
-		float shadow_scale = 0.25f;
+		float shadow_scale = max (0.0f, 0.25f / (jump_ofs + 1.0f));
 		auto shadow_tex = ETexture::Shadow;
 		
 		if (dead) {
@@ -269,7 +275,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		vec3 base_pos = two2three (pos);
 		
 		{
-			float shadow_scale = 0.5f;
+			float shadow_scale = max (0.0f, 0.5f / (pos.z + 1.0f));
 			auto s = add_sprite (ecs, two2three (pos * vec3 (1.0f, 1.0f, 0.0f)), vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), shadow_color, ETexture::Shadow);
 			
 			shadows.renderables [s];

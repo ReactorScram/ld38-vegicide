@@ -16,7 +16,7 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 }
 
 vec2 tmx_to_vg (vec2 v) {
-	return v / 32.0f + vec2 (-12.5f, -9.5f);
+	return v / vec2 (32.0f, -32.0f) + vec2 (0.0f, 15.0f);
 }
 
 SceneEcs reset_scene (const Level & level) {
@@ -303,8 +303,8 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 	}
 	else {
 		scene.velocities [e] = vec3 (0.0f);
-		pos.x = floor (pos.x + 0.5f);
-		pos.y = floor (pos.y + 0.5f);
+		pos.x = floor (pos.x + 1.0f) - 0.5f;
+		pos.y = floor (pos.y + 1.0f) - 0.5f;
 		pos.z = 0.0f;
 		scene.positions [e] = pos;
 	}
