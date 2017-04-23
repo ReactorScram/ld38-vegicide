@@ -41,25 +41,6 @@ Audio::Audio (const Terf::Archive & terf)
 	alcMakeContextCurrent (context);
 	
 	loadVorbises (terf);
-	//sounds ["spirulence_bgm"] = loadOpus (terf, "spirulence_bgm");
-	
-	//alGenSources (1, &throttleSource);
-	//alSourcei (throttleSource, AL_BUFFER, sounds ["engine_hum"]);
-	//alSourcef (throttleSource, AL_GAIN, 0.25f);
-	//alSourcef (throttleSource, AL_PITCH, 1.0f);
-	//alSourcei (throttleSource, AL_LOOPING, AL_TRUE);
-	//alSourcePlay (throttleSource);
-	
-	// Stereo?!??!
-	std::vector <int> loopPoints = {0, 470403 };
-	//alBufferiv (sounds ["spirulence_bgm"], AL_LOOP_POINTS_SOFT, loopPoints.data ());
-	/*
-	alGenSources (1, &musicSource);
-	alSourcei (musicSource, AL_BUFFER, sounds ["spirulence_bgm"]);
-	alSourcef (musicSource, AL_GAIN, 0.25f);
-	alSourcei (musicSource, AL_LOOPING, AL_TRUE);
-	//alSourcePlay (musicSource);
-	*/
 	
 	encoded_music [EMusic::Ambient] = terf.lookupFile ("music/ambient.ogg");
 	encoded_music [EMusic::Boss] = terf.lookupFile ("music/boss.ogg");
@@ -79,8 +60,6 @@ Audio::Audio (const Terf::Archive & terf)
 		alSourcePlay (opus_decoder->as.source);
 		cerr << "Opus" << endl;
 	}
-	
-	//alGenSources (1, &voiceSource);
 }
 
 Audio::~Audio () {
@@ -90,11 +69,6 @@ Audio::~Audio () {
 	}
 	
 	sounds.clear ();
-	
-	// These will be destroyed automatically anyway
-	//alDeleteSources (1, &throttleSource);
-	//alDeleteSources (1, &musicSource);
-	//alDeleteSources (1, &voiceSource);
 	
 	alcMakeContextCurrent (nullptr);
 	alcDestroyContext (context);
@@ -128,19 +102,16 @@ void Audio::update (const AudioFrame & frame) {
 }
 
 void Audio::loadVorbises (const Terf::Archive & terf) {
+	// Match this to ESound
 	vector <string> soundNames {
-		/*
-		"checkpoint",
-		"engine_hum",
-		"lap_finished",
-		"lap_record",
-		//"spirulence_bgm",
-		"you_got_nitro",
-		*/
+		"king-laugh",
+		"king-pain",
+		"king-roar",
+		"king-you",
 	};
 	
-	for (auto name : soundNames) {
-		sounds [name] = loadVorbis (terf, name);
+	for (int i = 0; i < (int)soundNames.size (); i++) {
+		sounds [(ESound)i] = loadVorbis (terf, soundNames.at (i));
 	}
 }
 

@@ -116,12 +116,8 @@ protected:
 	ALCdevice * device;
 	ALCcontext * context;
 	
-	std::map <std::string, ALuint> sounds;
+	std::map <ESound, ALuint> sounds;
 	std::map <EMusic, std::vector <uint8_t> > encoded_music;
-	
-	//ALuint throttleSource;
-	//ALuint voiceSource;
-	//ALuint musicSource;
 	
 	std::unique_ptr <VorbisDecoder> vorbis_decoder;
 	

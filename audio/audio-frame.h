@@ -9,9 +9,12 @@ enum class EMusic {
 	Boss,
 };
 
+// Match this to loadVorbises
 enum class ESound {
+	KingLaugh,
 	KingPain,
 	KingRoar,
+	KingYou,
 	NUM_SOUNDS,
 };
 
