@@ -7,6 +7,7 @@
 #include "colorado/screen-options.h"
 
 #include "level.h"
+#include "prns.h"
 
 using namespace Colorado;
 using namespace glm;
@@ -52,22 +53,33 @@ Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const
 	return e;
 }
 
-GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level & level, long frames, const ScreenOptions & screen_opts) 
+float shake (float rads, float hz, float strength) {
+	return strength * sin (rads * hz);
+}
+
+GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames, const ScreenOptions & screen_opts) 
 {
-	Camera camera;
-	camera.fov = 0.25;
-	//auto proj_mat = camera.generateProjectionMatrix (screen_opts.width, screen_opts.height);
+	const float t = frames * 2.0 * 3.1415926535 / 60.0f;
+	float screen_shake = scene.screenshake_t;
+	
+	float noise = 0;
+	if (screen_shake > 0.0f) {
+		noise = shake (t, 20, 2) + shake (t, 14, 3) + shake (5, 8, 5);
+	}
+	
+	vec3 camera (floor (0 + noise), floor (0), 0);
 	
 	float aspect = (double)screen_opts.width / (double)screen_opts.height;
 	
-	auto proj_mat = scale (glm::ortho (-aspect, aspect, -1.0f, 1.0f), vec3 (1.0f / 8.0f));
+	const float mob_scale = 1.0f / 7.5f;
 	
-	auto view_mat = mat4 (1.0f);
-	view_mat = translate (view_mat, vec3 (0.0f, 0.0f, 0.0f));
+	const auto proj_mat = glm::ortho (-aspect, aspect, -1.0f, 1.0f);
+	
+	const auto view_mat = translate (scale (mat4 (1.0f), vec3 (mob_scale)), -camera / 32.0f);
 	//auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
 	//auto camera_forward = inverse (view_mat) * vec4 (0.0, 0.0, -1.0, 0.0);
 	
-	auto proj_view_mat = proj_mat * view_mat;
+	const auto proj_view_mat = proj_mat * view_mat;
 	
 	GlState opaque_state;
 	opaque_state.bools [GL_DEPTH_TEST] = false;
@@ -122,7 +134,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level & level, long 
 	if (true) {
 		auto e = ecs.add_entity ();
 		
-		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (0.0f, 480.0f, 0.0f)), vec3 (32.0f, -32.0f, 0.0f));
+		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (0.0f - camera.x, 480.0f - camera.y, 0.0f)), vec3 (32.0f, -32.0f, 0.0f));
 		ecs.diffuse_colors [e] = vec4 (1.0f);
 		ecs.meshes [e] = (MeshKey)EMesh::Level;
 		ecs.textures [e] = (TextureKey)ETexture::Tiles;
@@ -130,29 +142,6 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level & level, long 
 		
 		opaque.renderables [e];
 	}
-	
-	if (false) {
-		float tile_size = 32.0f;
-		
-		for (int y = 0; y < level.height; y++) {
-			for (int x = 0; x < level.width; x++) {
-				const int i = x + y * level.width;
-				auto tile_type = level.data.at (i);
-				
-				auto e = ecs.add_entity ();
-				
-				ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (tile_size * x, 480.0f - tile_size * y, 0.0f)), vec3 (tile_size * 0.5f));
-				ecs.diffuse_colors [e] = vec4 ((tile_type % 8) / 8.0f, (tile_type / 8) / 8.0f, 0.0f, 1.0f);
-				ecs.meshes [e] = (MeshKey)EMesh::Square;
-				ecs.textures [e] = (TextureKey)ETexture::White;
-				ecs.transparent_z [e] = 0.0f;
-				
-				opaque.renderables [e];
-			}
-		}
-	}
-	
-	float t = frames * 2.0 * 3.1415926535 / 60.0f;
 	
 	vec4 shadow_color (vec3 (0.5f), 1.0f);
 	

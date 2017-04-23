@@ -18,6 +18,8 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 SceneEcs reset_scene () {
 	SceneEcs scene;
 	
+	scene.screenshake_t = 0.0f;
+	
 	place_carrot (scene, vec3 (3.0f, -3.0f, 0.0f));
 	place_carrot (scene, vec3 (3.0f, -5.0f, 0.0f));
 	place_carrot (scene, vec3 (3.0f, -4.0f, 0.0f));
@@ -36,6 +38,10 @@ SceneEcs reset_scene () {
 	}
 	
 	return scene;
+}
+
+void shake_screen (SceneEcs & scene, float time) {
+	scene.screenshake_t = glm::max (scene.screenshake_t, time);
 }
 
 Logic::Logic (const Level & l) : level (l) {
@@ -141,6 +147,7 @@ void kill_enemies (SceneEcs & scene, const vector <Entity> & victims)
 	for (Entity pouncee_e : victims) {
 		scene.dead [pouncee_e] = true;
 		scene.pouncables [pouncee_e] = false;
+		shake_screen (scene, 0.375f);
 	}
 }
 
@@ -315,4 +322,6 @@ void Logic::step (const InputFrame & input) {
 		
 		apply_player_input (scene, e, input);
 	}
+	
+	scene.screenshake_t = glm::max (0.0f, scene.screenshake_t - 1.0f / 60.0f);
 }

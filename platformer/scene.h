@@ -22,6 +22,8 @@ struct SceneEcs : Ecs {
 	Components <EcsTrue> carrots;
 	Components <Venus> venuses;
 	Components <EcsTrue> player_input;
+	
+	float screenshake_t;
 };
 
 #endif
