@@ -6,6 +6,8 @@
 #include "colorado/camera.h"
 #include "colorado/screen-options.h"
 
+#include "level.h"
+
 using namespace Colorado;
 using namespace glm;
 
@@ -47,7 +49,7 @@ Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const
 	return e;
 }
 
-GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenOptions & screen_opts) 
+GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level & level, long frames, const ScreenOptions & screen_opts) 
 {
 	Camera camera;
 	camera.fov = 0.25;
@@ -101,7 +103,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 	GraphicsEcs ecs;
 	
 	// Farm
-	{
+	if (true) {
 		auto e = ecs.add_entity ();
 		
 		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (512.0f, 240.0f - 16.0f, 0.0f)), vec3 (512.0f, 256.0f, 0.0f));
@@ -110,7 +112,29 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, long frames, const ScreenO
 		ecs.textures [e] = (TextureKey)ETexture::Farm;
 		ecs.transparent_z [e] = 0.0f;
 		
-		opaque.renderables [e];
+		//opaque.renderables [e];
+	}
+	
+	// Level 
+	{
+		float tile_size = 32.0f;
+		
+		for (int y = 0; y < level.height; y++) {
+			for (int x = 0; x < level.width; x++) {
+				const int i = x + y * level.width;
+				auto tile_type = level.data.at (i);
+				
+				auto e = ecs.add_entity ();
+				
+				ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (tile_size * x, 480.0f - tile_size * y, 0.0f)), vec3 (tile_size * 0.5f));
+				ecs.diffuse_colors [e] = vec4 ((tile_type % 8) / 8.0f, (tile_type / 8) / 8.0f, 0.0f, 1.0f);
+				ecs.meshes [e] = (MeshKey)EMesh::Square;
+				ecs.textures [e] = (TextureKey)ETexture::White;
+				ecs.transparent_z [e] = 0.0f;
+				
+				opaque.renderables [e];
+			}
+		}
 	}
 	
 	float t = frames * 2.0 * 3.1415926535 / 60.0f;

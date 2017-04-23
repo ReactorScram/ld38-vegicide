@@ -68,7 +68,7 @@ int main () {
 	long frames = 0;
 	
 	Input input;
-	Logic logic;
+	Logic logic (Level (terf.lookupFile ("maps/demo.bin")));
 	
 	while (running) {
 		SDL_Event ev;
@@ -99,7 +99,7 @@ int main () {
 		}
 		else {
 			// Animate
-			auto graphics_ecs = animate_vegicide (logic.scene, frames, screen_opts);
+			auto graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, screen_opts);
 			
 			// Render
 			glViewport (0, 0, 800, 480);

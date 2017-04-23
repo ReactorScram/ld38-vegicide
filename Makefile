@@ -4,7 +4,7 @@ MODULES = graphics platformer
 
 .PHONY: clean debug all $(MODULES)
 
-all:
+all: maps/demo.bin
 	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) &&) true
 
 clean:
@@ -12,3 +12,6 @@ clean:
 
 debug:
 	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) debug && ) true
+
+maps/demo.bin: maps/demo.lua
+	luajit map-binner.lua $< > $@

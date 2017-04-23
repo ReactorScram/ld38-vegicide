@@ -38,7 +38,7 @@ SceneEcs reset_scene () {
 	return scene;
 }
 
-Logic::Logic () {
+Logic::Logic (const Level & l) : level (l) {
 	scene = reset_scene ();
 }
 

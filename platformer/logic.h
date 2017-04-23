@@ -2,12 +2,14 @@
 #define VEGICIDE_LOGIC_H
 
 #include "input.h"
+#include "level.h"
 #include "scene.h"
 
 struct Logic {
 	SceneEcs scene;
+	Level level;
 	
-	Logic ();
+	Logic (const Level & l);
 	void step (const InputFrame & input);
 };
 
