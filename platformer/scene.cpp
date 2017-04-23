@@ -58,8 +58,19 @@ float shake (float rads, float hz, float strength) {
 	return strength * sin (rads * hz);
 }
 
-GraphicsEcs animate_title (long /*frames*/, const ScreenOptions & /*screen_opts*/)
+GraphicsEcs animate_title (long frames, const ScreenOptions & /*screen_opts*/)
 {
+	const float t = frames / 60.0f;
+	float screen_shake = mod (t, 4.0f) > 3.25f ? 1.0f : 0.0f;
+	
+	float noise = 0;
+	if (screen_shake > 0.0f) {
+		float phase = t * 2.0 * 3.1415926535;
+		noise = shake (phase, 27, 2) + shake (phase, 20, 2) + shake (phase, 14, 3);
+	}
+	
+	vec3 camera (floor (-56 + noise), floor (0), 0);
+	
 	GlState opaque_state;
 	opaque_state.bools [GL_DEPTH_TEST] = false;
 	opaque_state.bools [GL_CULL_FACE] = false;
@@ -67,7 +78,7 @@ GraphicsEcs animate_title (long /*frames*/, const ScreenOptions & /*screen_opts*
 	Pass opaque;
 	opaque.shader = (ShaderKey)EShader::Opaque;
 	opaque.gl_state = opaque_state;
-	opaque.proj_view_mat = glm::ortho (0.0f, 800.0f, 0.0f, 480.0f);
+	opaque.proj_view_mat = translate (glm::ortho (0.0f, 800.0f, 0.0f, 480.0f), -camera);
 	
 	GraphicsEcs ecs;
 	
@@ -95,7 +106,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	
 	float noise = 0;
 	if (screen_shake > 0.0f) {
-		noise = shake (t, 20, 2) + shake (t, 14, 3) + shake (5, 8, 5);
+		noise = shake (t, 20, 2) + shake (t, 14, 3) + shake (t, 8, 5);
 	}
 	
 	vec3 camera (floor (10 + noise), floor (0), 0);

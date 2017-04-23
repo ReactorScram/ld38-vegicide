@@ -35,6 +35,11 @@ uint64_t get_epoch () {
 	return duration_cast <milliseconds> (now).count ();
 }
 
+enum class GameState {
+	Title,
+	Game,
+};
+
 int main () {
 	string window_title = "ReactorScram LD38 warmup";
 	Terf::Archive terf ("rom.tar", "rom.tar.index");
@@ -61,18 +66,11 @@ int main () {
 	
 	Level level (terf.lookupFile ("maps/demo.bin"));
 	
-	/*
-	Level mini_level;
-	mini_level.width = 2;
-	mini_level.height = 1;
-	mini_level.data.push_back (0);
-	mini_level.data.push_back (0);
-	*/
 	auto level_iqm = level.to_iqm ();
-	if (true) {
+	if (false) {
 		cerr << "Level IQM size = " << level_iqm.size () << endl;
-		//ofstream iqm_out ("fuck.iqm");
-		//iqm_out.write ((const char *)&level_iqm [0], level_iqm.size ());
+		ofstream iqm_out ("fuck.iqm");
+		iqm_out.write ((const char *)&level_iqm [0], level_iqm.size ());
 	}
 	
 	graphics.meshes.add_iqm ((MeshKey)EMesh::Level, level_iqm);
@@ -88,6 +86,8 @@ int main () {
 	
 	Input input;
 	Logic logic (level);
+	
+	GameState game_state = GameState::Title;
 	
 	while (running) {
 		SDL_Event ev;
@@ -118,9 +118,15 @@ int main () {
 		}
 		else {
 			// Animate
-			//auto graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, screen_opts);
-			
-			auto graphics_ecs = animate_title (frames, screen_opts);
+			GraphicsEcs graphics_ecs;
+			switch (game_state) {
+				case GameState::Title:
+					graphics_ecs = animate_title (frames, screen_opts);
+					break;
+				case GameState::Game:
+					graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, screen_opts);
+					break;
+			}
 			
 			// Render
 			glViewport (0, 0, 800, 480);
