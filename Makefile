@@ -14,4 +14,7 @@ debug:
 	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) debug && ) true
 
 maps/demo.bin: maps/demo.lua
-	luajit map-binner.lua $< > $@
+	luajit map-binner.lua --tiles $< > $@
+
+maps/demo.sql: maps/demo.lua
+	luajit map-binner.lua --objects $< $@

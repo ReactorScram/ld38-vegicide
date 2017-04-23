@@ -1,8 +1,14 @@
--- Usage: luajit map-binner.lua maps/farm.lua > maps/farm.bin
+-- Usage: luajit map-binner.lua --tiles maps/farm.lua > maps/farm.bin
+-- Usage: luajit map-binner.lua --objects maps/farm.lua | sqlite3 maps/farm.sqlite
 
 local ffi = require 'ffi'
 
-local map_fn = arg [1]
+local command = arg [1]
+local map_fn = arg [2]
+
+if not command or not map_fn then
+	error ("Incorrect args")
+end
 
 local map = dofile (map_fn)
 
@@ -25,6 +31,31 @@ local function write_layer (layer)
 	end
 end
 
-local layer = map.layers [1]
+local function write_objects (layer)
+	print "begin transaction;"
+	print "drop table if exists vegicide_objects;"
+	
+	print "create table if not exists vegicide_objects (id integer primary key, name string, type string, x integer, y integer, width integer, height integer);"
+	
+	for _, object in ipairs (layer.objects) do
+		print (string.format ("insert into vegicide_objects (id, name, type, x, y, width, height) values (%i, '%s', '%s', %i, %i, %i, %i);", object.id, object.name, object.type, math.floor (object.x), math.floor (object.y), math.floor (object.width), math.floor (object.height)))
+	end
+	
+	print "commit;"
+end
 
-write_layer (layer)
+if command == "--tiles" then
+	for _, layer in ipairs (map.layers) do
+		if layer.type == "tilelayer" then
+			write_layer (layer)
+			break
+		end
+	end
+elseif command == "--objects" then
+	for _, layer in ipairs (map.layers) do
+		if layer.type == "objectgroup" then
+			write_objects (layer)
+			break
+		end
+	end
+end

@@ -1,2 +1,7 @@
-1. Load TILED into Colorado
-2. Port platformer physics
+1. Tilemap physics
+
+2. Boss
+
+3. In-between levels
+
+4. Integrate music

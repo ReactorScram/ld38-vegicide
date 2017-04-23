@@ -118,7 +118,7 @@ int main () {
 					
 					for (int i = 0; i < (int)InputButton::NUM_BUTTONS; i++) {
 						if (input.frame.taps [i]) {
-							//game_state = GameState::Game;
+							game_state = GameState::Game;
 						}
 						if (input.frame.buttons [i]) {
 							curtain_t += curtain_speed * 2;
