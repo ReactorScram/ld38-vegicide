@@ -27,6 +27,7 @@ ResourceTable make_resource_table () {
 	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
 	// Meine tilen!
 	rc.textures [(TextureKey)ETexture::Tiles] = "textures/tiles.png";
+	rc.textures [(TextureKey)ETexture::Title] = "textures/title.png";
 	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
 	
 	rc.meshes [(MeshKey)EMesh::DangerZone] = "meshes/danger-zone.iqm";
@@ -57,6 +58,36 @@ float shake (float rads, float hz, float strength) {
 	return strength * sin (rads * hz);
 }
 
+GraphicsEcs animate_title (long /*frames*/, const ScreenOptions & /*screen_opts*/)
+{
+	GlState opaque_state;
+	opaque_state.bools [GL_DEPTH_TEST] = false;
+	opaque_state.bools [GL_CULL_FACE] = false;
+	
+	Pass opaque;
+	opaque.shader = (ShaderKey)EShader::Opaque;
+	opaque.gl_state = opaque_state;
+	opaque.proj_view_mat = glm::ortho (0.0f, 800.0f, 0.0f, 480.0f);
+	
+	GraphicsEcs ecs;
+	
+	if (true) {
+		auto e = ecs.add_entity ();
+		
+		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (400.0f, 240.0f, 0.0f)), vec3 (512.0f, 256.0f, 0.0f));
+		ecs.diffuse_colors [e] = vec4 (1.0f);
+		ecs.meshes [e] = (MeshKey)EMesh::Square;
+		ecs.textures [e] = (TextureKey)ETexture::Title;
+		ecs.transparent_z [e] = 0.0f;
+		
+		opaque.renderables [e];
+	}
+	
+	ecs.passes.push_back (opaque);
+	
+	return ecs;
+}
+
 GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames, const ScreenOptions & screen_opts) 
 {
 	const float t = frames * 2.0 * 3.1415926535 / 60.0f;
@@ -67,7 +98,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		noise = shake (t, 20, 2) + shake (t, 14, 3) + shake (5, 8, 5);
 	}
 	
-	vec3 camera (floor (0 + noise), floor (0), 0);
+	vec3 camera (floor (10 + noise), floor (0), 0);
 	
 	float aspect = (double)screen_opts.width / (double)screen_opts.height;
 	
@@ -103,7 +134,6 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	opaque.shader = (ShaderKey)EShader::Opaque;
 	opaque.gl_state = opaque_state;
 	opaque.proj_view_mat = glm::ortho (0.0f, 800.0f, 0.0f, 480.0f);
-	//opaque.proj_view_mat = proj_mat;
 	
 	Pass shadows;
 	shadows.shader = (ShaderKey)EShader::Shadow;
@@ -117,18 +147,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	
 	GraphicsEcs ecs;
 	
-	// Farm
-	if (false) {
-		auto e = ecs.add_entity ();
-		
-		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (512.0f, 240.0f - 16.0f, 0.0f)), vec3 (512.0f, 256.0f, 0.0f));
-		ecs.diffuse_colors [e] = vec4 (1.0f);
-		ecs.meshes [e] = (MeshKey)EMesh::Square;
-		ecs.textures [e] = (TextureKey)ETexture::Farm;
-		ecs.transparent_z [e] = 0.0f;
-		
-		opaque.renderables [e];
-	}
+	
 	
 	// Level 
 	if (true) {

@@ -107,7 +107,7 @@ int main () {
 		
 		for (int i = 0; i < numSteps; i++) {
 			// Step
-			logic.step (input.frame);
+			//logic.step (input.frame);
 			input.clear_taps ();
 			
 			frames++;
@@ -118,7 +118,9 @@ int main () {
 		}
 		else {
 			// Animate
-			auto graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, screen_opts);
+			//auto graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, screen_opts);
+			
+			auto graphics_ecs = animate_title (frames, screen_opts);
 			
 			// Render
 			glViewport (0, 0, 800, 480);
