@@ -67,6 +67,7 @@ vec2 get_pounce_vec (const InputFrame & input) {
 }
 
 // Everything from here down is a system I guess yay
+
 void player_walk (SceneEcs & scene, Entity e, const InputFrame & input) {
 	auto pos = scene.positions.at (e);
 	vec3 target_pos = pos;
@@ -122,8 +123,7 @@ void kill_pounce_victims (SceneEcs & scene, const vec3 & venus_pos) {
 	}
 }
 
-void start_pounce (SceneEcs & scene, Entity e, const vec2 & pounce_vec, float pounce_range) 
-{
+vec3 get_pounce_velocity (const vec2 & pounce_vec, float pounce_range) {
 	// Pounce!
 	// Default vertical jump
 	float jump_power = 1.0f;
@@ -136,7 +136,42 @@ void start_pounce (SceneEcs & scene, Entity e, const vec2 & pounce_vec, float po
 	
 	jump_power = glm::max (0.25f / pounce_range, jump_power);
 	
-	scene.velocities [e] = vec3 (pounce_xy.x, pounce_xy.y, 1.0f * jump_power);
+	return vec3 (pounce_xy.x, pounce_xy.y, 1.0f * jump_power);
+}
+
+void start_pounce (SceneEcs & scene, Entity e, const vec2 & pounce_vec, float pounce_range) 
+{
+	scene.velocities [e] = get_pounce_velocity (pounce_vec, pounce_range);
+}
+
+Entity get_closest_pouncable (const SceneEcs & scene, const vec3 & pos, float range, const vec2 & pounce_vec) {
+	Entity closest_victim = -1;
+	vec2 closest_vec = pounce_vec;
+	
+	// Find closest pouncable
+	for (auto pair : scene.pouncables) {
+		auto victim_e = pair.first;
+		
+		if (! pair.second) {
+			continue;
+		}
+		
+		auto victim_pos = scene.positions.at (victim_e);
+		
+		const auto diff = vec2 (victim_pos - pos);
+		bool can_pounce_enemy = length (diff) <= range && dot (normalize (diff), pounce_vec) >= 0.707f;
+		
+		bool already_on_enemy = length (diff) == 0.0f;
+		
+		if (already_on_enemy || can_pounce_enemy) {
+			if (closest_victim == -1 || length (diff) < length (closest_vec)) {
+				closest_victim = victim_e;
+				closest_vec = diff;
+			}
+		}
+	}
+	
+	return closest_victim;
 }
 
 void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFrame & input) 
@@ -153,38 +188,15 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 		can_pounce = true;
 		// Search right for pouncables
 		
-		auto closest_victim = -1;
-		vec2 closest_vec = pounce_vec;
-		
-		// Find closest pouncable
-		for (auto pair : scene.pouncables) {
-			auto victim_e = pair.first;
-			
-			if (! pair.second) {
-				continue;
-			}
-			
-			auto victim_pos = scene.positions.at (victim_e);
-			
-			const auto diff = vec2 (victim_pos - pos);
-			bool can_pounce_enemy = length (diff) <= venus.pounce_anim * pounce_range && dot (normalize (diff), pounce_vec) >= 0.707f;
-			
-			bool already_on_enemy = length (diff) == 0.0f;
-			
-			if (already_on_enemy || can_pounce_enemy) {
-				if (closest_victim == -1 || length (diff) < length (closest_vec)) {
-					closest_victim = victim_e;
-					closest_vec = diff;
-				}
-			}
-		}
+		const float range = venus.pounce_anim * pounce_range;
+		const Entity closest_victim = get_closest_pouncable (scene, pos, range, pounce_vec);
 		
 		scene.pounce_target.clear ();
 		
 		if (closest_victim >= 0) {
 			scene.targeted [closest_victim] = true;
 			scene.pounce_target [closest_victim] = EcsTrue ();
-			pounce_vec = closest_vec;
+			pounce_vec = scene.positions.at (closest_victim) - pos;
 		}
 		else {
 			pounce_vec *= pounce_range * venus.pounce_anim;
