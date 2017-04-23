@@ -22,6 +22,7 @@ vec2 tmx_to_vg (vec2 v) {
 SceneEcs reset_scene (const Level & level) {
 	SceneEcs scene;
 	
+	scene.camera = vec2 (32, 32);
 	scene.screenshake_t = 0.0f;
 	
 	bool debug = false;
@@ -321,8 +322,12 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 	}
 	
 	if (can_move) {
-		pos = get_walk_pos (scene, e, input);
-		player_walk (scene, e, pos);
+		auto new_pos = get_walk_pos (scene, e, input);
+		player_walk (scene, e, new_pos);
+		if (new_pos != pos) {
+			scene.last_walk = new_pos - pos;
+		}
+		pos = new_pos;
 	}
 	
 	const auto vel = scene.velocities.at (e);
@@ -341,6 +346,10 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 	}
 }
 
+vec2 obj_to_camera (vec2 v) {
+	return 32.0f * (vec2 (v.x - 12.5f, -v.y + 7.5f));
+}
+
 void Logic::step (const InputFrame & input) {
 	scene.targeted.clear ();
 	
@@ -352,6 +361,27 @@ void Logic::step (const InputFrame & input) {
 		auto e = pair.first;
 		
 		apply_player_input (scene, e, input);
+		
+		// Target camera
+		auto pos = scene.positions.at (e);
+		//auto vel = scene.velocities.at (e);
+		
+		vec2 camera_target;
+		
+		if (pos.z > 0.0f) {
+			// Pouncing
+			scene.last_walk = vec2 (0.0f);
+			//camera_target = 
+		}
+		else {
+			// Walking
+			camera_target = obj_to_camera (vec2 (pos) + scene.last_walk * vec2 (7.5f, 5.0f));
+			
+			camera_target.x = clamp (camera_target.x, 32.0f, 800.0f - 32);
+			camera_target.y = clamp (camera_target.y, 32.0f, 480.0f - 32);
+		}
+		
+		scene.camera = mix (scene.camera, camera_target, 0.05f);
 	}
 	
 	scene.screenshake_t = glm::max (0.0f, scene.screenshake_t - 1.0f / 60.0f);

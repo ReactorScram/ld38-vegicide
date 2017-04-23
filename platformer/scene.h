@@ -23,6 +23,8 @@ struct SceneEcs : Ecs {
 	Components <Venus> venuses;
 	Components <EcsTrue> player_input;
 	
+	glm::vec2 camera;
+	glm::vec2 last_walk;
 	float screenshake_t;
 };
 

@@ -140,7 +140,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		noise = shake (t, 20, 2) + shake (t, 14, 3) + shake (t, 8, 5);
 	}
 	
-	vec3 camera (floor (10 + noise), floor (0), 0);
+	vec3 camera (floor (scene.camera.x + noise), -floor (scene.camera.y), 0);
 	
 	const float aspect = (double)screen_opts.width / (double)screen_opts.height;
 	
