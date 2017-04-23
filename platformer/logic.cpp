@@ -14,6 +14,8 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 	scene.carrots [e] = EcsTrue ();
 	scene.pouncables [e] = true;
 	scene.hp [e] = 1;
+	scene.death_sound [e] = ESound::Gasp;
+	scene.pain_sound [e] = ESound::Gasp;
 }
 
 void place_pumpking (SceneEcs & scene, const vec3 & pos) {
@@ -24,6 +26,8 @@ void place_pumpking (SceneEcs & scene, const vec3 & pos) {
 	scene.pouncables [e] = true;
 	scene.hp [e] = 10;
 	scene.radii [e] = 2.0f;
+	scene.death_sound [e] = ESound::KingRoar;
+	scene.pain_sound [e] = ESound::KingPain;
 }
 
 vec2 tmx_to_vg (vec2 v) {
@@ -235,18 +239,13 @@ EPounceResult kill_enemies (SceneEcs & scene, const vector <Entity> & victims, l
 			if (scene.hp.at (pouncee_e) <= 0) {
 				scene.dead [pouncee_e] = true;
 				scene.pouncables [pouncee_e] = false;
-				scene.audio_frame.sounds [(int)ESound::KingRoar] = true;
+				scene.audio_frame.sounds [(int)scene.death_sound.at (pouncee_e)] = true;
 				return EPounceResult::Killed;
 			}
 			else {
 				scene.damage_flash [pouncee_e] = t + 30;
 				
-				if (scene.hp.at (pouncee_e) % 5 == 0) {
-					scene.audio_frame.sounds [(int)ESound::KingRoar] = true;
-				}
-				else {
-					scene.audio_frame.sounds [(int)ESound::KingPain] = true;
-				}
+				scene.audio_frame.sounds [(int)scene.pain_sound.at (pouncee_e)] = true;
 				
 				// Bounce the venus back
 				return EPounceResult::Bounce;

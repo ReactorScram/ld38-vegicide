@@ -26,6 +26,8 @@ struct SceneEcs : Ecs {
 	Components <long> damage_flash;
 	Components <bool> dead;
 	Components <int> hp;
+	Components <ESound> pain_sound;
+	Components <ESound> death_sound;
 	Components <EcsTrue> carrots;
 	Components <EcsTrue> pumpkings;
 	Components <Venus> venuses;
