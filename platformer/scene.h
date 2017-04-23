@@ -18,6 +18,8 @@ struct SceneEcs : Ecs {
 	Components <bool> pouncables;
 	Components <EcsTrue> pounce_target;
 	Components <glm::vec2> pounce_vec;
+	// Doubles as invuln frames on enemies with big health
+	Components <long> damage_flash;
 	Components <bool> dead;
 	Components <int> hp;
 	Components <EcsTrue> carrots;

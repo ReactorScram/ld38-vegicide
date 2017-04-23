@@ -37,6 +37,7 @@ vec2 get_camera_target (const SceneEcs & scene, Entity e) {
 	// Target camera
 	auto pos = scene.positions.at (e);
 	auto vel = scene.velocities.at (e);
+	auto venus = scene.venuses.at (e);
 	
 	vec2 camera_target = scene.camera;
 	
@@ -47,6 +48,10 @@ vec2 get_camera_target (const SceneEcs & scene, Entity e) {
 			camera_target = obj_to_camera (vec2 (scene.positions.at (pair.first)));
 			break;
 		}
+	}
+	else if (venus.pounce_anim > 0.0f) {
+		// Tensing
+		camera_target = obj_to_camera (vec2 (pos) + scene.pounce_vec.at (e) * vec2 (5.0f));
 	}
 	else {
 		// Walking
@@ -213,12 +218,20 @@ vector <Entity> get_pounce_victims (const SceneEcs & scene, const vec3 & venus_p
 	return result;
 }
 
-void kill_enemies (SceneEcs & scene, const vector <Entity> & victims) 
+void kill_enemies (SceneEcs & scene, const vector <Entity> & victims, long t) 
 {
 	for (Entity pouncee_e : victims) {
-		scene.dead [pouncee_e] = true;
-		scene.pouncables [pouncee_e] = false;
-		shake_screen (scene, 0.375f);
+		if (get_component (scene.damage_flash, pouncee_e, (long)0) <= t) {
+			scene.hp [pouncee_e] -= 1;
+			if (scene.hp.at (pouncee_e) <= 0) {
+				scene.dead [pouncee_e] = true;
+				scene.pouncables [pouncee_e] = false;
+			}
+			else {
+				scene.damage_flash [pouncee_e] = t + 30;
+			}
+			shake_screen (scene, 0.375f);
+		}
 	}
 }
 
@@ -332,7 +345,7 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 	venus.pounce_anim = clamp (venus.pounce_anim, 0.0f, 1.0f);
 }
 
-void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input) 
+void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input, long t) 
 {
 	auto pos = scene.positions.at (e);
 	
@@ -375,7 +388,7 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 		scene.velocities [e] = vel + vec3 (0.0f, 0.0f, -0.125f);
 		pos += scene.velocities.at (e);
 		
-		kill_enemies (scene, get_pounce_victims (scene, pos));
+		kill_enemies (scene, get_pounce_victims (scene, pos), t);
 	}
 	
 	pos.x = clamp (pos.x, 1.5f, 2048.0f / 32.0f - 1.5f);
@@ -389,7 +402,7 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 	}
 }
 
-void Logic::step (const InputFrame & input) {
+void Logic::step (const InputFrame & input, long t) {
 	scene.targeted.clear ();
 	
 	if (input.taps [(int)InputButton::Reset]) {
@@ -399,7 +412,7 @@ void Logic::step (const InputFrame & input) {
 	for (auto pair : scene.player_input) {
 		auto e = pair.first;
 		
-		apply_player_input (scene, e, input);
+		apply_player_input (scene, e, input, t);
 		
 		// Target camera
 		vec2 camera_target = get_camera_target (scene, e);

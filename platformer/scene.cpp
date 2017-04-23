@@ -244,9 +244,18 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		
 		vec3 size (2.0f + breathe, 2.0f - breathe, 0.0f);
 		
+		bool flash = (frames % 16) < 8;
+		
 		{
-			auto targeted_it = scene.targeted.find (old_e);
-			if ((frames % 16) < 8 && targeted_it != scene.targeted.end () && (*targeted_it).second) 
+			auto it = scene.targeted.find (old_e);
+			if (it != scene.targeted.end () && (*it).second) 
+			{
+				base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
+			}
+		}
+		{
+			auto it = scene.damage_flash.find (old_e);
+			if (flash && it != scene.damage_flash.end () && (*it).second > frames) 
 			{
 				base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
 			}
@@ -333,7 +342,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		
 		auto pos = scene.positions.at (old_e);
 		
-		vec3 base_pos = two2three (pos);
+		vec3 base_pos = pos;
 		//cerr << "venus: (" << base_pos.x << ", " << base_pos.y << ")" << endl;
 		
 		{
@@ -376,7 +385,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 			pounce_mat [1][0] = pounce_vec.y;
 			pounce_mat [1][1] = -pounce_vec.x;
 			
-			ecs.rigid_mats [zone_e] = scale (translate (mat4 (1.0f), base_pos), vec3 (10.0f * venus.pounce_anim)) * pounce_mat;
+			ecs.rigid_mats [zone_e] = scale (translate (mat4 (1.0f), two2three (base_pos)), vec3 (10.0f * venus.pounce_anim)) * pounce_mat;
 			ecs.diffuse_colors [zone_e] = vec4 (1.0f, 0.1f, 0.1f, 0.25f);
 			ecs.meshes [zone_e] = (MeshKey)EMesh::DangerZone;
 			ecs.textures [zone_e] = (TextureKey)ETexture::White;
@@ -385,7 +394,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 			transparent.renderables [zone_e];
 		}
 		
-		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), base_pos + vec3 (0.0f, -size.y, 0.0f)), size * vec3 (1.0f, -1.0f, 1.0f));
+		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), two2three (base_pos) + vec3 (0.0f, -size.y, 0.0f)), size * vec3 (1.0f, -1.0f, 1.0f));
 		ecs.meshes [e] = (MeshKey)EMesh::Venus;
 		ecs.textures [e] = (TextureKey)ETexture::White;
 		ecs.transparent_z [e] = -base_pos.y;

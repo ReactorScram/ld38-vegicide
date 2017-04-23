@@ -114,7 +114,7 @@ int main () {
 			// Step
 			switch (game_state) {
 				case GameState::Game:
-					logic.step (input.frame);
+					logic.step (input.frame, frames);
 					break;
 				case GameState::Title:
 					float curtain_speed = 1.5f / 60.0f;

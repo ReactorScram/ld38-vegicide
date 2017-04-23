@@ -10,7 +10,7 @@ struct Logic {
 	Level level;
 	
 	Logic (const Level & l);
-	void step (const InputFrame & input);
+	void step (const InputFrame & input, long frames);
 };
 
 #endif

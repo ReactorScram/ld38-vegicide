@@ -46,6 +46,18 @@ struct ParticleArray {
 	TextureKey texture;
 };
 
+template <typename T>
+T get_component (const Components <T> & comps, Entity e, T default_comp) 
+{
+	auto it = comps.find (e);
+	if (it != comps.end ()) {
+		return (*it).second;
+	}
+	else {
+		return default_comp;
+	}
+}
+
 struct GraphicsEcs : Ecs {
 	std::vector <Pass> passes;
 	glm::mat4 proj_mat;
