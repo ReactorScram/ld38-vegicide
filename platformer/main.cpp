@@ -55,7 +55,7 @@ int main () {
 	
 	Colorado::Game game (screen_opts);
 	
-	FixedTimestep timestep (60, 1);
+	FixedTimestep timestep (15, 1);
 	auto last_frame_time = SDL_GetTicks ();
 	
 	bool running = true;
@@ -65,6 +65,7 @@ int main () {
 	graphics.load (terf, rc);
 	
 	Level level (terf.lookupFile ("maps/demo.bin"));
+	level.load_sqlite_objects ("maps/demo.sqlite");
 	
 	auto level_iqm = level.to_iqm ();
 	if (false) {

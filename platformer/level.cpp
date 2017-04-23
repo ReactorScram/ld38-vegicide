@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "iqm/iqm.h"
+#include "sqlite3.h"
 
 using namespace std;
 
@@ -14,6 +15,53 @@ Level::Level (const std::vector <uint8_t> & bytes) {
 	int size = width * height;
 	
 	data = vector <int16_t> ((int16_t *)&bytes [4], (int16_t *)&bytes [4 + 2 * size]);
+}
+
+void Level::load_sqlite_objects (string db_name) {
+	// TODO: Smart pointers
+	sqlite3 * db = nullptr;
+	
+	sqlite3_open (db_name.c_str (), &db);
+	
+	string select_objects_str ("select id, name, type, x, y, width, height from vg_objects;");
+	
+	sqlite3_stmt * select_objects;
+	sqlite3_prepare_v2 (db, select_objects_str.c_str (), select_objects_str.size (), &select_objects, nullptr);
+	
+	// Stuff
+	while (true) {
+		int rc = sqlite3_step (select_objects);
+		
+		switch (rc) {
+			case SQLITE_ROW:
+			{
+				LevelObj obj;
+				
+				obj.id = sqlite3_column_int (select_objects, 0);
+				obj.name = (const char *)sqlite3_column_text (select_objects, 1);
+				obj.type = (const char *)sqlite3_column_text (select_objects, 2);
+				obj.x = sqlite3_column_int (select_objects, 3);
+				obj.y = sqlite3_column_int (select_objects, 4);
+				obj.width = sqlite3_column_int (select_objects, 5);
+				obj.height = sqlite3_column_int (select_objects, 6);
+				
+				objects.push_back (obj);
+			}
+				break;
+			case SQLITE_DONE:
+				goto stop_reading;
+				break;
+			default:
+				goto stop_reading;
+				break;
+		}
+	}
+	
+	stop_reading:
+	
+	sqlite3_finalize (select_objects);
+	sqlite3_close (db);
+	db = nullptr;
 }
 
 struct Vertex {

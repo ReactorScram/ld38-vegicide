@@ -4,7 +4,7 @@ MODULES = graphics platformer
 
 .PHONY: clean debug all $(MODULES)
 
-all: maps/demo.bin
+all: maps/demo.bin maps/demo.sqlite
 	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) &&) true
 
 clean:
@@ -16,5 +16,5 @@ debug:
 maps/demo.bin: maps/demo.lua
 	luajit map-binner.lua --tiles $< > $@
 
-maps/demo.sql: maps/demo.lua
-	luajit map-binner.lua --objects $< $@
+maps/demo.sqlite: maps/demo.lua
+	luajit map-binner.lua --objects $< | sqlite3 $@

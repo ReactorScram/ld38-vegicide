@@ -15,11 +15,42 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 	scene.pouncables [e] = true;
 }
 
-SceneEcs reset_scene () {
+vec2 tmx_to_vg (vec2 v) {
+	return v / 32.0f + vec2 (-12.5f, -9.5f);
+}
+
+SceneEcs reset_scene (const Level & level) {
 	SceneEcs scene;
 	
 	scene.screenshake_t = 0.0f;
 	
+	bool debug = false;
+	
+	for (LevelObj obj : level.objects) {
+		vec3 center (tmx_to_vg (vec2 (obj.x + obj.width / 2, obj.y + obj.height / 2)), 0.0);
+		
+		const auto & t = obj.type;
+		
+		if (debug) {
+			cerr << "Object at (" << center.x << ", " << center.y << ")" << endl;
+		}
+		
+		if (t == "Carrot") {
+			place_carrot (scene, center);
+		}
+		else if (t == "Pumpking") {
+			place_carrot (scene, center);
+		}
+		else if (t == "Venus") {
+			auto e = scene.add_entity ();
+			scene.positions [e] = center;
+			scene.velocities [e] = vec3 (0.0f);
+			scene.anim_t [e] = 0.0f;
+			scene.venuses [e] = Venus ();
+			scene.player_input [e] = EcsTrue ();
+		}
+	}
+	/*
 	place_carrot (scene, vec3 (3.0f, -3.0f, 0.0f));
 	place_carrot (scene, vec3 (3.0f, -5.0f, 0.0f));
 	place_carrot (scene, vec3 (3.0f, -4.0f, 0.0f));
@@ -27,8 +58,8 @@ SceneEcs reset_scene () {
 	place_carrot (scene, vec3 (7.0f, -4.0f, 0.0f));
 	
 	place_carrot (scene, vec3 (0.0f, 1.0f, 0.0f));
-	
-	{
+	*/
+	if (false) {
 		auto e = scene.add_entity ();
 		scene.positions [e] = vec3 (-7.0f, -4.0f, 0.0f);
 		scene.velocities [e] = vec3 (0.0f);
@@ -45,7 +76,7 @@ void shake_screen (SceneEcs & scene, float time) {
 }
 
 Logic::Logic (const Level & l) : level (l) {
-	scene = reset_scene ();
+	scene = reset_scene (level);
 }
 
 vec2 get_pounce_vec (const InputFrame & input) {
@@ -133,7 +164,7 @@ vector <Entity> get_pounce_victims (const SceneEcs & scene, const vec3 & venus_p
 		
 		auto pos = scene.positions.at (pouncee_e);
 		
-		if (length (pos - venus_pos) < 0.5f) {
+		if (length (pos - venus_pos) < 1.0f) {
 			// Yes
 			result.push_back (pouncee_e);
 		}
@@ -314,7 +345,7 @@ void Logic::step (const InputFrame & input) {
 	scene.targeted.clear ();
 	
 	if (input.taps [(int)InputButton::Reset]) {
-		scene = reset_scene ();
+		scene = reset_scene (level);
 	}
 	
 	for (auto pair : scene.player_input) {
