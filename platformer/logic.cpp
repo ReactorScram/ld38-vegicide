@@ -136,8 +136,9 @@ vector <Entity> get_pounce_victims (const SceneEcs & scene, const vec3 & venus_p
 	return result;
 }
 
-void kill_pounce_victims (SceneEcs & scene, const vec3 & venus_pos) {
-	for (Entity pouncee_e : get_pounce_victims (scene, venus_pos)) {
+void kill_enemies (SceneEcs & scene, const vector <Entity> & victims) 
+{
+	for (Entity pouncee_e : victims) {
 		scene.dead [pouncee_e] = true;
 		scene.pouncables [pouncee_e] = false;
 	}
@@ -159,9 +160,9 @@ vec3 get_pounce_velocity (const vec2 & pounce_vec, float pounce_range) {
 	return vec3 (pounce_xy.x, pounce_xy.y, 1.0f * jump_power);
 }
 
-void start_pounce (SceneEcs & scene, Entity e, const vec2 & pounce_vec, float pounce_range) 
+void start_pounce (SceneEcs & scene, Entity e, const vec3 & velocity) 
 {
-	scene.velocities [e] = get_pounce_velocity (pounce_vec, pounce_range);
+	scene.velocities [e] = velocity;
 }
 
 Entity get_closest_pouncable (const SceneEcs & scene, const vec3 & pos, float range, const vec2 & pounce_vec) {
@@ -230,7 +231,7 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 	}
 	else {
 		if (can_pounce) {
-			start_pounce (scene, e, pounce_vec, pounce_range);
+			start_pounce (scene, e, get_pounce_velocity (pounce_vec, pounce_range));
 			venus.pounce_anim = 0.0f;
 		}
 		else {
@@ -280,7 +281,7 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 		pos += scene.velocities.at (e);
 		scene.positions [e] = pos;
 		
-		kill_pounce_victims (scene, pos);
+		kill_enemies (scene, get_pounce_victims (scene, pos));
 	}
 	
 	bool debug = false;
