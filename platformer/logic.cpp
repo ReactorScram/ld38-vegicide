@@ -108,7 +108,11 @@ void player_walk (SceneEcs & scene, Entity e, const InputFrame & input) {
 	}
 }
 
-void kill_pounce_victims (SceneEcs & scene, const vec3 & venus_pos) {
+// Yeah sure why not?
+vector <Entity> get_pounce_victims (const SceneEcs & scene, const vec3 & venus_pos) 
+{
+	vector <Entity> result;
+	
 	// Pounced onto target?
 	for (auto pair : scene.pounce_target) {
 		Entity pouncee_e = pair.first;
@@ -117,9 +121,17 @@ void kill_pounce_victims (SceneEcs & scene, const vec3 & venus_pos) {
 		
 		if (length (pos - venus_pos) < 0.5f) {
 			// Yes
-			scene.dead [pouncee_e] = true;
-			scene.pouncables [pouncee_e] = false;
+			result.push_back (pouncee_e);
 		}
+	}
+	
+	return result;
+}
+
+void kill_pounce_victims (SceneEcs & scene, const vec3 & venus_pos) {
+	for (Entity pouncee_e : get_pounce_victims (scene, venus_pos)) {
+		scene.dead [pouncee_e] = true;
+		scene.pouncables [pouncee_e] = false;
 	}
 }
 
