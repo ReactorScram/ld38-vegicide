@@ -198,44 +198,47 @@ Entity get_closest_pouncable (const SceneEcs & scene, const vec3 & pos, float ra
 void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFrame & input) 
 {
 	auto pos = scene.positions.at (e);
-	bool can_pounce = false;
+	
+	bool pounce_button_pressed = input.buttons [(int)InputButton::Pounce];
+	bool on_ground = pos.z == 0.0f;
+	bool pounce_charged = venus.pounce_anim >= 4.0f / 60.0f;
+	
+	bool could_pounce = on_ground && pounce_charged;
 	const vec2 input_pounce_vec = get_pounce_vec (input);
 	
 	scene.pounce_vec [e] = input_pounce_vec;
 	
-	const auto pounce_range = 10.0f;
-	
-	vec2 pounce_vec = input_pounce_vec;
-	if (venus.pounce_anim >= 4.0f / 60.0f) {
-		can_pounce = true;
-		// Search for pouncables
+	if (on_ground) {
+		const auto pounce_range = 10.0f;
+		vec2 pounce_vec = input_pounce_vec;
 		
-		const float range = venus.pounce_anim * pounce_range;
-		const Entity closest_victim = get_closest_pouncable (scene, pos, range, input_pounce_vec);
-		
-		scene.pounce_target.clear ();
-		
-		if (closest_victim >= 0) {
-			scene.targeted [closest_victim] = true;
-			scene.pounce_target [closest_victim] = EcsTrue ();
-			pounce_vec = scene.positions.at (closest_victim) - pos;
+		if (could_pounce) {
+			// Search for pouncables
+			
+			const float range = venus.pounce_anim * pounce_range;
+			const Entity closest_victim = get_closest_pouncable (scene, pos, range, input_pounce_vec);
+			
+			scene.pounce_target.clear ();
+			
+			if (closest_victim >= 0) {
+				scene.targeted [closest_victim] = true;
+				scene.pounce_target [closest_victim] = EcsTrue ();
+				pounce_vec = scene.positions.at (closest_victim) - pos;
+			}
+			else {
+				// The pounce is charged but no enemies are
+				// available - Just pounce at the ground
+				pounce_vec *= pounce_range * venus.pounce_anim;
+			}
 		}
-		else {
-			// The pounce is charged but no enemies are
-			// available - Just pounce at the ground
-			pounce_vec *= pounce_range * venus.pounce_anim;
-		}
-	}
-	{
-		const vec2 pounce_vec_2 = pounce_vec;
-		
-		if (input.buttons [(int)InputButton::Pounce] && pos.z == 
-		0.0f) 
 		{
-			venus.pounce_anim += 2.0f / 60.0f;
-		}
-		else {
-			if (can_pounce) {
+			const vec2 pounce_vec_2 = pounce_vec;
+			
+			if (pounce_button_pressed) 
+			{
+				venus.pounce_anim += 2.0f / 60.0f;
+			}
+			else if (pounce_charged) {
 				start_pounce (scene, e, get_pounce_velocity (pounce_vec_2, pounce_range));
 				venus.pounce_anim = 0.0f;
 			}
@@ -243,6 +246,9 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 				venus.pounce_anim -= 10.0f / 60.0f;
 			}
 		}
+	}
+	else {
+		venus.pounce_anim = 0.0f;
 	}
 	
 	venus.pounce_anim = clamp (venus.pounce_anim, 0.0f, 1.0f);
@@ -277,7 +283,8 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 	}
 	
 	if (can_move) {
-		player_walk (scene, e, get_walk_pos (scene, e, input));
+		pos = get_walk_pos (scene, e, input);
+		player_walk (scene, e, pos);
 	}
 	
 	const auto vel = scene.velocities.at (e);
