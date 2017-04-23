@@ -5,3 +5,5 @@
 3. In-between levels
 
 4. Integrate music
+
+5. Fix camera

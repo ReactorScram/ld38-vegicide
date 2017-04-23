@@ -13,6 +13,16 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 	scene.anim_t [e] = 0.0f;
 	scene.carrots [e] = EcsTrue ();
 	scene.pouncables [e] = true;
+	scene.hp [e] = 1;
+}
+
+void place_pumpking (SceneEcs & scene, const vec3 & pos) {
+	auto e = scene.add_entity ();
+	scene.positions [e] = pos;
+	scene.anim_t [e] = 0.0f;
+	scene.pumpkings [e] = EcsTrue ();
+	scene.pouncables [e] = true;
+	scene.hp [e] = 10;
 }
 
 vec2 tmx_to_vg (vec2 v) {
@@ -70,7 +80,7 @@ SceneEcs reset_scene (const Level & level) {
 			place_carrot (scene, center);
 		}
 		else if (t == "Pumpking") {
-			place_carrot (scene, center);
+			place_pumpking (scene, center);
 		}
 		else if (t == "Venus") {
 			auto e = scene.add_entity ();

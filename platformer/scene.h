@@ -19,7 +19,9 @@ struct SceneEcs : Ecs {
 	Components <EcsTrue> pounce_target;
 	Components <glm::vec2> pounce_vec;
 	Components <bool> dead;
+	Components <int> hp;
 	Components <EcsTrue> carrots;
+	Components <EcsTrue> pumpkings;
 	Components <Venus> venuses;
 	Components <EcsTrue> player_input;
 	

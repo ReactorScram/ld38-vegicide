@@ -28,6 +28,7 @@ ResourceTable make_resource_table () {
 	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
 	rc.textures [(TextureKey)ETexture::CarrotDead] = "textures/carrot-dead.png";
 	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
+	rc.textures [(TextureKey)ETexture::Pumpking] = "textures/pumpking.png";
 	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
 	// Meine tilen!
 	rc.textures [(TextureKey)ETexture::Tiles] = "textures/tiles.png";
@@ -211,6 +212,59 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	}
 	
 	vec4 shadow_color (vec3 (0.5f), 1.0f);
+	
+	// Pumpking
+	for (auto pair : scene.pumpkings) {
+		auto old_e = pair.first;
+		
+		vec3 base_pos = two2three (scene.positions.at (old_e));
+		
+		bool dead = false;
+		{
+			auto dead_it = scene.dead.find (old_e);
+			dead = dead_it != scene.dead.end () && (*dead_it).second;
+		}
+		
+		float breathe = 0.2f * sin (t / 4.0);
+		auto tex = ETexture::Pumpking;
+		vec4 base_color (1.0f);
+		
+		vec4 blood_color = shadow_color;
+		float shadow_scale = max (0.0f, 2.0f / (base_pos.z + 1.0f));
+		auto shadow_tex = ETexture::Shadow;
+		
+		if (dead) {
+			tex = ETexture::CarrotDead;
+			blood_color = vec4 (60.0f / 256, 40.0f / 256, 60.0f / 256, 1.0f);
+			shadow_scale *= 2.0f;
+			shadow_tex = ETexture::Blood;
+			breathe = 0.0f;
+		}
+		
+		vec3 size (2.0f + breathe, 2.0f - breathe, 0.0f);
+		
+		{
+			auto targeted_it = scene.targeted.find (old_e);
+			if ((frames % 16) < 8 && targeted_it != scene.targeted.end () && (*targeted_it).second) 
+			{
+				base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
+			}
+		}
+		
+		auto e = add_sprite (ecs, base_pos + vec3 (0.0f, 0.5f - size.y, 0.0f), size, base_color, tex);
+		
+		transparent.renderables [e];
+		
+		{
+			auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), blood_color, shadow_tex);
+			
+			if (dead) {
+				ecs.rigid_mats [s] = rotate (scale (translate (mat4 (1.0f), two2three (base_pos)), vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale)), (float)old_e, vec3 (0.0f, 0.0f, 1.0f));
+			}
+			
+			shadows.renderables [s];
+		}
+	}
 	
 	// Carrot
 	for (auto pair : scene.carrots) {

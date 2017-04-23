@@ -17,6 +17,7 @@ enum class ETexture {
 	Carrot,
 	CarrotDead,
 	Farm,
+	Pumpking,
 	Shadow,
 	Tiles,
 	Title,
