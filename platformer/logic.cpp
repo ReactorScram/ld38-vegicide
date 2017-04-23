@@ -199,18 +199,19 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 {
 	auto pos = scene.positions.at (e);
 	bool can_pounce = false;
-	vec2 pounce_vec = get_pounce_vec (input);
+	const vec2 input_pounce_vec = get_pounce_vec (input);
 	
-	scene.pounce_vec [e] = pounce_vec;
+	scene.pounce_vec [e] = input_pounce_vec;
 	
 	const auto pounce_range = 10.0f;
 	
+	vec2 pounce_vec = input_pounce_vec;
 	if (venus.pounce_anim >= 4.0f / 60.0f) {
 		can_pounce = true;
-		// Search right for pouncables
+		// Search for pouncables
 		
 		const float range = venus.pounce_anim * pounce_range;
-		const Entity closest_victim = get_closest_pouncable (scene, pos, range, pounce_vec);
+		const Entity closest_victim = get_closest_pouncable (scene, pos, range, input_pounce_vec);
 		
 		scene.pounce_target.clear ();
 		
@@ -220,22 +221,27 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 			pounce_vec = scene.positions.at (closest_victim) - pos;
 		}
 		else {
+			// The pounce is charged but no enemies are
+			// available - Just pounce at the ground
 			pounce_vec *= pounce_range * venus.pounce_anim;
 		}
 	}
-	
-	if (input.buttons [(int)InputButton::Pounce] && pos.z == 
-	0.0f) 
 	{
-		venus.pounce_anim += 2.0f / 60.0f;
-	}
-	else {
-		if (can_pounce) {
-			start_pounce (scene, e, get_pounce_velocity (pounce_vec, pounce_range));
-			venus.pounce_anim = 0.0f;
+		const vec2 pounce_vec_2 = pounce_vec;
+		
+		if (input.buttons [(int)InputButton::Pounce] && pos.z == 
+		0.0f) 
+		{
+			venus.pounce_anim += 2.0f / 60.0f;
 		}
 		else {
-			venus.pounce_anim -= 10.0f / 60.0f;
+			if (can_pounce) {
+				start_pounce (scene, e, get_pounce_velocity (pounce_vec_2, pounce_range));
+				venus.pounce_anim = 0.0f;
+			}
+			else {
+				venus.pounce_anim -= 10.0f / 60.0f;
+			}
 		}
 	}
 	
