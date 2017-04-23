@@ -235,10 +235,19 @@ EPounceResult kill_enemies (SceneEcs & scene, const vector <Entity> & victims, l
 			if (scene.hp.at (pouncee_e) <= 0) {
 				scene.dead [pouncee_e] = true;
 				scene.pouncables [pouncee_e] = false;
+				scene.audio_frame.sounds [(int)ESound::KingRoar] = true;
 				return EPounceResult::Killed;
 			}
 			else {
 				scene.damage_flash [pouncee_e] = t + 30;
+				
+				if (scene.hp.at (pouncee_e) % 5 == 0) {
+					scene.audio_frame.sounds [(int)ESound::KingRoar] = true;
+				}
+				else {
+					scene.audio_frame.sounds [(int)ESound::KingPain] = true;
+				}
+				
 				// Bounce the venus back
 				return EPounceResult::Bounce;
 			}
@@ -436,6 +445,8 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input, l
 
 void Logic::step (const InputFrame & input, long t) {
 	scene.targeted.clear ();
+	
+	scene.audio_frame = AudioFrame ();
 	
 	if (input.taps [(int)InputButton::Reset]) {
 		scene = reset_scene (level);

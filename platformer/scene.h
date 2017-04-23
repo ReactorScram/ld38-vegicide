@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 
+#include "audio/audio-frame.h"
 // TODO: Move ECS out of graphics
 #include "graphics/ecs.h"
 
@@ -33,6 +34,8 @@ struct SceneEcs : Ecs {
 	glm::vec2 camera;
 	glm::vec2 last_walk;
 	float screenshake_t;
+	
+	AudioFrame audio_frame;
 };
 
 #endif

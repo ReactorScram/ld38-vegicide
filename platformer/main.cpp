@@ -56,7 +56,7 @@ int main () {
 	
 	Colorado::Game game (screen_opts);
 	
-	FixedTimestep timestep (10, 1);
+	FixedTimestep timestep (60, 1);
 	auto last_frame_time = SDL_GetTicks ();
 	
 	bool running = true;
@@ -135,7 +135,7 @@ int main () {
 			}
 			input.clear_taps ();
 			
-			audio.update (AudioFrame ());
+			audio.update (logic.scene.audio_frame);
 			
 			frames++;
 		}

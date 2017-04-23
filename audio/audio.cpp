@@ -44,30 +44,34 @@ Audio::Audio (const Terf::Archive & terf)
 	
 	encoded_music [EMusic::Ambient] = terf.lookupFile ("music/ambient.ogg");
 	encoded_music [EMusic::Boss] = terf.lookupFile ("music/boss.ogg");
-	music_opus = terf.lookupFile ("music/boss.opus");
 	
 	vorbis_decoder = unique_ptr <VorbisDecoder> (new VorbisDecoder (encoded_music.at (EMusic::Ambient)));
-	opus_decoder = unique_ptr <OpusDecoder> (new OpusDecoder (music_opus));
+	vorbis_decoder->looping = true;
+	vorbis_decoder->playing = true;
+	
+	//music_opus = terf.lookupFile ("music/boss.opus");
+	//opus_decoder = unique_ptr <OpusDecoder> (new OpusDecoder (music_opus));
 	
 	use_vorbis = true;
 	use_opus = false;
 	
 	if (use_vorbis) {
 		alSourcePlay (vorbis_decoder->as.source);
-		cerr << "Vorbis" << endl;
+		//cerr << "Vorbis" << endl;
 	}
 	else if (use_opus) {
 		alSourcePlay (opus_decoder->as.source);
-		cerr << "Opus" << endl;
+		//cerr << "Opus" << endl;
 	}
 }
 
 Audio::~Audio () {
+	/*
 	for (auto pair : sounds) {
 		ALuint bufferName = pair.second;
 		alDeleteBuffers (1, &bufferName);
 	}
-	
+	*/
 	sounds.clear ();
 	
 	alcMakeContextCurrent (nullptr);
@@ -91,10 +95,24 @@ void Audio::update (const AudioFrame & frame) {
 		alSourceStop (voiceSource);
 		//alSourcei (voiceSource, AL_BUFFER, sounds [frame.voiceTrigger]);
 		//alSourcePlay (voiceSource);
-	}
+	}	
 	*/
+	
 	if (use_vorbis) {
 		vorbis_decoder->as.update ();
+		
+		for (int i = 0; i < (int)ESound::NUM_SOUNDS; i++) {
+			bool play = frame.sounds [i];
+			
+			if (play) {
+				sound_sources [i] = unique_ptr <VorbisDecoder> (new VorbisDecoder (sounds [(ESound)i]));
+				//alSourceStop (sound_sources [i]->as.source);
+				sound_sources [i]->playing = true;
+				sound_sources [i]->looping = false;
+			}
+			
+			sound_sources [i]->as.update ();
+		}
 	}
 	if (use_opus) {
 		//opus_decoder->as.update ();
@@ -110,8 +128,18 @@ void Audio::loadVorbises (const Terf::Archive & terf) {
 		"king-you",
 	};
 	
+	//alGenSources ((int)ESound::NUM_SOUNDS, sound_sources);
+	
 	for (int i = 0; i < (int)soundNames.size (); i++) {
-		sounds [(ESound)i] = loadVorbis (terf, soundNames.at (i));
+		string fn ("sounds/");
+		fn.append (soundNames.at (i));
+		fn.append (".ogg");
+		
+		sounds [(ESound)i] = terf.lookupFile (fn);
+		
+		sound_sources [i] = unique_ptr <VorbisDecoder> (new VorbisDecoder (sounds [(ESound)i]));
+		sound_sources [i]->looping = false;
+		sound_sources [i]->playing = false;
 	}
 }
 
@@ -234,6 +262,10 @@ VorbisDecoder::~VorbisDecoder () {
 }
 
 int VorbisDecoder::fill (int16_t *buffer, int length) {
+	if (! playing) {
+		return 0;
+	}
+	
 	// Don't particularly care since we own all the audio in a game
 	int bitstream = 0;
 	long rc = ov_read (dec.get (), (char *)buffer, length, &bitstream);
@@ -242,7 +274,12 @@ int VorbisDecoder::fill (int16_t *buffer, int length) {
 		return rc / sizeof (int16_t);
 	}
 	else {
-		reset ();
+		if (looping) {
+			reset ();
+		}
+		else {
+			playing = false;
+		}
 		return 0;
 	}
 }
@@ -391,7 +428,7 @@ void AudioStream::update () {
 	alGetSourcei (source, AL_BUFFERS_PROCESSED, &buffersProcessed);
 	alGetSourcei (source, AL_BUFFERS_QUEUED, &buffersQueued);
 	
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 4; i++) {
 		//cout << "Filling" << endl;
 		fill ();
 	}

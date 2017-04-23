@@ -82,6 +82,8 @@ struct COLORADO_DLLSPEC VorbisDecoder {
 	std::unique_ptr <OggVorbis_File> dec;
 	int decoder_error;
 	AudioStream as;
+	bool looping;
+	bool playing;
 	
 	VorbisDecoder (const std::vector <uint8_t> & vorbisBuffer);
 	void reset ();
@@ -116,9 +118,10 @@ protected:
 	ALCdevice * device;
 	ALCcontext * context;
 	
-	std::map <ESound, ALuint> sounds;
-	std::map <EMusic, std::vector <uint8_t> > encoded_music;
+	std::map <ESound, std::vector <uint8_t> > sounds;
+	std::unique_ptr <VorbisDecoder> sound_sources [(int)ESound::NUM_SOUNDS];
 	
+	std::map <EMusic, std::vector <uint8_t> > encoded_music;
 	std::unique_ptr <VorbisDecoder> vorbis_decoder;
 	
 	std::vector <uint8_t> music_opus;
