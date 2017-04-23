@@ -58,14 +58,44 @@ float shake (float rads, float hz, float strength) {
 	return strength * sin (rads * hz);
 }
 
-GraphicsEcs animate_title (long frames, const ScreenOptions & /*screen_opts*/)
+// Curtain is normalized 0 to 1
+void curtain (GraphicsEcs & ecs, float t) {
+	GlState opaque_state;
+	opaque_state.bools [GL_DEPTH_TEST] = false;
+	opaque_state.bools [GL_CULL_FACE] = false;
+	
+	Pass curtain;
+	curtain.shader = (ShaderKey)EShader::Opaque;
+	curtain.gl_state = opaque_state;
+	curtain.proj_view_mat = glm::ortho (0.0f, 800.0f, 0.0f, 480.0f);
+	
+	auto e = ecs.add_entity ();
+	
+	float size = glm::sqrt (800 * 800 + 480 * 480) / 0.85f + 10.0f;
+	
+	ecs.rigid_mats [e] = rotate (scale (translate (mat4 (1.0f), vec3 (800.0f - 0.85 * size, 480.0f, 0.0f)), vec3 (size)), radians (45 - t * 90), vec3 (0.0f, 0.0f, 1.0f));
+	ecs.diffuse_colors [e] = vec4 (34.0f / 256, 32.0f / 256, 52.0f / 256, 1.0f);
+	ecs.meshes [e] = (MeshKey)EMesh::DangerZone;
+	ecs.textures [e] = (TextureKey)ETexture::White;
+	ecs.transparent_z [e] = 0.0f;
+	
+	curtain.renderables [e];
+	
+	ecs.passes.push_back (curtain);
+}
+
+/*
+"If a man will begin with curtain_t's, he shall end in doubts; but if he will be content to begin with doubts, he shall end in curtain_t's." -- France is Bacon 
+ */
+GraphicsEcs animate_title (long frames, float curtain_t, const ScreenOptions & /*screen_opts*/)
 {
 	const float t = frames / 60.0f;
+	float phase = t * 2.0 * 3.1415926535;
 	float screen_shake = mod (t, 4.0f) > 3.25f ? 1.0f : 0.0f;
 	
 	float noise = 0;
 	if (screen_shake > 0.0f) {
-		float phase = t * 2.0 * 3.1415926535;
+		
 		noise = shake (phase, 27, 2) + shake (phase, 20, 2) + shake (phase, 14, 3);
 	}
 	
@@ -95,6 +125,7 @@ GraphicsEcs animate_title (long frames, const ScreenOptions & /*screen_opts*/)
 	}
 	
 	ecs.passes.push_back (opaque);
+	curtain (ecs, glm::smoothstep (0.0f, 1.0f, curtain_t));
 	
 	return ecs;
 }

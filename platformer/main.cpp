@@ -88,6 +88,7 @@ int main () {
 	Logic logic (level);
 	
 	GameState game_state = GameState::Title;
+	float curtain_t = 0.0f;
 	
 	while (running) {
 		SDL_Event ev;
@@ -107,7 +108,27 @@ int main () {
 		
 		for (int i = 0; i < numSteps; i++) {
 			// Step
-			//logic.step (input.frame);
+			switch (game_state) {
+				case GameState::Game:
+					logic.step (input.frame);
+					break;
+				case GameState::Title:
+					float curtain_speed = 1.5f / 60.0f;
+					curtain_t -= curtain_speed;
+					
+					for (int i = 0; i < (int)InputButton::NUM_BUTTONS; i++) {
+						if (input.frame.taps [i]) {
+							//game_state = GameState::Game;
+						}
+						if (input.frame.buttons [i]) {
+							curtain_t += curtain_speed * 2;
+						}
+					}
+					
+					curtain_t = glm::clamp (curtain_t, 0.0f, 1.0f);
+					
+					break;
+			}
 			input.clear_taps ();
 			
 			frames++;
@@ -121,7 +142,7 @@ int main () {
 			GraphicsEcs graphics_ecs;
 			switch (game_state) {
 				case GameState::Title:
-					graphics_ecs = animate_title (frames, screen_opts);
+					graphics_ecs = animate_title (frames, curtain_t, screen_opts);
 					break;
 				case GameState::Game:
 					graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, screen_opts);
