@@ -5,6 +5,8 @@
 #include "level.h"
 #include "scene.h"
 
+#include "audio/audio-frame.h"
+
 struct Logic {
 	SceneEcs scene;
 	Level level;

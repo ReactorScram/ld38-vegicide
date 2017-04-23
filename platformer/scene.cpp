@@ -49,6 +49,10 @@ vec3 two2three (vec3 v) {
 	return vec3 (v.x, v.y - v.z, 0.0f);
 }
 
+void SceneEcs::play_sound (ESound s) {
+	audio_frame.sounds [(int)s] = true;
+}
+
 Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const vec4 & color, ETexture texture) 
 {
 	auto e = ecs.add_entity ();

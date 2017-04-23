@@ -127,6 +127,7 @@ void Audio::loadVorbises (const Terf::Archive & terf) {
 		"king-pain",
 		"king-roar",
 		"king-you",
+		"swooce",
 	};
 	
 	//alGenSources ((int)ESound::NUM_SOUNDS, sound_sources);

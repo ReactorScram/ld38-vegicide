@@ -253,13 +253,13 @@ EPounceResult kill_enemies (SceneEcs & scene, const vector <Entity> & victims, l
 			if (scene.hp.at (pouncee_e) <= 0) {
 				scene.dead [pouncee_e] = true;
 				scene.pouncables [pouncee_e] = false;
-				scene.audio_frame.sounds [(int)scene.death_sound.at (pouncee_e)] = true;
+				scene.play_sound (scene.death_sound.at (pouncee_e));;
 				return EPounceResult::Killed;
 			}
 			else {
 				scene.damage_flash [pouncee_e] = t + 30;
 				
-				scene.audio_frame.sounds [(int)scene.pain_sound.at (pouncee_e)] = true;
+				scene.play_sound (scene.pain_sound.at (pouncee_e));
 				
 				// Bounce the venus back
 				return EPounceResult::Bounce;
@@ -367,6 +367,7 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 				auto vel = get_pounce_velocity (pounce_vec_2, pounce_range);
 				scene.pounce_vel [e] = vel;
 				start_pounce (scene, e, vel);
+				scene.play_sound (ESound::Swooce);
 				venus.pounce_anim = 0.0f;
 			}
 			else {

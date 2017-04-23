@@ -67,6 +67,8 @@ struct SceneEcs : Ecs {
 	float screenshake_t;
 	
 	AudioFrame audio_frame;
+	
+	void play_sound (ESound);
 };
 
 #endif
