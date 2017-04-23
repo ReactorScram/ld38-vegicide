@@ -60,6 +60,8 @@ float shake (float rads, float hz, float strength) {
 
 // Curtain is normalized 0 to 1
 void curtain (GraphicsEcs & ecs, float t) {
+	float smooth_t = (1 - t) * (1 - t);
+	
 	GlState opaque_state;
 	opaque_state.bools [GL_DEPTH_TEST] = false;
 	opaque_state.bools [GL_CULL_FACE] = false;
@@ -71,11 +73,9 @@ void curtain (GraphicsEcs & ecs, float t) {
 	
 	auto e = ecs.add_entity ();
 	
-	float size = glm::sqrt (800 * 800 + 480 * 480) / 0.85f + 10.0f;
-	
-	ecs.rigid_mats [e] = rotate (scale (translate (mat4 (1.0f), vec3 (800.0f - 0.85 * size, 480.0f, 0.0f)), vec3 (size)), radians (45 - t * 90), vec3 (0.0f, 0.0f, 1.0f));
+	ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (400.0f, smooth_t * 480.0f + 240, 0.0f)), vec3 (400, 240, 0));
 	ecs.diffuse_colors [e] = vec4 (34.0f / 256, 32.0f / 256, 52.0f / 256, 1.0f);
-	ecs.meshes [e] = (MeshKey)EMesh::DangerZone;
+	ecs.meshes [e] = (MeshKey)EMesh::Square;
 	ecs.textures [e] = (TextureKey)ETexture::White;
 	ecs.transparent_z [e] = 0.0f;
 	
@@ -125,7 +125,7 @@ GraphicsEcs animate_title (long frames, float curtain_t, const ScreenOptions & /
 	}
 	
 	ecs.passes.push_back (opaque);
-	curtain (ecs, glm::smoothstep (0.0f, 1.0f, curtain_t));
+	curtain (ecs, curtain_t);
 	
 	return ecs;
 }
