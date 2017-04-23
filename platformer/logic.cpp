@@ -68,7 +68,8 @@ vec2 get_pounce_vec (const InputFrame & input) {
 
 // Everything from here down is a system I guess yay
 
-void player_walk (SceneEcs & scene, Entity e, const InputFrame & input) {
+vec3 get_walk_pos (const SceneEcs & scene, Entity e, const InputFrame & input) 
+{
 	auto pos = scene.positions.at (e);
 	vec3 target_pos = pos;
 	
@@ -104,8 +105,15 @@ void player_walk (SceneEcs & scene, Entity e, const InputFrame & input) {
 	}
 	
 	if (can_move_there) {
-		scene.positions [e] = target_pos;
+		return target_pos;
 	}
+	else {
+		return pos;
+	}
+}
+
+void player_walk (SceneEcs & scene, Entity e, const InputFrame & input) {
+	scene.positions [e] = get_walk_pos (scene, e, input);
 }
 
 // Yeah sure why not?
