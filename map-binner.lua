@@ -21,7 +21,7 @@ local function write_layer (layer)
 	write_16 (height)
 	
 	for i, v in ipairs (data) do
-		write_16 (v)
+		write_16 (v - 1)
 	end
 end
 

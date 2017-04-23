@@ -15,6 +15,7 @@ ResourceTable make_resource_table () {
 	ResourceTable rc;
 	
 	rc.shaders [(ShaderKey)EShader::Opaque] = ShaderFiles {"shaders/shader.vert", "shaders/shader.frag"};
+	//rc.shaders [(ShaderKey)EShader::Tile] = ShaderFiles {"shaders/tile.vert", "shaders/shader.frag"};
 	rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
 	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
 	
@@ -23,6 +24,8 @@ ResourceTable make_resource_table () {
 	rc.textures [(TextureKey)ETexture::CarrotDead] = "textures/carrot-dead.png";
 	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
 	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
+	// Meine tilen!
+	rc.textures [(TextureKey)ETexture::Tiles] = "textures/tiles.png";
 	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
 	
 	rc.meshes [(MeshKey)EMesh::DangerZone] = "meshes/danger-zone.iqm";
@@ -103,7 +106,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level & level, long 
 	GraphicsEcs ecs;
 	
 	// Farm
-	if (true) {
+	if (false) {
 		auto e = ecs.add_entity ();
 		
 		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (512.0f, 240.0f - 16.0f, 0.0f)), vec3 (512.0f, 256.0f, 0.0f));
@@ -112,11 +115,23 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level & level, long 
 		ecs.textures [e] = (TextureKey)ETexture::Farm;
 		ecs.transparent_z [e] = 0.0f;
 		
-		//opaque.renderables [e];
+		opaque.renderables [e];
 	}
 	
 	// Level 
-	{
+	if (true) {
+		auto e = ecs.add_entity ();
+		
+		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (0.0f, 480.0f, 0.0f)), vec3 (32.0f, -32.0f, 0.0f));
+		ecs.diffuse_colors [e] = vec4 (1.0f);
+		ecs.meshes [e] = (MeshKey)EMesh::Level;
+		ecs.textures [e] = (TextureKey)ETexture::Tiles;
+		ecs.transparent_z [e] = 0.0f;
+		
+		opaque.renderables [e];
+	}
+	
+	if (false) {
 		float tile_size = 32.0f;
 		
 		for (int y = 0; y < level.height; y++) {

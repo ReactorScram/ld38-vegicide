@@ -18,11 +18,13 @@ enum class ETexture {
 	CarrotDead,
 	Farm,
 	Shadow,
+	Tiles,
 	White,
 };
 
 enum class EMesh {
 	DangerZone,
+	Level,
 	Square,
 	Venus,
 };

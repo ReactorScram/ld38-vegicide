@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <iostream>
 #include <unordered_set>
 #include <stdint.h>
 #include <sstream>
@@ -58,6 +59,24 @@ int main () {
 	Graphics graphics;
 	graphics.load (terf, rc);
 	
+	Level level (terf.lookupFile ("maps/demo.bin"));
+	
+	/*
+	Level mini_level;
+	mini_level.width = 2;
+	mini_level.height = 1;
+	mini_level.data.push_back (0);
+	mini_level.data.push_back (0);
+	*/
+	auto level_iqm = level.to_iqm ();
+	if (true) {
+		cerr << "Level IQM size = " << level_iqm.size () << endl;
+		//ofstream iqm_out ("fuck.iqm");
+		//iqm_out.write ((const char *)&level_iqm [0], level_iqm.size ());
+	}
+	
+	graphics.meshes.add_iqm ((MeshKey)EMesh::Level, level_iqm);
+	
 	SDL_WM_SetCaption (window_title.c_str (), nullptr);
 	
 	auto epoch = get_epoch ();
@@ -68,7 +87,7 @@ int main () {
 	long frames = 0;
 	
 	Input input;
-	Logic logic (Level (terf.lookupFile ("maps/demo.bin")));
+	Logic logic (level);
 	
 	while (running) {
 		SDL_Event ev;

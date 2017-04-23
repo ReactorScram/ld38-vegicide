@@ -11,6 +11,8 @@ struct Level {
 	
 	Level ();
 	Level (const std::vector <uint8_t> & bytes);
+	
+	std::vector <uint8_t> to_iqm () const;
 };
 
 #endif
