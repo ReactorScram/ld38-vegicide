@@ -1,9 +1,11 @@
-1. Tilemap physics
+- Enemy weapons
 
-2. Boss
+- Player health
 
-3. In-between levels
+- Player death
 
-4. Integrate music
+- Tilemap physics
 
-5. Fix camera
+- Boss
+
+- In-between levels

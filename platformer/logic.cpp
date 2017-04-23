@@ -18,6 +18,17 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 	scene.pain_sound [e] = ESound::Gasp;
 }
 
+void place_crab_apple (SceneEcs & scene, const vec3 & pos) {
+	auto e = scene.add_entity ();
+	scene.positions [e] = pos;
+	scene.anim_t [e] = 0.0f;
+	scene.crabapples [e] = EcsTrue ();
+	scene.pouncables [e] = true;
+	scene.hp [e] = 2;
+	scene.death_sound [e] = ESound::Gasp;
+	scene.pain_sound [e] = ESound::Gasp;
+}
+
 void place_pumpking (SceneEcs & scene, const vec3 & pos) {
 	auto e = scene.add_entity ();
 	scene.positions [e] = pos;
@@ -91,6 +102,9 @@ SceneEcs reset_scene (const Level & level) {
 		}
 		else if (t == "Pumpking") {
 			place_pumpking (scene, center);
+		}
+		else if (t == "CrabApple") {
+			place_crab_apple (scene, center);
 		}
 		else if (t == "Venus") {
 			auto e = scene.add_entity ();

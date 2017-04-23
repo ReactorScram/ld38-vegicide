@@ -27,6 +27,8 @@ ResourceTable make_resource_table () {
 	rc.textures [(TextureKey)ETexture::Blood] = "textures/blood.png";
 	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
 	rc.textures [(TextureKey)ETexture::CarrotDead] = "textures/carrot-dead.png";
+	rc.textures [(TextureKey)ETexture::CrabApple] = "textures/crab-apple.png";
+	rc.textures [(TextureKey)ETexture::CrabAppleDead] = "textures/crab-apple-dead.png";
 	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
 	rc.textures [(TextureKey)ETexture::Pumpking] = "textures/pumpking.png";
 	rc.textures [(TextureKey)ETexture::PumpkingDead] = "textures/pumpking-dead.png";
@@ -136,6 +138,133 @@ GraphicsEcs animate_title (long frames, float curtain_t, const ScreenOptions & /
 	return ecs;
 }
 
+struct EnemyBase {
+	Entity sprite;
+	Entity shadow;
+};
+
+EnemyBase animate_carrot (GraphicsEcs & ecs, const SceneEcs & scene, Entity old_e, long frames) 
+{
+	const float t = frames * 2.0 * 3.1415926535 / 60.0f;
+	vec3 base_pos = scene.positions.at (old_e);
+	
+	vec4 shadow_color (vec3 (0.5f), 1.0f);
+	
+	bool dead = false;
+	{
+		auto dead_it = scene.dead.find (old_e);
+		dead = dead_it != scene.dead.end () && (*dead_it).second;
+	}
+	
+	float jump_ofs = abs (sin (t));
+	if (dead) {
+		jump_ofs = 0.0f;
+	}
+	vec3 jump (0.0f, 0.0f, 1.0f + jump_ofs);
+	vec3 size (1.0f);
+	auto tex = ETexture::Carrot;
+	vec4 base_color (1.0f);
+	
+	vec4 blood_color = shadow_color;
+	float shadow_scale = max (0.0f, 0.25f / (jump_ofs + 1.0f));
+	auto shadow_tex = ETexture::Shadow;
+	
+	if (dead) {
+		tex = ETexture::CarrotDead;
+		jump = vec3 (0.0f);
+		blood_color = vec4 (117.0f / 256, 28.0f / 256, 0.0f / 256, 1.0f);
+		shadow_scale *= 4.0f;
+		shadow_tex = ETexture::Blood;
+	}
+	
+	{
+		auto targeted_it = scene.targeted.find (old_e);
+		if ((frames % 16) < 8 && targeted_it != scene.targeted.end () && (*targeted_it).second) 
+		{
+			base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
+		}
+	}
+	
+	auto e = add_sprite (ecs, base_pos + jump, size, base_color, tex);
+	
+	EnemyBase eb;
+	
+	eb.sprite = e;
+	
+	{
+		auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), blood_color, shadow_tex);
+		
+		if (dead) {
+			ecs.rigid_mats [s] = rotate (scale (translate (mat4 (1.0f), two2three (base_pos)), vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale)), (float)old_e, vec3 (0.0f, 0.0f, 1.0f));
+		}
+		
+		eb.shadow = s;
+	}
+	
+	return eb;
+}
+
+EnemyBase animate_crabapple (GraphicsEcs & ecs, const SceneEcs & scene, Entity old_e, long frames) 
+{
+	const float t = frames * 2.0 * 3.1415926535 / 60.0f;
+	vec3 base_pos = scene.positions.at (old_e);
+	
+	vec4 shadow_color (vec3 (0.5f), 1.0f);
+	
+	bool dead = false;
+	{
+		auto dead_it = scene.dead.find (old_e);
+		dead = dead_it != scene.dead.end () && (*dead_it).second;
+	}
+	
+	float jump_ofs = abs (sin (t));
+	if (dead) {
+		jump_ofs = 0.0f;
+	}
+	vec3 jump (0.0f, 0.0f, 0.5f + jump_ofs);
+	vec3 size (1.0f);
+	auto tex = ETexture::CrabApple;
+	vec4 base_color (1.0f);
+	
+	vec4 blood_color = shadow_color;
+	float shadow_scale = max (0.0f, 0.25f / (jump_ofs + 1.0f));
+	auto shadow_tex = ETexture::Shadow;
+	
+	if (dead) {
+		tex = ETexture::CrabAppleDead;
+		//jump = vec3 (0.0f);
+		blood_color = vec4 (117.0f / 256, 28.0f / 256, 0.0f / 256, 1.0f);
+		shadow_scale *= 4.0f;
+		shadow_tex = ETexture::Blood;
+	}
+	
+	{
+		auto targeted_it = scene.targeted.find (old_e);
+		if ((frames % 16) < 8 && targeted_it != scene.targeted.end () && (*targeted_it).second) 
+		{
+			base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
+		}
+	}
+	
+	auto e = add_sprite (ecs, base_pos + jump, size, base_color, tex);
+	
+	EnemyBase eb;
+	
+	eb.sprite = e;
+	
+	{
+		auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), blood_color, shadow_tex);
+		
+		if (dead) {
+			ecs.rigid_mats [s] = rotate (scale (translate (mat4 (1.0f), two2three (base_pos)), vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale)), (float)old_e, vec3 (0.0f, 0.0f, 1.0f));
+		}
+		
+		eb.shadow = s;
+	}
+	
+	return eb;
+}
+
 GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames, const ScreenOptions & screen_opts) 
 {
 	const float t = frames * 2.0 * 3.1415926535 / 60.0f;
@@ -197,8 +326,6 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	transparent.proj_view_mat = proj_view_mat;
 	
 	GraphicsEcs ecs;
-	
-	
 	
 	// Level 
 	if (true) {
@@ -281,58 +408,20 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	for (auto pair : scene.carrots) {
 		auto old_e = pair.first;
 		
-		vec3 base_pos = scene.positions.at (old_e);
+		EnemyBase eb = animate_carrot (ecs, scene, old_e, frames);
 		
-		bool dead = false;
-		{
-			auto dead_it = scene.dead.find (old_e);
-			dead = dead_it != scene.dead.end () && (*dead_it).second;
-		}
+		transparent.renderables [eb.sprite];
+		shadows.renderables [eb.shadow];
+	}
+	
+	// Crab-apples
+	for (auto pair : scene.crabapples) {
+		auto old_e = pair.first;
 		
-		float jump_ofs = abs (sin (t));
-		if (dead) {
-			jump_ofs = 0.0f;
-		}
-		vec3 jump (0.0f, 0.0f, 1.0f + jump_ofs);
-		vec3 size (1.0f);
-		auto tex = ETexture::Carrot;
-		vec4 base_color (1.0f);
+		EnemyBase eb = animate_crabapple (ecs, scene, old_e, frames);
 		
-		
-		
-		vec4 blood_color = shadow_color;
-		float shadow_scale = max (0.0f, 0.25f / (jump_ofs + 1.0f));
-		auto shadow_tex = ETexture::Shadow;
-		
-		if (dead) {
-			tex = ETexture::CarrotDead;
-			jump = vec3 (0.0f);
-			blood_color = vec4 (117.0f / 256, 28.0f / 256, 0.0f / 256, 1.0f);
-			shadow_scale *= 4.0f;
-			shadow_tex = ETexture::Blood;
-		}
-		
-		{
-			auto targeted_it = scene.targeted.find (old_e);
-			if ((frames % 16) < 8 && targeted_it != scene.targeted.end () && (*targeted_it).second) 
-			{
-				base_color = vec4 (1.0f, 0.0f, 0.0f, 1.0f);
-			}
-		}
-		
-		auto e = add_sprite (ecs, base_pos + jump, size, base_color, tex);
-		
-		transparent.renderables [e];
-		
-		{
-			auto s = add_sprite (ecs, base_pos, vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), blood_color, shadow_tex);
-			
-			if (dead) {
-				ecs.rigid_mats [s] = rotate (scale (translate (mat4 (1.0f), two2three (base_pos)), vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale)), (float)old_e, vec3 (0.0f, 0.0f, 1.0f));
-			}
-			
-			shadows.renderables [s];
-		}
+		transparent.renderables [eb.sprite];
+		shadows.renderables [eb.shadow];
 	}
 	
 	// Venus

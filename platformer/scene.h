@@ -11,6 +11,34 @@ struct Venus {
 	float pounce_anim;
 };
 
+enum class ETexture {
+	Blood,
+	Carrot,
+	CarrotDead,
+	CrabApple,
+	CrabAppleDead,
+	Farm,
+	Pumpking,
+	PumpkingDead,
+	Shadow,
+	Tiles,
+	Title,
+	White,
+};
+
+enum class EMesh {
+	DangerZone,
+	Level,
+	Square,
+	Venus,
+};
+
+enum class EShader {
+	Opaque,
+	Particle,
+	Shadow,
+};
+
 struct SceneEcs : Ecs {
 	Components <glm::vec3> positions;
 	Components <glm::vec3> velocities;
@@ -29,6 +57,7 @@ struct SceneEcs : Ecs {
 	Components <ESound> pain_sound;
 	Components <ESound> death_sound;
 	Components <EcsTrue> carrots;
+	Components <EcsTrue> crabapples;
 	Components <EcsTrue> pumpkings;
 	Components <Venus> venuses;
 	Components <EcsTrue> player_input;

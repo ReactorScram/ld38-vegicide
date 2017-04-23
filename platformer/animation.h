@@ -12,32 +12,6 @@ struct ScreenOptions;
 
 struct Level;
 
-enum class ETexture {
-	Blood,
-	Carrot,
-	CarrotDead,
-	Farm,
-	Pumpking,
-	PumpkingDead,
-	Shadow,
-	Tiles,
-	Title,
-	White,
-};
-
-enum class EMesh {
-	DangerZone,
-	Level,
-	Square,
-	Venus,
-};
-
-enum class EShader {
-	Opaque,
-	Particle,
-	Shadow,
-};
-
 ResourceTable make_resource_table ();
 
 GraphicsEcs animate_title (long frames, float curtain_t, const Colorado::ScreenOptions & screen_opts);
