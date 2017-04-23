@@ -29,6 +29,7 @@ ResourceTable make_resource_table () {
 	rc.textures [(TextureKey)ETexture::CarrotDead] = "textures/carrot-dead.png";
 	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
 	rc.textures [(TextureKey)ETexture::Pumpking] = "textures/pumpking.png";
+	rc.textures [(TextureKey)ETexture::PumpkingDead] = "textures/pumpking-dead.png";
 	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
 	// Meine tilen!
 	rc.textures [(TextureKey)ETexture::Tiles] = "textures/tiles.png";
@@ -234,8 +235,8 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		auto shadow_tex = ETexture::Shadow;
 		
 		if (dead) {
-			tex = ETexture::CarrotDead;
-			blood_color = vec4 (60.0f / 256, 40.0f / 256, 60.0f / 256, 1.0f);
+			tex = ETexture::PumpkingDead;
+			blood_color = vec4 (96.0f / 256, 13.0f / 256, 70.0f / 256, 1.0f);
 			shadow_scale *= 2.0f;
 			shadow_tex = ETexture::Blood;
 			breathe = 0.0f;
