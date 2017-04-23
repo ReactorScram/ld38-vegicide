@@ -16,7 +16,7 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 }
 
 vec2 tmx_to_vg (vec2 v) {
-	return v / vec2 (32.0f, -32.0f) + vec2 (0.0f, 15.0f);
+	return v / vec2 (32.0f, 32.0f) + vec2 (0.0f, 0.0f);
 }
 
 SceneEcs reset_scene (const Level & level) {
@@ -60,14 +60,6 @@ SceneEcs reset_scene (const Level & level) {
 	
 	place_carrot (scene, vec3 (0.0f, 1.0f, 0.0f));
 	*/
-	if (false) {
-		auto e = scene.add_entity ();
-		scene.positions [e] = vec3 (-7.0f, -4.0f, 0.0f);
-		scene.velocities [e] = vec3 (0.0f);
-		scene.anim_t [e] = 0.0f;
-		scene.venuses [e] = Venus ();
-		scene.player_input [e] = EcsTrue ();
-	}
 	
 	return scene;
 }
@@ -91,10 +83,10 @@ vec2 get_pounce_vec (const InputFrame & input) {
 	}
 	
 	if (input.buttons [(int)InputButton::Up]) {
-		pounce_vec.y = 1.0f;
+		pounce_vec.y = -1.0f;
 	}
 	else if (input.buttons [(int)InputButton::Down]) {
-		pounce_vec.y = -1.0f;
+		pounce_vec.y = 1.0f;
 	}
 	
 	if (length (pounce_vec) > 1.0f) {
@@ -118,10 +110,10 @@ vec3 get_walk_pos (const SceneEcs & scene, Entity e, const InputFrame & input)
 		target_pos = pos + vec3 (1.0f, 0.0f, 0.0f);
 	}
 	if (input.taps [(int)InputButton::Up]) {
-		target_pos = pos + vec3 (0.0f, 1.0f, 0.0f);
+		target_pos = pos + vec3 (0.0f, -1.0f, 0.0f);
 	}
 	if (input.taps [(int)InputButton::Down]) {
-		target_pos = pos + vec3 (0.0f, -1.0f, 0.0f);
+		target_pos = pos + vec3 (0.0f, 1.0f, 0.0f);
 	}
 	
 	bool can_move_there = true;
@@ -335,10 +327,14 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 		// Mid-pounce
 		scene.velocities [e] = vel + vec3 (0.0f, 0.0f, -0.125f);
 		pos += scene.velocities.at (e);
-		scene.positions [e] = pos;
 		
 		kill_enemies (scene, get_pounce_victims (scene, pos));
 	}
+	
+	pos.x = clamp (pos.x, 1.5f, 2048.0f / 32.0f - 1.5f);
+	pos.y = clamp (pos.y, 1.5f, 1024.0f / 32.0f - 1.5f);
+	
+	scene.positions [e] = pos;
 	
 	bool debug = false;
 	if (debug) {
@@ -347,7 +343,7 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 }
 
 vec2 obj_to_camera (vec2 v) {
-	return 32.0f * (vec2 (v.x - 12.5f, -v.y + 7.5f));
+	return 32.0f * (vec2 (v.x - 12.5f, v.y - 7.5f));
 }
 
 void Logic::step (const InputFrame & input) {
@@ -364,22 +360,27 @@ void Logic::step (const InputFrame & input) {
 		
 		// Target camera
 		auto pos = scene.positions.at (e);
-		//auto vel = scene.velocities.at (e);
+		auto vel = scene.velocities.at (e);
 		
-		vec2 camera_target;
+		vec2 camera_target = scene.camera;
 		
 		if (pos.z > 0.0f) {
 			// Pouncing
 			scene.last_walk = vec2 (0.0f);
-			//camera_target = 
+			
+			camera_target = obj_to_camera (vec2 (pos) + vec2 (vel) * vec2 (20.0f));
+			for (auto pair : scene.pounce_target) {
+				camera_target = obj_to_camera (vec2 (scene.positions.at (pair.first)));
+				break;
+			}
 		}
 		else {
 			// Walking
 			camera_target = obj_to_camera (vec2 (pos) + scene.last_walk * vec2 (7.5f, 5.0f));
-			
-			camera_target.x = clamp (camera_target.x, 32.0f, 800.0f - 32);
-			camera_target.y = clamp (camera_target.y, 32.0f, 480.0f - 32);
 		}
+		
+		camera_target.x = clamp (camera_target.x, 32.0f, 2048 - 800 - 32.0f);
+		camera_target.y = clamp (camera_target.y, 32.0f, 1024 - 480 - 32.0f);
 		
 		scene.camera = mix (scene.camera, camera_target, 0.05f);
 	}

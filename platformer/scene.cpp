@@ -1,6 +1,8 @@
 #include "animation.h"
 #include "scene.h"
 
+#include <iostream>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "colorado/camera.h"
@@ -11,6 +13,8 @@
 
 using namespace Colorado;
 using namespace glm;
+using std::cerr;
+using std::endl;
 
 ResourceTable make_resource_table () {
 	ResourceTable rc;
@@ -38,14 +42,14 @@ ResourceTable make_resource_table () {
 }
 
 vec3 two2three (vec3 v) {
-	return vec3 (v.x, v.y + v.z, 0.0f);
+	return vec3 (v.x, v.y - v.z, 0.0f);
 }
 
 Entity add_sprite (GraphicsEcs & ecs, const vec3 & pos, const vec3 & size, const vec4 & color, ETexture texture) 
 {
 	auto e = ecs.add_entity ();
 	
-	ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), two2three (pos)), size);
+	ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), two2three (pos)), size * vec3 (1.0f, -1.0f, 1.0f));
 	ecs.diffuse_colors [e] = color;
 	ecs.meshes [e] = (MeshKey)EMesh::Square;
 	ecs.textures [e] = (TextureKey)texture;
@@ -140,13 +144,15 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		noise = shake (t, 20, 2) + shake (t, 14, 3) + shake (t, 8, 5);
 	}
 	
-	vec3 camera (floor (scene.camera.x + noise), -floor (scene.camera.y), 0);
+	vec3 camera (floor (scene.camera.x + noise), floor (scene.camera.y), 0);
+	
+	//vec3 camera (0.0f);
 	
 	const float aspect = (double)screen_opts.width / (double)screen_opts.height;
 	
 	const float mob_scale = 1.0f / 15.0f;
 	
-	const auto proj_mat = glm::ortho (0.0f, aspect, 0.0f, 1.0f);
+	const auto proj_mat = glm::ortho (0.0f, aspect, 1.0f, 0.0f);
 	
 	const auto view_mat = translate (scale (mat4 (1.0f), vec3 (mob_scale)), -camera / 32.0f);
 	//auto camera_pos = inverse (view_mat) * vec4 (0.0, 0.0, 0.0, 1.0);
@@ -175,7 +181,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	Pass opaque;
 	opaque.shader = (ShaderKey)EShader::Opaque;
 	opaque.gl_state = opaque_state;
-	opaque.proj_view_mat = glm::ortho (0.0f, 800.0f, 0.0f, 480.0f);
+	opaque.proj_view_mat = glm::ortho (0.0f, 800.0f, 480.0f, 0.0f) * translate (mat4 (1.0f), -camera);
 	
 	Pass shadows;
 	shadows.shader = (ShaderKey)EShader::Shadow;
@@ -195,7 +201,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	if (true) {
 		auto e = ecs.add_entity ();
 		
-		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), vec3 (0.0f - camera.x, 480.0f - camera.y, 0.0f)), vec3 (32.0f, -32.0f, 0.0f));
+		ecs.rigid_mats [e] = scale (mat4 (1.0f), vec3 (32.0f, 32.0f, 0.0f));
 		ecs.diffuse_colors [e] = vec4 (1.0f);
 		ecs.meshes [e] = (MeshKey)EMesh::Level;
 		ecs.textures [e] = (TextureKey)ETexture::Tiles;
@@ -273,6 +279,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		auto pos = scene.positions.at (old_e);
 		
 		vec3 base_pos = two2three (pos);
+		//cerr << "venus: (" << base_pos.x << ", " << base_pos.y << ")" << endl;
 		
 		{
 			float shadow_scale = max (0.0f, 0.5f / (pos.z + 1.0f));
@@ -323,7 +330,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 			transparent.renderables [zone_e];
 		}
 		
-		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), base_pos + vec3 (0.0f, size.y, 0.0f)), size);
+		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), base_pos + vec3 (0.0f, -size.y, 0.0f)), size * vec3 (1.0f, -1.0f, 1.0f));
 		ecs.meshes [e] = (MeshKey)EMesh::Venus;
 		ecs.textures [e] = (TextureKey)ETexture::White;
 		ecs.transparent_z [e] = base_pos.y;
