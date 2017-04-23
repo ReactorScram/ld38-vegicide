@@ -112,8 +112,8 @@ vec3 get_walk_pos (const SceneEcs & scene, Entity e, const InputFrame & input)
 	}
 }
 
-void player_walk (SceneEcs & scene, Entity e, const InputFrame & input) {
-	scene.positions [e] = get_walk_pos (scene, e, input);
+void player_walk (SceneEcs & scene, Entity e, const vec3 & pos) {
+	scene.positions [e] = pos;
 }
 
 // Yeah sure why not?
@@ -271,7 +271,7 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input)
 	}
 	
 	if (can_move) {
-		player_walk (scene, e, input);
+		player_walk (scene, e, get_walk_pos (scene, e, input));
 	}
 	
 	const auto vel = scene.velocities.at (e);
