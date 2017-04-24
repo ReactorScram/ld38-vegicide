@@ -7,6 +7,21 @@
 using namespace glm;
 using namespace std;
 
+EPowerup name_to_powerup (string name) {
+	if (name == "Pounce_4") {
+		return EPowerup::Pounce_4;
+	}
+	else if (name == "Pounce_7") {
+		return EPowerup::Pounce_7;
+	}
+	else if (name == "Pounce_10") {
+		return EPowerup::Pounce_10;
+	}
+	else {
+		return EPowerup::NoPowerup;
+	}
+}
+
 void place_carrot (SceneEcs & scene, const vec3 & pos) {
 	auto e = scene.add_entity ();
 	scene.positions [e] = pos;
@@ -15,14 +30,15 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 	scene.pouncables [e] = true;
 	scene.hp [e] = 1;
 	scene.death_sound [e] = ESound::Crunch;
-	scene.pain_sound [e] = ESound::Gasp;
+	scene.pain_sound [e] = ESound::Crunch;
 }
 
-void place_egg (SceneEcs & scene, const vec3 & pos) {
+void place_egg (SceneEcs & scene, const vec3 & pos, string name) {
 	auto e = scene.add_entity ();
 	scene.positions [e] = pos;
 	scene.eggs [e] = false;
 	scene.radii [e] = 1.0f;
+	scene.powerups [e] = name_to_powerup (name);
 }
 
 void place_crab_apple (SceneEcs & scene, const vec3 & pos) {
@@ -33,7 +49,7 @@ void place_crab_apple (SceneEcs & scene, const vec3 & pos) {
 	scene.pouncables [e] = true;
 	scene.hp [e] = 2;
 	scene.death_sound [e] = ESound::Crunch;
-	scene.pain_sound [e] = ESound::Gasp;
+	scene.pain_sound [e] = ESound::Crunch;
 }
 
 void place_pumpking (SceneEcs & scene, const vec3 & pos) {
@@ -114,14 +130,14 @@ SceneEcs reset_scene (const Level & level) {
 			place_crab_apple (scene, center);
 		}
 		else if (t == "Egg") {
-			place_egg (scene, center);
+			place_egg (scene, center, obj.name);
 		}
 		else if (t == "Venus") {
 			auto e = scene.add_entity ();
 			scene.positions [e] = center;
 			scene.velocities [e] = vec3 (0.0f);
 			scene.anim_t [e] = 0.0f;
-			scene.venuses [e] = Venus {0.0f, 4.0f};
+			scene.venuses [e] = Venus {0.0f, 0.5f};
 			scene.hp [e] = 10;
 			scene.player_input [e] = EcsTrue ();
 		}
@@ -591,9 +607,25 @@ void Logic::step (const InputFrame & input, long t) {
 		
 		auto eggs = get_savable_eggs (scene, scene.positions.at (e));
 		if (eggs.size () == 1) {
-			save_at_egg (scene, eggs.at (0));
+			auto egg_e = eggs.at (0);
+			save_at_egg (scene, egg_e);
 			checkpoint = scene;
 			scene.play_sound (ESound::Bling);
+			
+			auto powerup = scene.powerups.at (egg_e);
+			switch (powerup) {
+				case EPowerup::Pounce_4:
+					scene.venuses [e].pounce_range = glm::max (4.0f, scene.venuses.at (e).pounce_range);
+					break;
+				case EPowerup::Pounce_7:
+					scene.venuses [e].pounce_range = glm::max (7.0f, scene.venuses.at (e).pounce_range);
+					break;
+				case EPowerup::Pounce_10:
+					scene.venuses [e].pounce_range = glm::max (10.0f, scene.venuses.at (e).pounce_range);
+					break;
+				default:
+					break;
+			}
 		}
 		
 		// Target camera

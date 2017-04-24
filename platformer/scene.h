@@ -42,10 +42,18 @@ enum class EShader {
 	Shadow,
 };
 
+enum class EPowerup {
+	NoPowerup,
+	Pounce_4,
+	Pounce_7,
+	Pounce_10,
+};
+
 struct SceneEcs : Ecs {
 	Components <glm::vec3> positions;
 	// True if activated
 	Components <bool> eggs;
+	Components <EPowerup> powerups;
 	Components <glm::vec3> velocities;
 	Components <float> radii;
 	Components <bool> targeted;
