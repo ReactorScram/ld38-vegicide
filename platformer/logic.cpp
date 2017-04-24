@@ -203,7 +203,7 @@ bool is_jump_barrier (const Level & level, vec3 target_pos) {
 	int tile_y = clamp (floor (target_pos.y), 0.0f, level.height - 1.0f);
 	
 	auto tile = level.data.at (tile_x + tile_y * level.width);
-	if (tile >= 55 && tile <= 55) {
+	if (tile == 51 || tile == 55) {
 		return true;
 	}
 	
@@ -211,13 +211,17 @@ bool is_jump_barrier (const Level & level, vec3 target_pos) {
 }
 
 bool is_fatal (const Level & level, vec3 target_pos) {
+	if (is_jump_barrier (level, target_pos)) {
+		return true;
+	}
+	
 	int tile_x = clamp (floor (target_pos.x), 0.0f, level.width - 1.0f);
 	int tile_y = clamp (floor (target_pos.y), 0.0f, level.height - 1.0f);
 	
 	//cerr << "x, y = " << target_pos.x << ", " << target_pos.y << endl;
 	
 	auto tile = level.data.at (tile_x + tile_y * level.width);
-	if (tile >= 52 && tile <= 55) {
+	if (tile >= 52 && tile <= 54) {
 		return true;
 	}
 	
@@ -399,7 +403,7 @@ bool ray_cast (const Level & level, vec3 start, vec3 end) {
 	
 	float l = length (end - start);
 	
-	for (float t = 0.0; t <= 1.0f; t += (0.5f / l)) {
+	for (float t = 0.5f / l; t <= 1.0f; t += (0.5f / l)) {
 		vec3 midpoint = end * t + start * (1.0f - t);
 		
 		if (is_jump_barrier (level, midpoint)) {
