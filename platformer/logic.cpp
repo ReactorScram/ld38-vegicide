@@ -182,6 +182,18 @@ vec2 get_pounce_vec (const InputFrame & input) {
 
 // Everything from here down is a system I guess yay
 
+bool is_jump_barrier (const Level & level, vec3 target_pos) {
+	int tile_x = clamp (floor (target_pos.x), 0.0f, level.width - 1.0f);
+	int tile_y = clamp (floor (target_pos.y), 0.0f, level.height - 1.0f);
+	
+	auto tile = level.data.at (tile_x + tile_y * level.width);
+	if (tile >= 55 && tile <= 55) {
+		return true;
+	}
+	
+	return false;
+}
+
 bool is_fatal (const Level & level, vec3 target_pos) {
 	int tile_x = clamp (floor (target_pos.x), 0.0f, level.width - 1.0f);
 	int tile_y = clamp (floor (target_pos.y), 0.0f, level.height - 1.0f);
@@ -365,6 +377,23 @@ Entity get_closest_pouncable (const SceneEcs & scene, const vec3 & pos, float ra
 	return closest_victim;
 }
 
+// True if it hits an obstacle
+bool ray_cast (const Level & level, vec3 start, vec3 end) {
+	// Stupid ray-marching cause I'm running VERY short of hours
+	
+	float l = length (end - start);
+	
+	for (float t = 0.0; t <= 1.0f; t += (0.5f / l)) {
+		vec3 midpoint = end * t + start * (1.0f - t);
+		
+		if (is_jump_barrier (level, midpoint)) {
+			return true;
+		}
+	}
+	
+	return false;
+}
+
 void apply_venus_input (const Level & level, SceneEcs & scene, Entity e, Venus & venus, const InputFrame & input) 
 {
 	auto pos = scene.positions.at (e);
@@ -404,11 +433,15 @@ void apply_venus_input (const Level & level, SceneEcs & scene, Entity e, Venus &
 		{
 			const vec2 pounce_vec_2 = pounce_vec;
 			
+			bool landing_would_be_fatal = is_fatal (level, pos + vec3 (pounce_vec_2, 0.0f));
+			
+			bool crosses_barrier = ray_cast (level, pos, pos + vec3 (pounce_vec_2, 0.0f));
+			
 			if (pounce_button_pressed) 
 			{
 				venus.pounce_anim += 2.0f / 60.0f;
 			}
-			else if (pounce_charged && ! is_fatal (level, pos + vec3 (pounce_vec_2, 0.0f))) 
+			else if (pounce_charged && ! landing_would_be_fatal && ! crosses_barrier) 
 			{
 				auto vel = get_pounce_velocity (pounce_vec_2, pounce_range);
 				scene.pounce_vel [e] = vel;
@@ -535,10 +568,10 @@ void save_at_egg (SceneEcs & scene, Entity touched_e) {
 }
 
 void Logic::step (const InputFrame & input, long t) {
-	if (input.taps [(int)InputButton::QuickSave]) {
+	if (input.was_tapped (InputButton::QuickSave)) {
 		quicksave = scene;
 	}
-	if (input.taps [(int)InputButton::QuickLoad]) {
+	if (input.was_tapped (InputButton::QuickLoad)) {
 		scene = quicksave;
 		return;
 	}
@@ -547,7 +580,7 @@ void Logic::step (const InputFrame & input, long t) {
 	
 	scene.audio_frame = AudioFrame ();
 	
-	if (input.taps [(int)InputButton::Reset]) {
+	if (input.was_tapped (InputButton::Reset)) {
 		scene = reset_scene (level);
 	}
 	
