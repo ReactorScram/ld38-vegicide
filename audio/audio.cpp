@@ -131,6 +131,7 @@ void Audio::loadVorbises (const Terf::Archive & terf) {
 		"king-you",
 		"respawn",
 		"swooce",
+		"whoa",
 	};
 	
 	//alGenSources ((int)ESound::NUM_SOUNDS, sound_sources);

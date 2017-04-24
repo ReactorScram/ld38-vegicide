@@ -25,6 +25,17 @@ EPowerup name_to_powerup (string name) {
 	}
 }
 
+void place_beetnik (SceneEcs & scene, const vec3 & pos) {
+	auto e = scene.add_entity ();
+	scene.positions [e] = pos;
+	scene.anim_t [e] = 0.0f;
+	scene.beetniks [e] = EcsTrue ();
+	scene.pouncables [e] = true;
+	scene.hp [e] = 1024;
+	scene.death_sound [e] = ESound::Crunch;
+	scene.pain_sound [e] = ESound::Whoa;
+}
+
 void place_carrot (SceneEcs & scene, const vec3 & pos) {
 	auto e = scene.add_entity ();
 	scene.positions [e] = pos;
@@ -128,6 +139,9 @@ SceneEcs reset_scene (const Level & level) {
 		}
 		else if (t == "Pumpking") {
 			place_pumpking (scene, center);
+		}
+		else if (t == "Beetnik") {
+			place_beetnik (scene, center);
 		}
 		else if (t == "CrabApple") {
 			place_crab_apple (scene, center);

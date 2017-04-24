@@ -79,9 +79,13 @@ struct SceneEcs : Ecs {
 	Components <int> hp;
 	Components <ESound> pain_sound;
 	Components <ESound> death_sound;
+	
+	// Enemies
+	Components <EcsTrue> beetniks;
 	Components <EcsTrue> carrots;
 	Components <EcsTrue> crabapples;
 	Components <PumpKing> pumpkings;
+	
 	Components <Venus> venuses;
 	Components <EcsTrue> player_input;
 	Components <bool> ai_active;
