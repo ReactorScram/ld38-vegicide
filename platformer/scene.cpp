@@ -162,7 +162,7 @@ EnemyBase animate_carrot (GraphicsEcs & ecs, const SceneEcs & scene, Entity old_
 		dead = dead_it != scene.dead.end () && (*dead_it).second;
 	}
 	
-	float jump_ofs = abs (sin (t));
+	float jump_ofs = abs (sin (t + old_e));
 	if (dead) {
 		jump_ofs = 0.0f;
 	}
