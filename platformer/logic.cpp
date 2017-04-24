@@ -21,7 +21,8 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 void place_egg (SceneEcs & scene, const vec3 & pos) {
 	auto e = scene.add_entity ();
 	scene.positions [e] = pos;
-	scene.eggs [e] = true;
+	scene.eggs [e] = false;
+	scene.radii [e] = 1.0f;
 }
 
 void place_crab_apple (SceneEcs & scene, const vec3 & pos) {
@@ -511,7 +512,9 @@ vector <Entity> get_savable_eggs (const SceneEcs & scene, vec3 pos) {
 		auto egg_pos = scene.positions.at (e);
 		bool available = ! pair.second;
 		
-		if (available && length (egg_pos - pos) < 3.0f) {
+		const float radius = scene.radii.at (e);
+		
+		if (available && length (egg_pos - pos) < radius) {
 			result.push_back (e);
 		}
 	}
@@ -523,10 +526,10 @@ void save_at_egg (SceneEcs & scene, Entity touched_e) {
 	for (auto pair : scene.eggs) {
 		auto e = pair.first;
 		if (e == touched_e) {
-			scene.eggs [e] = false;
+			scene.eggs [e] = true;
 		}
 		else {
-			scene.eggs [e] = true;
+			scene.eggs [e] = false;
 		}
 	}
 }
