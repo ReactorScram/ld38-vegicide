@@ -122,6 +122,7 @@ void Audio::update (const AudioFrame & frame) {
 void Audio::loadVorbises (const Terf::Archive & terf) {
 	// Match this to ESound
 	vector <string> soundNames {
+		"bling",
 		"gasp",
 		"king-laugh",
 		"king-pain",

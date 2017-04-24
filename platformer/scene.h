@@ -9,6 +9,7 @@
 
 struct Venus {
 	float pounce_anim;
+	float pounce_range;
 };
 
 enum class ETexture {
@@ -43,7 +44,8 @@ enum class EShader {
 
 struct SceneEcs : Ecs {
 	Components <glm::vec3> positions;
-	Components <EcsTrue> eggs;
+	// True if activated
+	Components <bool> eggs;
 	Components <glm::vec3> velocities;
 	Components <float> radii;
 	Components <bool> targeted;

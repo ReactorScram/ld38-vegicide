@@ -21,7 +21,7 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 void place_egg (SceneEcs & scene, const vec3 & pos) {
 	auto e = scene.add_entity ();
 	scene.positions [e] = pos;
-	scene.eggs [e] = EcsTrue ();
+	scene.eggs [e] = true;
 }
 
 void place_crab_apple (SceneEcs & scene, const vec3 & pos) {
@@ -120,7 +120,8 @@ SceneEcs reset_scene (const Level & level) {
 			scene.positions [e] = center;
 			scene.velocities [e] = vec3 (0.0f);
 			scene.anim_t [e] = 0.0f;
-			scene.venuses [e] = Venus ();
+			scene.venuses [e] = Venus {0.0f, 4.0f};
+			scene.hp [e] = 10;
 			scene.player_input [e] = EcsTrue ();
 		}
 	}
@@ -151,6 +152,7 @@ void shake_screen (SceneEcs & scene, float time) {
 Logic::Logic (const Level & l) : level (l) {
 	scene = reset_scene (level);
 	quicksave = scene;
+	checkpoint = scene;
 }
 
 vec2 get_pounce_vec (const InputFrame & input) {
@@ -179,7 +181,48 @@ vec2 get_pounce_vec (const InputFrame & input) {
 
 // Everything from here down is a system I guess yay
 
-vec3 get_walk_pos (const SceneEcs & scene, Entity e, const InputFrame & input) 
+bool is_fatal (const Level & level, vec3 target_pos) {
+	int tile_x = clamp (floor (target_pos.x), 0.0f, level.width - 1.0f);
+	int tile_y = clamp (floor (target_pos.y), 0.0f, level.height - 1.0f);
+	
+	//cerr << "x, y = " << target_pos.x << ", " << target_pos.y << endl;
+	
+	auto tile = level.data.at (tile_x + tile_y * level.width);
+	if (tile >= 52 && tile <= 55) {
+		return true;
+	}
+	
+	return false;
+}
+
+bool is_walkable (const Level & level, const SceneEcs & scene, vec3 target_pos) {
+	bool can_move_there = true;
+	
+	if (is_fatal (level, target_pos)) {
+		can_move_there = false;
+	}
+	
+	for (auto pair : scene.pouncables) {
+		auto victim_e = pair.first;
+		float radius = get_component (scene.radii, victim_e, 1.0f);
+		
+		if (! pair.second) {
+			continue;
+		}
+		
+		auto victim_pos = scene.positions.at (victim_e);
+		
+		const auto diff = vec2 (victim_pos - target_pos);
+		if (length (diff) < radius) {
+			can_move_there = false;
+			break;
+		}
+	}
+	
+	return can_move_there;
+}
+
+vec3 get_walk_pos (const Level & level, const SceneEcs & scene, Entity e, const InputFrame & input) 
 {
 	auto pos = scene.positions.at (e);
 	vec3 target_pos = pos;
@@ -203,24 +246,7 @@ vec3 get_walk_pos (const SceneEcs & scene, Entity e, const InputFrame & input)
 		target_pos = pos + normalize (walk_dir) * 4.0f / 60.0f;
 	}
 	
-	bool can_move_there = true;
-	
-	for (auto pair : scene.pouncables) {
-		auto victim_e = pair.first;
-		float radius = get_component (scene.radii, victim_e, 1.0f);
-		
-		if (! pair.second) {
-			continue;
-		}
-		
-		auto victim_pos = scene.positions.at (victim_e);
-		
-		const auto diff = vec2 (victim_pos - target_pos);
-		if (length (diff) < radius) {
-			can_move_there = false;
-			break;
-		}
-	}
+	bool can_move_there = is_walkable (level, scene, target_pos);
 	
 	if (can_move_there) {
 		return target_pos;
@@ -285,18 +311,20 @@ EPounceResult kill_enemies (SceneEcs & scene, const vector <Entity> & victims, l
 	return EPounceResult::Missed;
 }
 
-vec3 get_pounce_velocity (const vec2 & pounce_vec, float pounce_range) {
+vec3 get_pounce_velocity (const vec2 & pounce_vec, float /*pounce_range*/) {
 	// Pounce!
 	// Default vertical jump
 	float jump_power = 1.0f;
 	vec2 pounce_xy (0.0f);
 	
+	const float max_range = 10.0f;
+	
 	if (length (pounce_vec) > 0.0f) {
-		jump_power = length (pounce_vec) / pounce_range;
+		jump_power = length (pounce_vec) / max_range;
 		pounce_xy = normalize (pounce_vec) * 40.0f / 60.0f;
 	}
 	
-	jump_power = glm::max (0.25f / pounce_range, jump_power);
+	jump_power = glm::max (0.25f / max_range, jump_power);
 	
 	return vec3 (pounce_xy.x, pounce_xy.y, 1.0f * jump_power);
 }
@@ -336,13 +364,13 @@ Entity get_closest_pouncable (const SceneEcs & scene, const vec3 & pos, float ra
 	return closest_victim;
 }
 
-void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFrame & input) 
+void apply_venus_input (const Level & level, SceneEcs & scene, Entity e, Venus & venus, const InputFrame & input) 
 {
 	auto pos = scene.positions.at (e);
 	
 	bool pounce_button_pressed = input.buttons [(int)InputButton::Pounce];
 	bool on_ground = pos.z == 0.0f;
-	bool pounce_charged = venus.pounce_anim >= 4.0f / 60.0f;
+	bool pounce_charged = venus.pounce_anim >= 20.0f / 60.0f;
 	
 	bool could_pounce = on_ground && pounce_charged;
 	const vec2 input_pounce_vec = get_pounce_vec (input);
@@ -350,7 +378,7 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 	scene.pounce_vec [e] = input_pounce_vec;
 	
 	if (on_ground) {
-		const auto pounce_range = 10.0f;
+		const auto pounce_range = venus.pounce_range;
 		vec2 pounce_vec = input_pounce_vec;
 		
 		if (could_pounce) {
@@ -379,7 +407,8 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 			{
 				venus.pounce_anim += 2.0f / 60.0f;
 			}
-			else if (pounce_charged) {
+			else if (pounce_charged && ! is_fatal (level, pos + vec3 (pounce_vec_2, 0.0f))) 
+			{
 				auto vel = get_pounce_velocity (pounce_vec_2, pounce_range);
 				scene.pounce_vel [e] = vel;
 				start_pounce (scene, e, vel);
@@ -398,7 +427,7 @@ void apply_venus_input (SceneEcs & scene, Entity e, Venus & venus, const InputFr
 	venus.pounce_anim = clamp (venus.pounce_anim, 0.0f, 1.0f);
 }
 
-void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input, long t) 
+void apply_player_input (const Level & level, SceneEcs & scene, Entity e, const InputFrame & input, long t) 
 {
 	auto pos = scene.positions.at (e);
 	auto vel = scene.velocities.at (e);
@@ -416,12 +445,13 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input, l
 		pos.z = 0.0f;
 		scene.positions [e] = pos;
 		
-		auto pounce_result = kill_enemies (scene, get_pounce_victims (scene, pos), t);
+		auto victims = get_pounce_victims (scene, pos);
+		auto pounce_result = kill_enemies (scene, victims, t);
 		
 		switch (pounce_result) {
 			case EPounceResult::Bounce:
 			{
-				scene.positions [e] = scene.positions.at (e) * vec3 (1.0f, 1.0f, 0.0f);
+				scene.positions [e] = scene.positions.at (victims.at (0)) * vec3 (1.0f, 1.0f, 0.0f);
 				scene.pounce_vel [e] = scene.pounce_vel.at (e) * vec3 (-1.0f, -1.0f, 1.0f);
 				start_pounce (scene, e, scene.pounce_vel.at (e));
 			}
@@ -442,11 +472,11 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input, l
 	if (venus_it != scene.venuses.end ()) {
 		auto & venus = (*venus_it).second;
 		
-		apply_venus_input (scene, e, venus, input);
+		apply_venus_input (level, scene, e, venus, input);
 	}
 	
 	if (can_move) {
-		auto new_pos = get_walk_pos (scene, e, input);
+		auto new_pos = get_walk_pos (level, scene, e, input);
 		player_walk (scene, e, new_pos);
 		if (new_pos != pos) {
 			scene.last_walk = new_pos - pos;
@@ -473,6 +503,34 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input, l
 	}
 }
 
+vector <Entity> get_savable_eggs (const SceneEcs & scene, vec3 pos) {
+	vector <Entity> result;
+	
+	for (auto pair : scene.eggs) {
+		auto e = pair.first;
+		auto egg_pos = scene.positions.at (e);
+		bool available = ! pair.second;
+		
+		if (available && length (egg_pos - pos) < 3.0f) {
+			result.push_back (e);
+		}
+	}
+	
+	return result;
+}
+
+void save_at_egg (SceneEcs & scene, Entity touched_e) {
+	for (auto pair : scene.eggs) {
+		auto e = pair.first;
+		if (e == touched_e) {
+			scene.eggs [e] = false;
+		}
+		else {
+			scene.eggs [e] = true;
+		}
+	}
+}
+
 void Logic::step (const InputFrame & input, long t) {
 	if (input.taps [(int)InputButton::QuickSave]) {
 		quicksave = scene;
@@ -493,7 +551,14 @@ void Logic::step (const InputFrame & input, long t) {
 	for (auto pair : scene.player_input) {
 		auto e = pair.first;
 		
-		apply_player_input (scene, e, input, t);
+		apply_player_input (level, scene, e, input, t);
+		
+		auto eggs = get_savable_eggs (scene, scene.positions.at (e));
+		if (eggs.size () == 1) {
+			save_at_egg (scene, eggs.at (0));
+			checkpoint = scene;
+			scene.play_sound (ESound::Bling);
+		}
 		
 		// Target camera
 		vec2 camera_target = get_camera_target (scene, e);
