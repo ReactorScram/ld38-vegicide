@@ -18,6 +18,12 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 	scene.pain_sound [e] = ESound::Gasp;
 }
 
+void place_egg (SceneEcs & scene, const vec3 & pos) {
+	auto e = scene.add_entity ();
+	scene.positions [e] = pos;
+	scene.eggs [e] = EcsTrue ();
+}
+
 void place_crab_apple (SceneEcs & scene, const vec3 & pos) {
 	auto e = scene.add_entity ();
 	scene.positions [e] = pos;
@@ -106,6 +112,9 @@ SceneEcs reset_scene (const Level & level) {
 		else if (t == "CrabApple") {
 			place_crab_apple (scene, center);
 		}
+		else if (t == "Egg") {
+			place_egg (scene, center);
+		}
 		else if (t == "Venus") {
 			auto e = scene.add_entity ();
 			scene.positions [e] = center;
@@ -141,6 +150,7 @@ void shake_screen (SceneEcs & scene, float time) {
 
 Logic::Logic (const Level & l) : level (l) {
 	scene = reset_scene (level);
+	quicksave = scene;
 }
 
 vec2 get_pounce_vec (const InputFrame & input) {
@@ -174,17 +184,23 @@ vec3 get_walk_pos (const SceneEcs & scene, Entity e, const InputFrame & input)
 	auto pos = scene.positions.at (e);
 	vec3 target_pos = pos;
 	
-	if (input.taps [(int)InputButton::Left]) {
-		target_pos = pos + vec3 (-1.0f, 0.0f, 0.0f);
+	vec3 walk_dir;
+	
+	if (input.was_any (InputButton::Left)) {
+		walk_dir += vec3 (-1.0f, 0.0f, 0.0f);
 	}
-	if (input.taps [(int)InputButton::Right]) {
-		target_pos = pos + vec3 (1.0f, 0.0f, 0.0f);
+	if (input.was_any (InputButton::Right)) {
+		walk_dir += vec3 (1.0f, 0.0f, 0.0f);
 	}
-	if (input.taps [(int)InputButton::Up]) {
-		target_pos = pos + vec3 (0.0f, -1.0f, 0.0f);
+	if (input.was_any (InputButton::Up)) {
+		walk_dir += vec3 (0.0f, -1.0f, 0.0f);
 	}
-	if (input.taps [(int)InputButton::Down]) {
-		target_pos = pos + vec3 (0.0f, 1.0f, 0.0f);
+	if (input.was_any (InputButton::Down)) {
+		walk_dir += vec3 (0.0f, 1.0f, 0.0f);
+	}
+	
+	if (length (walk_dir) > 0.0f) {
+		target_pos = pos + normalize (walk_dir) * 4.0f / 60.0f;
 	}
 	
 	bool can_move_there = true;
@@ -395,8 +411,8 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input, l
 	else if (pos.z < 0.0f || vel.z < 0.0f) {
 		//cerr << "Untz" << endl;
 		scene.velocities [e] = vec3 (0.0f);
-		pos.x = floor (pos.x + 1.0f) - 0.5f;
-		pos.y = floor (pos.y + 1.0f) - 0.5f;
+		//pos.x = floor (pos.x + 1.0f) - 0.5f;
+		//pos.y = floor (pos.y + 1.0f) - 0.5f;
 		pos.z = 0.0f;
 		scene.positions [e] = pos;
 		
@@ -458,6 +474,14 @@ void apply_player_input (SceneEcs & scene, Entity e, const InputFrame & input, l
 }
 
 void Logic::step (const InputFrame & input, long t) {
+	if (input.taps [(int)InputButton::QuickSave]) {
+		quicksave = scene;
+	}
+	if (input.taps [(int)InputButton::QuickLoad]) {
+		scene = quicksave;
+		return;
+	}
+	
 	scene.targeted.clear ();
 	
 	scene.audio_frame = AudioFrame ();

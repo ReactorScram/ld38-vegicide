@@ -29,6 +29,7 @@ ResourceTable make_resource_table () {
 	rc.textures [(TextureKey)ETexture::CarrotDead] = "textures/carrot-dead.png";
 	rc.textures [(TextureKey)ETexture::CrabApple] = "textures/crab-apple.png";
 	rc.textures [(TextureKey)ETexture::CrabAppleDead] = "textures/crab-apple-dead.png";
+	rc.textures [(TextureKey)ETexture::Egg] = "textures/egg.png";
 	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
 	rc.textures [(TextureKey)ETexture::Pumpking] = "textures/pumpking.png";
 	rc.textures [(TextureKey)ETexture::PumpkingDead] = "textures/pumpking-dead.png";
@@ -427,6 +428,19 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		
 		transparent.renderables [eb.sprite];
 		shadows.renderables [eb.shadow];
+	}
+	
+	for (auto pair : scene.eggs) {
+		auto old_e = pair.first;
+		
+		vec3 base_pos = scene.positions.at (old_e);
+		
+		vec3 size (1.0f);
+		auto tex = ETexture::Egg;
+		vec4 base_color (1.0f);
+		
+		auto e = add_sprite (ecs, base_pos, size, base_color, tex);
+		transparent.renderables [e];
 	}
 	
 	// Venus

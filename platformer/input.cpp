@@ -44,9 +44,25 @@ InputButton map_key (int key) {
 			return InputButton::Pounce;
 		case SDLK_r:
 			return InputButton::Reset;
+		case SDLK_F9:
+			return InputButton::QuickSave;
+		case SDLK_F5:
+			return InputButton::QuickLoad;
 		default:
 			return InputButton::NUM_BUTTONS;
 	}
+}
+
+bool InputFrame::was_tapped (InputButton b) const {
+	return taps [(int)b];
+}
+
+bool InputFrame::was_held (InputButton b) const {
+	return buttons [(int)b];
+}
+
+bool InputFrame::was_any (InputButton b) const {
+	return was_tapped (b) || was_held (b);
 }
 
 void Input::clear_taps () {

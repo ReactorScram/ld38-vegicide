@@ -17,6 +17,7 @@ enum class ETexture {
 	CarrotDead,
 	CrabApple,
 	CrabAppleDead,
+	Egg,
 	Farm,
 	Pumpking,
 	PumpkingDead,
@@ -42,6 +43,7 @@ enum class EShader {
 
 struct SceneEcs : Ecs {
 	Components <glm::vec3> positions;
+	Components <EcsTrue> eggs;
 	Components <glm::vec3> velocities;
 	Components <float> radii;
 	Components <bool> targeted;
