@@ -420,6 +420,8 @@ bool ray_cast (const Level & level, vec3 start, vec3 end) {
 	
 	float l = length (end - start);
 	
+	//cerr << "Ray cast: " << l << endl;
+	
 	for (float t = 0.5f / l; t <= 1.0f; t += (0.5f / l)) {
 		vec3 midpoint = end * t + start * (1.0f - t);
 		
@@ -487,6 +489,14 @@ void apply_venus_input (const Level & level, SceneEcs & scene, Entity e, Venus &
 				venus.pounce_anim = 0.0f;
 			}
 			else {
+				if (pounce_charged) {
+					if (landing_would_be_fatal) {
+						//cerr << "Landing would be fatal" << endl;
+					}
+					else if (crosses_barrier) {
+						//cerr << "Crosses barrier" << endl;
+					}
+				}
 				venus.pounce_anim -= 10.0f / 60.0f;
 			}
 		}
@@ -496,6 +506,7 @@ void apply_venus_input (const Level & level, SceneEcs & scene, Entity e, Venus &
 	}
 	
 	venus.pounce_anim = clamp (venus.pounce_anim, 0.0f, 1.0f);
+	//cerr << "Pounce charge: " << get_component (scene.venuses, e, Venus {0.0f, 0.0f}).pounce_anim << endl;
 }
 
 void apply_player_input (const Level & level, SceneEcs & scene, Entity e, const InputFrame & input, long t) 
