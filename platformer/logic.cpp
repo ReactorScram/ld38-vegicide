@@ -641,7 +641,22 @@ void Logic::step (const InputFrame & input, long t) {
 	for (auto pair : scene.crabapples) {
 		auto e = pair.first;
 		auto pos = scene.positions.at (e);
-		scene.ai_active [e] = length (player_pos - pos) < 11.0f;
+		
+		bool alive = ! get_component (scene.dead, e, false);
+		
+		bool targeted = scene.pounce_target.find (e) != scene.pounce_target.end ();
+		
+		scene.ai_active [e] = alive && ! targeted && length (player_pos - pos) < 11.0f;
+		
+		if (! targeted && alive) {
+			auto target_pos = pos + 3.0f / 60.0f * normalize (player_pos - pos);
+			
+			bool can_go = ! is_fatal (level, target_pos);
+			
+			if (can_go) {
+				scene.positions [e] = target_pos;
+			}
+		}
 	}
 	
 	scene.screenshake_t = glm::max (0.0f, scene.screenshake_t - 1.0f / 60.0f);

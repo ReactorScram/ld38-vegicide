@@ -59,6 +59,7 @@ struct SceneEcs : Ecs {
 	Components <bool> targeted;
 	Components <float> anim_t;
 	Components <bool> pouncables;
+	
 	Components <EcsTrue> pounce_target;
 	// Different meaning before and during pounce
 	Components <glm::vec2> pounce_vec;
