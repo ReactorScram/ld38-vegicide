@@ -21,6 +21,7 @@ enum class ETexture {
 	Tiles,
 	Title,
 	Venus,
+	Vignette,
 	White,
 };
 

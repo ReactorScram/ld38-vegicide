@@ -38,6 +38,7 @@ ResourceTable make_resource_table () {
 	rc.textures [(TextureKey)ETexture::Tiles] = "textures/tiles.png";
 	rc.textures [(TextureKey)ETexture::Title] = "textures/title.png";
 	rc.textures [(TextureKey)ETexture::Venus] = "textures/venus.png";
+	rc.textures [(TextureKey)ETexture::Vignette] = "textures/vignette.png";
 	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
 	
 	rc.meshes [(MeshKey)EMesh::DangerZone] = "meshes/danger-zone.iqm";
@@ -331,6 +332,11 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	transparent.gl_state = transparent_state;
 	transparent.proj_view_mat = proj_view_mat;
 	
+	Pass vignette;
+	vignette.shader = (ShaderKey)EShader::Opaque;
+	vignette.gl_state = transparent_state;
+	vignette.proj_view_mat = mat4 (1.0f);
+	
 	GraphicsEcs ecs;
 	
 	// Level 
@@ -444,9 +450,11 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	}
 	
 	// Venus
+	int venus_health = 0;
 	for (auto pair : scene.venuses) {
 		auto old_e = pair.first;
 		auto venus = pair.second;
+		venus_health = scene.hp.at (old_e);
 		auto e = ecs.add_entity ();
 		
 		auto pos = scene.positions.at (old_e);
@@ -510,9 +518,18 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		transparent.renderables [e];
 	}
 	
+	if (frames % 60 >= 30) {
+		auto tex = ETexture::Vignette;
+		vec4 base_color (1.0f, 0.1f, 0.1f, 1.0f - (venus_health / 10.0f));
+		
+		auto e = add_sprite (ecs, vec3 (0.0f), vec3 (1.0f), base_color, tex);
+		vignette.renderables [e];
+	}
+	
 	ecs.passes.push_back (opaque);
 	ecs.passes.push_back (shadows);
 	ecs.passes.push_back (transparent);
+	ecs.passes.push_back (vignette);
 	
 	return ecs;
 }
