@@ -38,6 +38,7 @@ ResourceTable make_resource_table () {
 	rc.textures [(TextureKey)ETexture::Tiles] = "textures/tiles.png";
 	rc.textures [(TextureKey)ETexture::Title] = "textures/title.png";
 	rc.textures [(TextureKey)ETexture::Venus] = "textures/venus.png";
+	rc.textures [(TextureKey)ETexture::VenusDead] = "textures/venus-dead.png";
 	rc.textures [(TextureKey)ETexture::Vignette] = "textures/vignette.png";
 	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
 	
@@ -510,17 +511,24 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 			transparent.renderables [zone_e];
 		}
 		
+		auto tex = ETexture::Venus;
+		
+		if (get_component (scene.dead, old_e, false)) {
+			tex = ETexture::VenusDead;
+			size = tense_size;
+		}
+		
 		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), two2three (base_pos) + vec3 (0.0f, -size.y, 0.0f)), size * vec3 (1.0f, -1.0f, 1.0f));
 		ecs.meshes [e] = (MeshKey)EMesh::Square;
-		ecs.textures [e] = (TextureKey)ETexture::Venus;
+		ecs.textures [e] = (TextureKey)tex;
 		ecs.transparent_z [e] = -base_pos.y;
 		
 		transparent.renderables [e];
 	}
 	
-	if (frames % 60 >= 30) {
+	if (frames % 60 >= 30 || venus_health == 0) {
 		auto tex = ETexture::Vignette;
-		vec4 base_color (1.0f, 0.1f, 0.1f, 1.0f - (venus_health / 10.0f));
+		vec4 base_color (1.0f, 0.1f, 0.1f, 1.0f - (venus_health / 4.0f));
 		
 		auto e = add_sprite (ecs, vec3 (0.0f), vec3 (1.0f), base_color, tex);
 		vignette.renderables [e];

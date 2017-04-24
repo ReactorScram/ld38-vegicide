@@ -138,7 +138,7 @@ SceneEcs reset_scene (const Level & level) {
 			scene.velocities [e] = vec3 (0.0f);
 			scene.anim_t [e] = 0.0f;
 			scene.venuses [e] = Venus {0.0f, 0.5f};
-			scene.hp [e] = 10;
+			scene.hp [e] = 4;
 			scene.player_input [e] = EcsTrue ();
 		}
 	}
@@ -587,7 +587,29 @@ void save_at_egg (SceneEcs & scene, Entity touched_e) {
 	}
 }
 
+void damage_player (SceneEcs & scene, Entity player_e, int amount, long t) {
+	if (! get_component (scene.dead, player_e, false)) {
+		scene.damage_flash [player_e] = glm::max (t + 60, get_component (scene.damage_flash, player_e, (long)0));
+		scene.hp [player_e] -= amount;
+		if (get_component (scene.hp, player_e, 0) <= 0) {
+			cerr << "You are dead" << endl;
+			scene.play_sound (ESound::Crunch);
+			scene.dead [player_e] = true;
+			scene.respawn_time = t + 90;
+			scene.play_sound (ESound::Respawn);
+		}
+		else {
+			scene.play_sound (ESound::Gasp);
+		}
+	}
+}
+
 void Logic::step (const InputFrame & input, long t) {
+	if (t == scene.respawn_time) {
+		scene = checkpoint;
+		return;
+	}
+	
 	if (input.was_tapped (InputButton::QuickSave)) {
 		quicksave = scene;
 	}
@@ -610,14 +632,17 @@ void Logic::step (const InputFrame & input, long t) {
 	for (auto pair : scene.player_input) {
 		auto e = pair.first;
 		
+		if (get_component (scene.dead, e, false)) {
+			continue;
+		}
+		
 		apply_player_input (level, scene, e, input, t);
 		
 		auto eggs = get_savable_eggs (scene, scene.positions.at (e));
 		if (eggs.size () == 1) {
 			auto egg_e = eggs.at (0);
 			save_at_egg (scene, egg_e);
-			checkpoint = scene;
-			scene.play_sound (ESound::Bling);
+			scene.hp [e] = glm::max (4, get_component (scene.hp, e, 0));
 			
 			auto powerup = get_component (scene.powerups, egg_e, EPowerup::NoPowerup);
 			switch (powerup) {
@@ -630,9 +655,15 @@ void Logic::step (const InputFrame & input, long t) {
 				case EPowerup::Pounce_10:
 					scene.venuses [e].pounce_range = glm::max (10.0f, scene.venuses.at (e).pounce_range);
 					break;
+				case EPowerup::Health_10:
+					scene.hp [e] = glm::max (10, get_component (scene.hp, e, 0));
+					break;
 				default:
 					break;
 			}
+			
+			checkpoint = scene;
+			scene.play_sound (ESound::Bling);
 		}
 		
 		// Target camera
@@ -672,9 +703,7 @@ void Logic::step (const InputFrame & input, long t) {
 			else {
 				if (length (player_pos - pos) <= 1.0f) {
 					// Attack!
-					scene.damage_flash [player_e] = t + 60;
-					scene.hp [player_e] -= 1;
-					scene.play_sound (ESound::Gasp);
+					damage_player (scene, player_e, 1, t);
 				}
 				else {
 					auto target_pos = pos + 3.0f / 60.0f * (0.25f * direction + crab * sin (3.0f * t / 60.0f));
@@ -689,9 +718,7 @@ void Logic::step (const InputFrame & input, long t) {
 		}
 	}
 	
-	if (get_component (scene.hp, player_e, 0) == 0) {
-		cerr << "You are dead" << endl;
-	}
+	
 	
 	scene.screenshake_t = glm::max (0.0f, scene.screenshake_t - 1.0f / 60.0f);
 }

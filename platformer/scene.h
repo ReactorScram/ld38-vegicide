@@ -21,6 +21,7 @@ enum class ETexture {
 	Tiles,
 	Title,
 	Venus,
+	VenusDead,
 	Vignette,
 	White,
 };
@@ -43,6 +44,7 @@ enum class EPowerup {
 	Pounce_4,
 	Pounce_7,
 	Pounce_10,
+	Health_10,
 };
 
 struct Venus {
@@ -87,6 +89,9 @@ struct SceneEcs : Ecs {
 	float screenshake_t;
 	
 	AudioFrame audio_frame;
+	
+	// wew
+	long respawn_time;
 	
 	void play_sound (ESound);
 };

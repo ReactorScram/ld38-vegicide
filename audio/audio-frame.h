@@ -18,6 +18,7 @@ enum class ESound {
 	KingPain,
 	KingRoar,
 	KingYou,
+	Respawn,
 	Swooce,
 	NUM_SOUNDS,
 };

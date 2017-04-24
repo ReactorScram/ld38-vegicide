@@ -129,6 +129,7 @@ void Audio::loadVorbises (const Terf::Archive & terf) {
 		"king-pain",
 		"king-roar",
 		"king-you",
+		"respawn",
 		"swooce",
 	};
 	
