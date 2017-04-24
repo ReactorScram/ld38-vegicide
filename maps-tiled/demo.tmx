@@ -42,7 +42,7 @@
  <objectgroup name="Object Layer 1">
   <object id="4" type="Venus" x="114" y="752" width="32" height="32"/>
   <object id="15" type="Carrot" x="431" y="751" width="32" height="32"/>
-  <object id="17" type="CrabApple" x="248" y="415" width="32" height="32"/>
+  <object id="17" type="CrabApple" x="192" y="448" width="32" height="32"/>
   <object id="18" type="Pumpking" x="1856" y="192" width="96" height="95"/>
   <object id="19" name="Pounce_4" type="Egg" x="208" y="753" width="32" height="32"/>
   <object id="20" type="Carrot" x="588" y="635" width="32" height="32"/>

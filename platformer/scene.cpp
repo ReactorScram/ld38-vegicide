@@ -224,7 +224,7 @@ EnemyBase animate_crabapple (GraphicsEcs & ecs, const SceneEcs & scene, Entity o
 	}
 	
 	float jump_ofs = abs (sin (t));
-	if (dead) {
+	if (dead || ! get_component (scene.ai_active, old_e, false)) {
 		jump_ofs = 0.0f;
 	}
 	vec3 jump (0.0f, 0.0f, 0.5f + jump_ofs);

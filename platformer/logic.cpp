@@ -600,6 +600,8 @@ void Logic::step (const InputFrame & input, long t) {
 		scene = reset_scene (level);
 	}
 	
+	vec3 player_pos;
+	
 	for (auto pair : scene.player_input) {
 		auto e = pair.first;
 		
@@ -612,7 +614,7 @@ void Logic::step (const InputFrame & input, long t) {
 			checkpoint = scene;
 			scene.play_sound (ESound::Bling);
 			
-			auto powerup = scene.powerups.at (egg_e);
+			auto powerup = get_component (scene.powerups, egg_e, EPowerup::NoPowerup);
 			switch (powerup) {
 				case EPowerup::Pounce_4:
 					scene.venuses [e].pounce_range = glm::max (4.0f, scene.venuses.at (e).pounce_range);
@@ -632,6 +634,14 @@ void Logic::step (const InputFrame & input, long t) {
 		vec2 camera_target = get_camera_target (scene, e);
 		
 		scene.camera = mix (scene.camera, camera_target, 0.05f);
+		
+		player_pos = scene.positions.at (e);
+	}
+	
+	for (auto pair : scene.crabapples) {
+		auto e = pair.first;
+		auto pos = scene.positions.at (e);
+		scene.ai_active [e] = length (player_pos - pos) < 11.0f;
 	}
 	
 	scene.screenshake_t = glm::max (0.0f, scene.screenshake_t - 1.0f / 60.0f);

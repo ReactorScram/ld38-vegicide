@@ -74,6 +74,7 @@ struct SceneEcs : Ecs {
 	Components <EcsTrue> pumpkings;
 	Components <Venus> venuses;
 	Components <EcsTrue> player_input;
+	Components <bool> ai_active;
 	
 	glm::vec2 camera;
 	glm::vec2 last_walk;
