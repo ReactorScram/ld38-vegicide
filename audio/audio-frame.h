@@ -12,6 +12,7 @@ enum class EMusic {
 // Match this to loadVorbises
 enum class ESound {
 	Bling,
+	Crunch,
 	Gasp,
 	KingLaugh,
 	KingPain,

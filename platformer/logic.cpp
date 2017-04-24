@@ -14,7 +14,7 @@ void place_carrot (SceneEcs & scene, const vec3 & pos) {
 	scene.carrots [e] = EcsTrue ();
 	scene.pouncables [e] = true;
 	scene.hp [e] = 1;
-	scene.death_sound [e] = ESound::Gasp;
+	scene.death_sound [e] = ESound::Crunch;
 	scene.pain_sound [e] = ESound::Gasp;
 }
 
@@ -32,7 +32,7 @@ void place_crab_apple (SceneEcs & scene, const vec3 & pos) {
 	scene.crabapples [e] = EcsTrue ();
 	scene.pouncables [e] = true;
 	scene.hp [e] = 2;
-	scene.death_sound [e] = ESound::Gasp;
+	scene.death_sound [e] = ESound::Crunch;
 	scene.pain_sound [e] = ESound::Gasp;
 }
 
