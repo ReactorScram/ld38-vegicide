@@ -24,6 +24,8 @@ ResourceTable make_resource_table () {
 	rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
 	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
 	
+	rc.textures [(TextureKey)ETexture::Beet] = "textures/beet.png";
+	rc.textures [(TextureKey)ETexture::BeetDead] = "textures/beet-dead.png";
 	rc.textures [(TextureKey)ETexture::Blood] = "textures/blood.png";
 	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
 	rc.textures [(TextureKey)ETexture::CarrotDead] = "textures/carrot-dead.png";

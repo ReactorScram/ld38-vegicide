@@ -17,6 +17,9 @@ EPowerup name_to_powerup (string name) {
 	else if (name == "Pounce_10") {
 		return EPowerup::Pounce_10;
 	}
+	else if (name == "Health_10") {
+		return EPowerup::Health_10;
+	}
 	else {
 		return EPowerup::NoPowerup;
 	}

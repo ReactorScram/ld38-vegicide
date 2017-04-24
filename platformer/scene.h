@@ -8,6 +8,8 @@
 #include "graphics/ecs.h"
 
 enum class ETexture {
+	Beet,
+	BeetDead,
 	Blood,
 	Carrot,
 	CarrotDead,

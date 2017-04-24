@@ -2,8 +2,6 @@
 
 - Eating corpses
 
-- Player death
-
 - Boss
 
 - In-between levels
