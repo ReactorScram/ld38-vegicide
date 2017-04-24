@@ -601,6 +601,7 @@ void Logic::step (const InputFrame & input, long t) {
 	}
 	
 	vec3 player_pos;
+	Entity player_e;
 	
 	for (auto pair : scene.player_input) {
 		auto e = pair.first;
@@ -635,6 +636,7 @@ void Logic::step (const InputFrame & input, long t) {
 		
 		scene.camera = mix (scene.camera, camera_target, 0.05f);
 		
+		player_e = e;
 		player_pos = scene.positions.at (e);
 	}
 	
@@ -649,14 +651,42 @@ void Logic::step (const InputFrame & input, long t) {
 		scene.ai_active [e] = alive && ! targeted && length (player_pos - pos) < 11.0f;
 		
 		if (! targeted && alive) {
-			auto target_pos = pos + 3.0f / 60.0f * normalize (player_pos - pos);
+			vec3 direction = normalize (player_pos - pos);
+			vec3 crab = cross (direction, vec3 (0.0f, 0.0f, 1.0f));
 			
-			bool can_go = ! is_fatal (level, target_pos);
+			bool player_vulnerable = get_component (scene.damage_flash, player_e, (long)0) < t;
 			
-			if (can_go) {
-				scene.positions [e] = target_pos;
+			if (! player_vulnerable) {
+				auto target_pos = pos + 3.0f / 60.0f * (-1.0f * direction);
+				
+				bool can_go = ! is_fatal (level, target_pos);
+				
+				if (can_go) {
+					scene.positions [e] = target_pos;
+				}
+			}
+			else {
+				if (length (player_pos - pos) <= 1.0f) {
+					// Attack!
+					scene.damage_flash [player_e] = t + 60;
+					scene.hp [player_e] -= 1;
+					scene.play_sound (ESound::Gasp);
+				}
+				else {
+					auto target_pos = pos + 3.0f / 60.0f * (0.25f * direction + crab * sin (3.0f * t / 60.0f));
+					
+					bool can_go = ! is_fatal (level, target_pos);
+					
+					if (can_go) {
+						scene.positions [e] = target_pos;
+					}
+				}
 			}
 		}
+	}
+	
+	if (get_component (scene.hp, player_e, 0) == 0) {
+		cerr << "You are dead" << endl;
 	}
 	
 	scene.screenshake_t = glm::max (0.0f, scene.screenshake_t - 1.0f / 60.0f);

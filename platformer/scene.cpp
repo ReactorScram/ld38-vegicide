@@ -471,15 +471,12 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		
 		ecs.diffuse_colors [e] = vec4 (1.0f);
 		
+		if (flash && get_component (scene.damage_flash, old_e, (long)0) >= frames) {
+			ecs.diffuse_colors [e] = vec4 (1.0f, 0.1f, 0.1f, 1.0f);
+		}
+		
 		if (venus.pounce_anim == 1.0f) {
-			if ((frames % 16) < 8) {
-				ecs.diffuse_colors [e] = vec4 (1.0f, 0.1f, 0.1f, 1.0f);
-				add_danger_zone = false;
-			}
-			else {
-				//ecs.diffuse_colors [e] = vec4 (1.0f);
-				add_danger_zone = true;
-			}
+			add_danger_zone = flash;
 		}
 		else {
 			//ecs.diffuse_colors [e] = vec4 (1.0f);
