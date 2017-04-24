@@ -56,7 +56,7 @@ void place_pumpking (SceneEcs & scene, const vec3 & pos) {
 	auto e = scene.add_entity ();
 	scene.positions [e] = pos;
 	scene.anim_t [e] = 0.0f;
-	scene.pumpkings [e] = EcsTrue ();
+	scene.pumpkings [e] = PumpKing {false};
 	scene.pouncables [e] = true;
 	scene.hp [e] = 10;
 	scene.radii [e] = 2.0f;

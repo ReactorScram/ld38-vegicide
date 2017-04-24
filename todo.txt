@@ -1,12 +1,8 @@
 - Enemy weapons
 
-- Player health
-
 - Eating corpses
 
 - Player death
-
-- Tilemap physics
 
 - Boss
 

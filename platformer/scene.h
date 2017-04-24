@@ -7,11 +7,6 @@
 // TODO: Move ECS out of graphics
 #include "graphics/ecs.h"
 
-struct Venus {
-	float pounce_anim;
-	float pounce_range;
-};
-
 enum class ETexture {
 	Blood,
 	Carrot,
@@ -49,6 +44,15 @@ enum class EPowerup {
 	Pounce_10,
 };
 
+struct Venus {
+	float pounce_anim;
+	float pounce_range;
+};
+
+struct PumpKing {
+	bool spotted_player;
+};
+
 struct SceneEcs : Ecs {
 	Components <glm::vec3> positions;
 	// True if activated
@@ -72,7 +76,7 @@ struct SceneEcs : Ecs {
 	Components <ESound> death_sound;
 	Components <EcsTrue> carrots;
 	Components <EcsTrue> crabapples;
-	Components <EcsTrue> pumpkings;
+	Components <PumpKing> pumpkings;
 	Components <Venus> venuses;
 	Components <EcsTrue> player_input;
 	Components <bool> ai_active;
