@@ -574,17 +574,17 @@ void apply_player_input (const Level & level, SceneEcs & scene, Entity e, const 
 	}
 }
 
-vector <Entity> get_savable_eggs (const SceneEcs & scene, vec3 pos) {
+vector <Entity> get_nearby_eggs (const SceneEcs & scene, vec3 pos) {
 	vector <Entity> result;
 	
 	for (auto pair : scene.eggs) {
 		auto e = pair.first;
 		auto egg_pos = scene.positions.at (e);
-		bool available = ! pair.second;
+		//bool available = ! pair.second;
 		
 		const float radius = scene.radii.at (e);
 		
-		if (available && length (egg_pos - pos) < radius) {
+		if (length (egg_pos - pos) < radius) {
 			result.push_back (e);
 		}
 	}
@@ -617,6 +617,84 @@ void damage_player (SceneEcs & scene, Entity player_e, int amount, long t) {
 		}
 		else {
 			scene.play_sound (ESound::Gasp);
+		}
+	}
+}
+
+void beetnik_ai (const Level & level, SceneEcs & scene, Entity e, Entity player_e, long t) {
+	auto pos = scene.positions.at (e);
+	auto player_pos = scene.positions.at (player_e);
+	
+	bool alive = ! get_component (scene.dead, e, false);
+	
+	scene.ai_active [e] = alive;
+	
+	if (alive) {
+		bool player_vulnerable = get_component (scene.damage_flash, player_e, (long)0) < t;
+		
+		if (player_vulnerable && length (player_pos - pos) <= 1.0f) {
+			// Attack!
+			damage_player (scene, player_e, 1, t);
+		}
+		
+		auto vel = get_component (scene.velocities, e, vec3 (1.0f, 0.0f, 0.0f));
+		
+		auto target_pos = pos + 3.0f / 60.0f * vel;
+		
+		bool can_go = ! is_fatal (level, target_pos);
+		
+		if (can_go) {
+			scene.positions [e] = target_pos;
+		}
+		else {
+			vel = -vel;
+		}
+		
+		scene.velocities [e] = vel;
+	}
+}
+
+void crabapple_ai (const Level & level, SceneEcs & scene, Entity e, Entity player_e, long t) {
+	auto pos = scene.positions.at (e);
+	auto player_pos = scene.positions.at (player_e);
+	
+	bool alive = ! get_component (scene.dead, e, false);
+	
+	bool targeted = scene.pounce_target.find (e) != scene.pounce_target.end ();
+	
+	scene.ai_active [e] = alive && ! targeted && length (player_pos - pos) < 11.0f;
+	
+	if (! targeted && alive) {
+		vec3 direction = normalize (player_pos - pos);
+		vec3 crab = cross (direction, vec3 (0.0f, 0.0f, 1.0f));
+		
+		bool player_vulnerable = get_component (scene.damage_flash, player_e, (long)0) < t;
+		
+		if (! player_vulnerable) {
+			// Player is invuln - Avoid them
+			auto target_pos = pos + 3.0f / 60.0f * (-1.0f * direction);
+			
+			bool can_go = ! is_fatal (level, target_pos);
+			
+			if (can_go) {
+				scene.positions [e] = target_pos;
+			}
+		}
+		else {
+			if (length (player_pos - pos) <= 1.0f) {
+				// Attack!
+				damage_player (scene, player_e, 1, t);
+			}
+			else {
+				// Approach player
+				auto target_pos = pos + 3.0f / 60.0f * (0.25f * direction + crab * sin (3.0f * t / 60.0f));
+				
+				bool can_go = ! is_fatal (level, target_pos);
+				
+				if (can_go) {
+					scene.positions [e] = target_pos;
+				}
+			}
 		}
 	}
 }
@@ -655,10 +733,11 @@ void Logic::step (const InputFrame & input, long t) {
 		
 		apply_player_input (level, scene, e, input, t);
 		
-		auto eggs = get_savable_eggs (scene, scene.positions.at (e));
+		auto eggs = get_nearby_eggs (scene, scene.positions.at (e));
 		if (eggs.size () == 1) {
 			auto egg_e = eggs.at (0);
-			save_at_egg (scene, egg_e);
+			bool can_save = ! scene.eggs.at (egg_e);
+			
 			scene.hp [e] = glm::max (4, get_component (scene.hp, e, 0));
 			
 			auto powerup = get_component (scene.powerups, egg_e, EPowerup::NoPowerup);
@@ -679,8 +758,17 @@ void Logic::step (const InputFrame & input, long t) {
 					break;
 			}
 			
-			checkpoint = scene;
-			scene.play_sound (ESound::Bling);
+			if (can_save) {
+				save_at_egg (scene, egg_e);
+				checkpoint = scene;
+				scene.play_sound (ESound::Bling);
+				cerr << "Health restored" << endl;
+			}
+		}
+		else {
+			for (auto pair : scene.eggs) {
+				scene.eggs [pair.first] = false;
+			}
 		}
 		
 		// Target camera
@@ -692,50 +780,15 @@ void Logic::step (const InputFrame & input, long t) {
 		player_pos = scene.positions.at (e);
 	}
 	
-	for (auto pair : scene.crabapples) {
+	for (auto pair : scene.beetniks) {
 		auto e = pair.first;
-		auto pos = scene.positions.at (e);
-		
-		bool alive = ! get_component (scene.dead, e, false);
-		
-		bool targeted = scene.pounce_target.find (e) != scene.pounce_target.end ();
-		
-		scene.ai_active [e] = alive && ! targeted && length (player_pos - pos) < 11.0f;
-		
-		if (! targeted && alive) {
-			vec3 direction = normalize (player_pos - pos);
-			vec3 crab = cross (direction, vec3 (0.0f, 0.0f, 1.0f));
-			
-			bool player_vulnerable = get_component (scene.damage_flash, player_e, (long)0) < t;
-			
-			if (! player_vulnerable) {
-				auto target_pos = pos + 3.0f / 60.0f * (-1.0f * direction);
-				
-				bool can_go = ! is_fatal (level, target_pos);
-				
-				if (can_go) {
-					scene.positions [e] = target_pos;
-				}
-			}
-			else {
-				if (length (player_pos - pos) <= 1.0f) {
-					// Attack!
-					damage_player (scene, player_e, 1, t);
-				}
-				else {
-					auto target_pos = pos + 3.0f / 60.0f * (0.25f * direction + crab * sin (3.0f * t / 60.0f));
-					
-					bool can_go = ! is_fatal (level, target_pos);
-					
-					if (can_go) {
-						scene.positions [e] = target_pos;
-					}
-				}
-			}
-		}
+		beetnik_ai (level, scene, e, player_e, t);
 	}
 	
-	
+	for (auto pair : scene.crabapples) {
+		auto e = pair.first;
+		crabapple_ai (level, scene, e, player_e, t);
+	}
 	
 	scene.screenshake_t = glm::max (0.0f, scene.screenshake_t - 1.0f / 60.0f);
 }
