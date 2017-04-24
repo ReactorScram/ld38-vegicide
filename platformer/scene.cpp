@@ -36,6 +36,7 @@ ResourceTable make_resource_table () {
 	// Meine tilen!
 	rc.textures [(TextureKey)ETexture::Tiles] = "textures/tiles.png";
 	rc.textures [(TextureKey)ETexture::Title] = "textures/title.png";
+	rc.textures [(TextureKey)ETexture::Venus] = "textures/venus.png";
 	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
 	
 	rc.meshes [(MeshKey)EMesh::DangerZone] = "meshes/danger-zone.iqm";
@@ -454,18 +455,20 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		
 		bool add_danger_zone = venus.pounce_anim > 1.0f / 10.0f;
 		
+		ecs.diffuse_colors [e] = vec4 (1.0f);
+		
 		if (venus.pounce_anim == 1.0f) {
 			if ((frames % 16) < 8) {
 				ecs.diffuse_colors [e] = vec4 (1.0f, 0.1f, 0.1f, 1.0f);
 				add_danger_zone = false;
 			}
 			else {
-				ecs.diffuse_colors [e] = vec4 (0.005f, 0.228f, 0.047f, 1.0f);
+				//ecs.diffuse_colors [e] = vec4 (1.0f);
 				add_danger_zone = true;
 			}
 		}
 		else {
-			ecs.diffuse_colors [e] = vec4 (0.005f, 0.228f, 0.047f, 1.0f);
+			//ecs.diffuse_colors [e] = vec4 (1.0f);
 		}
 		
 		if (add_danger_zone) {
@@ -489,8 +492,8 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		}
 		
 		ecs.rigid_mats [e] = scale (translate (mat4 (1.0f), two2three (base_pos) + vec3 (0.0f, -size.y, 0.0f)), size * vec3 (1.0f, -1.0f, 1.0f));
-		ecs.meshes [e] = (MeshKey)EMesh::Venus;
-		ecs.textures [e] = (TextureKey)ETexture::White;
+		ecs.meshes [e] = (MeshKey)EMesh::Square;
+		ecs.textures [e] = (TextureKey)ETexture::Venus;
 		ecs.transparent_z [e] = -base_pos.y;
 		
 		transparent.renderables [e];

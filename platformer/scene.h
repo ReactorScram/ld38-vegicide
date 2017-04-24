@@ -23,6 +23,7 @@ enum class ETexture {
 	Shadow,
 	Tiles,
 	Title,
+	Venus,
 	White,
 };
 
