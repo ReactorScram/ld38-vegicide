@@ -30,7 +30,7 @@ void place_beetnik (SceneEcs & scene, const vec3 & pos) {
 	scene.positions [e] = pos;
 	scene.anim_t [e] = 0.0f;
 	scene.beetniks [e] = EcsTrue ();
-	scene.pouncables [e] = true;
+	scene.pouncables [e] = false;
 	scene.hp [e] = 1024;
 	scene.death_sound [e] = ESound::Crunch;
 	scene.pain_sound [e] = ESound::Whoa;
@@ -643,7 +643,7 @@ void beetnik_ai (const Level & level, SceneEcs & scene, Entity e, Entity player_
 	if (alive) {
 		bool player_vulnerable = get_component (scene.damage_flash, player_e, (long)0) < t;
 		
-		if (player_vulnerable && length (player_pos - pos) <= 1.0f) {
+		if (player_vulnerable && length (player_pos - pos) <= 0.5f) {
 			// Attack!
 			damage_player (scene, player_e, 1, t);
 		}
