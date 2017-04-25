@@ -15,4 +15,6 @@ build
 *.exe
 *.flac
 *.mp3
+*.ogg
+*.wav
 *.zip
