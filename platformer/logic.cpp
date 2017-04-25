@@ -120,6 +120,8 @@ vec2 get_camera_target (const SceneEcs & scene, Entity e) {
 SceneEcs reset_scene (const Level & level) {
 	SceneEcs scene;
 	
+	scene.audio_frame.bgm = EMusic::Ambient;
+	
 	scene.camera = vec2 (32, 32);
 	scene.screenshake_t = 0.0f;
 	
@@ -358,6 +360,9 @@ EPounceResult kill_enemies (SceneEcs & scene, const vector <Entity> & victims, l
 			}
 		}
 	}
+	
+	scene.pounce_target.clear ();
+	
 	return EPounceResult::Missed;
 }
 
@@ -677,6 +682,7 @@ void crabapple_ai (const Level & level, SceneEcs & scene, Entity e, Entity playe
 	
 	if (! targeted && alive) {
 		vec3 direction = normalize (player_pos - pos);
+		direction.z = 0.0f;
 		vec3 crab = cross (direction, vec3 (0.0f, 0.0f, 1.0f));
 		
 		bool player_vulnerable = get_component (scene.damage_flash, player_e, (long)0) < t;
@@ -710,6 +716,78 @@ void crabapple_ai (const Level & level, SceneEcs & scene, Entity e, Entity playe
 	}
 }
 
+void pumpking_ai (const Level & level, SceneEcs & scene, Entity e, Entity player_e, long t) 
+{
+	const vec3 pos = scene.positions.at (e);
+	auto player_pos = scene.positions.at (player_e);
+	const float distance = length (player_pos - pos);
+	
+	//cerr << "Kingly distance: " << distance << endl;
+	
+	const auto pumpking = scene.pumpkings [e];
+	
+	if (! pumpking.spotted_player && distance < 15.0f) {
+		scene.play_sound (ESound::KingYou);
+		scene.pumpkings [e].spotted_player = true;
+		scene.audio_frame.bgm = EMusic::Boss;
+	}
+	
+	// Fuck
+	if (pumpking.spotted_player) {
+		scene.pumpkings [e].spotted_player = true;
+		scene.audio_frame.bgm = EMusic::Boss;
+	}
+	
+	bool alive = ! get_component (scene.dead, e, false);
+	
+	bool targeted = scene.pounce_target.find (e) != scene.pounce_target.end ();
+	
+	scene.ai_active [e] = alive && ! targeted && pumpking.spotted_player;
+	
+	if (alive && pumpking.spotted_player) {
+		vec3 direction = normalize (player_pos - pos);
+		direction.z = 0.0f;
+		vec3 crab = cross (direction, vec3 (0.0f, 0.0f, 1.0f));
+		
+		bool player_vulnerable = get_component (scene.damage_flash, player_e, (long)0) < t;
+		
+		if (! player_vulnerable) {
+			// Player is invuln - Avoid them
+			auto target_pos = pos + 3.0f / 60.0f * (-1.0f * direction);
+			
+			bool can_go = ! is_fatal (level, target_pos);
+			
+			if (can_go) {
+				scene.positions [e] = target_pos;
+			}
+		}
+		else if (! targeted) {
+			if (length (player_pos - pos) <= 2.0f) {
+				// Attack!
+				damage_player (scene, player_e, 1, t);
+				scene.play_sound (ESound::KingLaugh);
+			}
+			else {
+				// Approach player
+				float speed = 0.25f;
+				// If the boss is below 50% health, change direction
+				// and speed up - old video game trick!
+				if (get_component (scene.hp, e, 10) <= 5) {
+					speed = -0.5f;
+				}
+				
+				auto target_pos = pos + 7.0f / 60.0f * (0.25f * direction + crab * sin (3.0f * t / 60.0f));
+				
+				bool can_go = ! is_fatal (level, target_pos);
+				
+				if (can_go) {
+					scene.positions [e] = target_pos;
+				}
+			}
+		}
+	}
+}
+
 void Logic::step (const InputFrame & input, long t) {
 	if (t == scene.respawn_time) {
 		scene = checkpoint;
@@ -724,7 +802,20 @@ void Logic::step (const InputFrame & input, long t) {
 		return;
 	}
 	
+	bool player_victory = true;
+	// If all pumpkings are dead you win
+	for (auto pair : scene.pumpkings) {
+		if (! get_component (scene.dead, pair.first, false)) {
+			player_victory = false;
+		}
+	}
+	
+	if (player_victory) {
+		//return;
+	}
+	
 	scene.targeted.clear ();
+	//scene.pounce_target.clear ();
 	
 	scene.audio_frame = AudioFrame ();
 	
@@ -799,6 +890,11 @@ void Logic::step (const InputFrame & input, long t) {
 	for (auto pair : scene.crabapples) {
 		auto e = pair.first;
 		crabapple_ai (level, scene, e, player_e, t);
+	}
+	
+	for (auto pair : scene.pumpkings) {
+		auto e = pair.first;
+		pumpking_ai (level, scene, e, player_e, t);
 	}
 	
 	scene.screenshake_t = glm::max (0.0f, scene.screenshake_t - 1.0f / 60.0f);

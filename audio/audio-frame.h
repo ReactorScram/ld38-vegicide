@@ -29,7 +29,7 @@ struct AudioFrame {
 	bool sounds [(int)ESound::NUM_SOUNDS];
 	
 	AudioFrame () {
-		bgm = EMusic::Boss;
+		bgm = EMusic::Ambient;
 		for (int i = 0; i < (int)ESound::NUM_SOUNDS; i++) {
 			sounds [i] = false;
 		}

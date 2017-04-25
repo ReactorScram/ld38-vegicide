@@ -41,6 +41,7 @@ ResourceTable make_resource_table () {
 	rc.textures [(TextureKey)ETexture::Title] = "textures/title.png";
 	rc.textures [(TextureKey)ETexture::Venus] = "textures/venus.png";
 	rc.textures [(TextureKey)ETexture::VenusDead] = "textures/venus-dead.png";
+	rc.textures [(TextureKey)ETexture::Victory] = "textures/victory.png";
 	rc.textures [(TextureKey)ETexture::Vignette] = "textures/vignette.png";
 	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
 	
@@ -399,7 +400,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	Pass vignette;
 	vignette.shader = (ShaderKey)EShader::Opaque;
 	vignette.gl_state = transparent_state;
-	vignette.proj_view_mat = mat4 (1.0f);
+	vignette.proj_view_mat = scale (mat4 (1.0f), vec3 (1.0f, -1.0f, 0.0f));
 	
 	GraphicsEcs ecs;
 	
@@ -599,7 +600,22 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		transparent.renderables [e];
 	}
 	
-	if (frames % 60 >= 30 || venus_health == 0) {
+	bool player_victory = true;
+	// If all pumpkings are dead you win
+	for (auto pair : scene.pumpkings) {
+		if (! get_component (scene.dead, pair.first, false)) {
+			player_victory = false;
+		}
+	}
+	
+	if (player_victory) {
+		auto tex = ETexture::Victory;
+		vec4 base_color (1.0f);
+		
+		auto e = add_sprite (ecs, vec3 (0.0f), vec3 (1.0f), base_color, tex);
+		vignette.renderables [e];
+	}
+	else if (frames % 60 >= 30 || venus_health == 0) {
 		auto tex = ETexture::Vignette;
 		vec4 base_color (1.0f, 0.1f, 0.1f, 1.0f - (venus_health / 4.0f));
 		

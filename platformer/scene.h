@@ -24,6 +24,7 @@ enum class ETexture {
 	Title,
 	Venus,
 	VenusDead,
+	Victory,
 	Vignette,
 	White,
 };

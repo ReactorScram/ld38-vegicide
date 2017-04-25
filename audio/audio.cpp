@@ -46,6 +46,7 @@ Audio::Audio (const Terf::Archive & terf)
 	encoded_music [EMusic::Boss] = terf.lookupFile ("music/boss.ogg");
 	
 	vorbis_decoder = unique_ptr <VorbisDecoder> (new VorbisDecoder (encoded_music.at (EMusic::Ambient)));
+	bgm = EMusic::Ambient;
 	vorbis_decoder->looping = true;
 	vorbis_decoder->playing = true;
 	
@@ -89,6 +90,14 @@ void Audio::update (const AudioFrame & frame) {
 		alSourceStop (streamSource->source);
 	}
 	*/
+	
+	if (bgm != frame.bgm) {
+		//cout << "Song " << (int)frame.bgm << endl;
+		vorbis_decoder = unique_ptr <VorbisDecoder> (new VorbisDecoder (encoded_music.at (frame.bgm)));
+		vorbis_decoder->looping = true;
+		vorbis_decoder->playing = true;
+	}
+	
 	bgm = frame.bgm;
 	/*
 	if (sounds.find (frame.voiceTrigger) != sounds.end ()) {
