@@ -2,10 +2,12 @@ default: all
 
 MODULES = graphics audio platformer
 
+DEP_PATH = $(realpath ..)
+
 .PHONY: clean debug all $(MODULES)
 
 all: maps/demo.bin maps/demo.sqlite
-	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) &&) true
+	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) DEP_PATH=$(DEP_PATH) &&) true
 
 clean:
 	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) clean &&) true

@@ -1,5 +1,3 @@
-DEP_PATH = /home/user/projects
-
 # Compiler used
 CXX = clang++
 # Extension of source files used in the project
