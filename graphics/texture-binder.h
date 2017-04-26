@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <stdint.h>
+#include <string>
 
 #include "colorado/gl.h"
 
@@ -16,7 +17,7 @@ class Archive;
 struct Texture {
 	GLuint handle;
 	
-	Texture (const Terf::Archive & terf, std::string);
+	Texture (const Terf::Archive & terf, const std::string &);
 	~Texture ();
 	
 	void bind () const;

@@ -466,7 +466,7 @@ void apply_venus_input (const Level & level, SceneEcs & scene, Entity e, Venus &
 			if (closest_victim >= 0) {
 				scene.targeted [closest_victim] = true;
 				scene.pounce_target [closest_victim] = EcsTrue ();
-				pounce_vec = scene.positions.at (closest_victim) - pos;
+				pounce_vec = vec2 (scene.positions.at (closest_victim) - pos);
 			}
 			else {
 				// The pounce is charged but no enemies are
@@ -566,7 +566,7 @@ void apply_player_input (const Level & level, SceneEcs & scene, Entity e, const 
 		auto new_pos = get_walk_pos (level, scene, e, input);
 		player_walk (scene, e, new_pos);
 		if (new_pos != pos) {
-			scene.last_walk = new_pos - pos;
+			scene.last_walk = vec2 (new_pos - pos);
 		}
 		pos = new_pos;
 	}

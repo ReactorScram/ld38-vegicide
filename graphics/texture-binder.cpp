@@ -5,10 +5,13 @@
 
 using namespace Colorado;
 
-Texture::Texture (const Terf::Archive & terf, std::string fn) :
+Texture::Texture (const Terf::Archive & terf, const std::string & fn) :
 	handle (0)
 {
-	autoImageToTexture (terf.lookupFile (fn), handle, 4);
+	auto buf = terf.lookupFile (fn);
+	if (buf.size () > 0) {
+		autoImageToTexture (buf, handle, 4);
+	}
 }
 
 Texture::~Texture () {

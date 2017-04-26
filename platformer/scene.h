@@ -38,7 +38,7 @@ enum class EMesh {
 
 enum class EShader {
 	Opaque,
-	Particle,
+	//Particle,
 	Shadow,
 };
 

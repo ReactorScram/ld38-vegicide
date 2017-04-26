@@ -1,6 +1,8 @@
 #ifndef VEGICIDE_INPUT_H
 #define VEGICIDE_INPUT_H
 
+#include <stdint.h>
+
 enum class InputButton {
 	Right,
 	Up,
@@ -11,6 +13,11 @@ enum class InputButton {
 	QuickLoad,
 	QuickSave,
 	NUM_BUTTONS,
+};
+
+struct KeyEvent {
+	bool down;
+	uint8_t code;
 };
 
 struct InputFrame {
@@ -31,7 +38,9 @@ struct Input {
 	InputFrame frame;
 	
 	void clear_taps ();
-	void process (const SDL_Event & ev);
+	void process (const KeyEvent & ev);
+	
+	static KeyEvent encode (const SDL_Event & ev);
 };
 
 #endif

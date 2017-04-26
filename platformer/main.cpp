@@ -1,3 +1,5 @@
+#include <SDL/SDL.h>
+
 #include <algorithm>
 #include <chrono>
 #include <iostream>
@@ -7,7 +9,6 @@
 
 //#include "boost/date_time/posix_time/posix_time.hpp"
 #include <glm/glm.hpp>
-#include <SDL/SDL.h>
 
 #include "colorado/game.h"
 #include "colorado/fixed-timestep.h"
@@ -41,10 +42,11 @@ enum class GameState {
 	Game,
 };
 
-int main () {
-	string window_title = "ReactorScram LD38 warmup";
+int main (int /* argc */, char * /* argv */ []) {
+	string window_title = "ReactorScram LD38 Vegicide";
 	Terf::Archive terf ("rom.tar", "rom.tar.index");
 	terf.enableTerfLookup = false;
+	terf.enableFsLookup = true;
 	ResourceTable rc = make_resource_table ();
 	
 	// End of game-specific bits
@@ -94,14 +96,64 @@ int main () {
 	
 	Audio audio (terf);
 	
+	bool play_demo = false;
+	map <long, vector <KeyEvent> > input_key_log;
+	if (play_demo) {
+		auto buffer = terf.lookupFile ("key_log.bin");
+		
+		const int stride = 8 + 1 + 1;
+		
+		for (int i = 0; i < buffer.size (); i += stride) {
+			long f = *(long *)&buffer [i];
+			
+			KeyEvent ke;
+			ke.down = *(bool *)&buffer [i + 8];
+			ke.code = *(bool *)&buffer [i + 9];
+			
+			if (input_key_log.find (f) == input_key_log.end ()) {
+				input_key_log [f] = vector <KeyEvent> ();
+			}
+			input_key_log [f].push_back (ke);
+		}
+	}
+	
+	ofstream key_log ("key_log.txt", ios_base::app);
+	
+	bool record_demo = true;
+	if (record_demo) {
+		key_log << "# Vegicide writes this file for debugging purposes but never reads it back" << endl;
+		key_log << "# Frame count, key down, key code" << endl;
+	}
+	
 	while (running) {
 		SDL_Event ev;
+		
+		vector <KeyEvent> evs;
 		
 		while (SDL_PollEvent (&ev)) {
 			if (ev.type == SDL_QUIT) {
 				running = false;
 			}
 			else {
+				evs.push_back (Input::encode (ev));
+			}
+		}
+		
+		if (play_demo) {
+			auto key_it = input_key_log.find (frames);
+			if (key_it != input_key_log.end ()) {
+				for (auto ev : key_it->second) {
+					input.process (ev);
+				}
+			}
+		}
+		else {
+			for (auto ev : evs) {
+				if (record_demo) {
+					if (ev.code != 255) {
+					key_log << frames << ", " << (int)ev.down << ", " << (int)ev.code << endl;
+					}
+				}
 				input.process (ev);
 			}
 		}

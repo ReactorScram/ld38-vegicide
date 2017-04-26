@@ -21,7 +21,7 @@ ResourceTable make_resource_table () {
 	
 	rc.shaders [(ShaderKey)EShader::Opaque] = ShaderFiles {"shaders/shader.vert", "shaders/shader.frag"};
 	//rc.shaders [(ShaderKey)EShader::Tile] = ShaderFiles {"shaders/tile.vert", "shaders/shader.frag"};
-	rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
+	//rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
 	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
 	
 	rc.textures [(TextureKey)ETexture::Beet] = "textures/beet.png";

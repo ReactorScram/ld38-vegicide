@@ -69,30 +69,34 @@ void Input::clear_taps () {
 	frame.clear_taps ();
 }
 
-void Input::process (const SDL_Event & ev) {
-	bool debug = false; //true;
+KeyEvent Input::encode (const SDL_Event & ev) {
+	KeyEvent rc;
+	rc.code = 255;
+	rc.down = false;
 	
 	switch (ev.type) {
-		case SDL_KEYDOWN: {
-			InputButton b = map_key (ev.key.keysym.sym);
-			if (b < InputButton::NUM_BUTTONS) {
-				frame.buttons [(int)b] = true;
-				frame.taps [(int)b] = true;
-				if (debug) {
-					cerr << (int)b << ", true" << endl;
-				}
-			}
-		}
+		case SDL_KEYDOWN:
+			rc.down = true;
+			rc.code = (uint8_t)map_key (ev.key.keysym.sym);
 			break;
-		case SDL_KEYUP: {
-			InputButton b = map_key (ev.key.keysym.sym);
-			if (b < InputButton::NUM_BUTTONS) {
-				frame.buttons [(int)b] = false;
-				if (debug) {
-					cerr << (int)b << ", false" << endl;
-				}
-			}
-		}
+		case SDL_KEYUP:
+			rc.down = false;
+			rc.code = (uint8_t)map_key (ev.key.keysym.sym);
 			break;
+	}
+	
+	return rc;
+}
+
+void Input::process (const KeyEvent & ev) {
+	bool debug = false; //true;
+	
+	auto b = ev.code;
+	if (b < (int)InputButton::NUM_BUTTONS) {
+		frame.buttons [b] = ev.down;
+		frame.taps [b] = ev.down;
+		if (debug) {
+			cerr << b << ", " << ev.down << endl;
+		}
 	}
 }
