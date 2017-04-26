@@ -100,7 +100,7 @@ int main (int /* argc */, char * /* argv */ []) {
 	map <long, vector <KeyEvent> > input_key_log;
 	if (play_demo) {
 		auto buffer = terf.lookupFile ("key_log.bin");
-		cerr << "Loaded demo buffer of " << buffer.size () << " bytes" << endl;
+		//cerr << "Loaded demo buffer of " << buffer.size () << " bytes" << endl;
 		
 		const int stride = 8 + 1 + 1;
 		
@@ -111,7 +111,7 @@ int main (int /* argc */, char * /* argv */ []) {
 			ke.down = *(bool *)&buffer [i + 8];
 			ke.code = *(uint8_t *)&buffer [i + 9];
 			
-			cerr << f << ", " << ke.down << ", " << ke.code << endl;
+			//cerr << f << ", " << ke.down << ", " << (int)ke.code << endl;
 			
 			if (input_key_log.find (f) == input_key_log.end ()) {
 				input_key_log [f] = vector <KeyEvent> ();

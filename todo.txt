@@ -1,3 +1,14 @@
-- Enemy weapons
+During judging, nothing should affect gameplay just in case
+I have to push some change
 
-- Boss
+- Extract libraries so I can have both DemoReplay.exe and Vegicide.exe
+  with minimal wasted disk space
+
+- LOVE2D frontend
+
+- Determinism checking
+
+- Multiple sound codecs (stb, Tremor, Opus)
+
+After judging:
+
