@@ -4,11 +4,11 @@
 #include <stdint.h>
 
 enum class InputButton {
-	Right,
-	Up,
-	Left,
-	Down,
-	Pounce,
+	Right = 0,
+	Up = 1,
+	Left = 2,
+	Down = 3,
+	Pounce = 4,
 	Reset,
 	QuickLoad,
 	QuickSave,

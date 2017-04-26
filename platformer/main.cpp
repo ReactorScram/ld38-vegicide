@@ -100,15 +100,18 @@ int main (int /* argc */, char * /* argv */ []) {
 	map <long, vector <KeyEvent> > input_key_log;
 	if (play_demo) {
 		auto buffer = terf.lookupFile ("key_log.bin");
+		cerr << "Loaded demo buffer of " << buffer.size () << " bytes" << endl;
 		
 		const int stride = 8 + 1 + 1;
 		
-		for (int i = 0; i < buffer.size (); i += stride) {
+		for (int i = 0; i < (int)buffer.size (); i += stride) {
 			long f = *(long *)&buffer [i];
 			
 			KeyEvent ke;
 			ke.down = *(bool *)&buffer [i + 8];
-			ke.code = *(bool *)&buffer [i + 9];
+			ke.code = *(uint8_t *)&buffer [i + 9];
+			
+			cerr << f << ", " << ke.down << ", " << ke.code << endl;
 			
 			if (input_key_log.find (f) == input_key_log.end ()) {
 				input_key_log [f] = vector <KeyEvent> ();
@@ -126,43 +129,43 @@ int main (int /* argc */, char * /* argv */ []) {
 	}
 	
 	while (running) {
-		SDL_Event ev;
-		
-		vector <KeyEvent> evs;
-		
-		while (SDL_PollEvent (&ev)) {
-			if (ev.type == SDL_QUIT) {
-				running = false;
-			}
-			else {
-				evs.push_back (Input::encode (ev));
-			}
-		}
-		
-		if (play_demo) {
-			auto key_it = input_key_log.find (frames);
-			if (key_it != input_key_log.end ()) {
-				for (auto ev : key_it->second) {
-					input.process (ev);
-				}
-			}
-		}
-		else {
-			for (auto ev : evs) {
-				if (record_demo) {
-					if (ev.code != 255) {
-					key_log << frames << ", " << (int)ev.down << ", " << (int)ev.code << endl;
-					}
-				}
-				input.process (ev);
-			}
-		}
-		
 		auto frame_time = SDL_GetTicks ();
 		auto numSteps = timestep.step (frame_time - last_frame_time);
 		last_frame_time = frame_time;
 		
 		for (int i = 0; i < numSteps; i++) {
+			SDL_Event ev;
+			vector <KeyEvent> evs;
+			
+			while (SDL_PollEvent (&ev)) {
+				if (ev.type == SDL_QUIT) {
+					running = false;
+				}
+				else {
+					evs.push_back (Input::encode (ev));
+				}
+			}
+			
+			if (play_demo) {
+				//cerr << frames << endl;
+				auto key_it = input_key_log.find (frames);
+				if (key_it != input_key_log.end ()) {
+					for (auto ev : key_it->second) {
+						input.process (ev);
+					}
+				}
+			}
+			else {
+				for (auto ev : evs) {
+					if (record_demo) {
+						if (ev.code != 255) {
+						key_log << frames << ", " << (int)ev.down << ", " << (int)ev.code << endl;
+						}
+					}
+					input.process (ev);
+				}
+			}
+			
 			// Step
 			switch (game_state) {
 				case GameState::Game:
