@@ -94,6 +94,7 @@ int main (int /* argc */, char * /* argv */ []) {
 	GameState game_state = GameState::Title;
 	float curtain_t = 0.0f;
 	
+	//cerr << "Initializing audio" << endl;
 	Audio audio (terf);
 	
 	bool play_demo = false;
@@ -207,6 +208,7 @@ int main (int /* argc */, char * /* argv */ []) {
 					break;
 				case GameState::Game:
 					graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, screen_opts);
+					
 					break;
 			}
 			

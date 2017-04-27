@@ -1,12 +1,12 @@
 default: all
 
-MODULES = graphics audio platformer
+MODULES = depends graphics audio platformer 
 
-DEP_PATH = $(realpath ..)
+DEP_PATH = $(realpath depends)
 
-.PHONY: clean debug all $(MODULES)
+.PHONY: clean debug all $(MODULES) colorado
 
-all: maps/demo.bin maps/demo.sqlite
+all: maps/demo.bin maps/demo.sqlite colorado
 	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) DEP_PATH=$(DEP_PATH) &&) true
 
 clean:

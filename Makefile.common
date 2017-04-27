@@ -5,7 +5,7 @@ SRC_EXT = cpp
 # Path to the source directory, relative to the makefile
 SRC_PATH = .
 # General compiler flags
-COMPILE_FLAGS = --std=c++1y -Werror -pedantic -Wall -Wextra -fPIC -D GLM_FORCE_CXX98
+COMPILE_FLAGS = --std=c++1y -pedantic -Wall -Wextra -fPIC -D GLM_FORCE_CXX98 -D USE_DESKTOP_GL
 # Additional release-specific flags
 RCOMPILE_FLAGS = -D NDEBUG
 # Additional debug-specific flags

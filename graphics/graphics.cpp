@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 
 #include "colorado/gl.h"
 #include "terf/terf.h"
@@ -64,10 +65,10 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, Entity e, const mat4 & pro
 	auto object_up = light_mat * vec4 (normalize (vec3 (0.0f, 0.0f, 1.0f)), 0.0);
 	
 	// TODO: Cache per-shader
-	auto uni_up = current_shader ()->uniformLocation ("up");
+	//auto uni_up = current_shader ()->uniformLocation ("up");
 	auto uni_color = current_shader ()->uniformLocation ("diffuseColor");
 	
-	glUniform3f (uni_up, object_up.x, object_up.y, object_up.z);
+	//glUniform3f (uni_up, object_up.x, object_up.y, object_up.z);
 	glUniform4f (uni_color, color.r, color.g, color.b, color.a);
 	
 	meshes.bind (mesh);
@@ -80,7 +81,9 @@ void Graphics::render_rigid (const GraphicsEcs & ecs, Entity e, const mat4 & pro
 	glVertexAttribPointer (current_shader ()->vertTexCoordAttribute, 2, GL_FLOAT, false, stride, (char *)nullptr + sizeof (GLfloat) * 3);
 	
 	auto current_mesh = meshes.currentMesh ();
+	//cerr << "Mesh " << current_mesh << endl;
 	for (size_t i = 0; i < current_mesh->placements.size (); i++) {
+		//cerr << "Rendering placement " << i << endl;
 		current_mesh->renderPlacementIndexed (i);
 	}
 }
