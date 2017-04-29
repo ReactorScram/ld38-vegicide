@@ -62,8 +62,6 @@ T get_component (const Components <T> & comps, Entity e, T default_comp)
 
 struct GraphicsEcs : Ecs {
 	std::vector <Pass> passes;
-	//glm::mat4 proj_mat;
-	//glm::mat4 view_mat;
 	
 	Components <float> transparent_z;
 	Components <glm::mat4> rigid_mats;

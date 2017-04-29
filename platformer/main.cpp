@@ -115,6 +115,10 @@ void to_json (stringstream & s, const mat4 & m) {
 	s << " ]";
 }
 
+void to_json (stringstream & s, EcsTrue) {
+	s << "true";
+}
+
 template <typename T>
 void to_json (stringstream & s, const Components <T> & comps) {
 	s << "{ ";
@@ -139,8 +143,45 @@ void to_json (stringstream & s, const Components <T> & comps) {
 	s << " }";
 }
 
+template <typename T>
+void to_json (stringstream & s, const vector <T> & v) {
+	s << "[ ";
+	
+	bool first = true;
+	
+	for (auto e : v) {
+		if (first) {
+			first = false;
+		}
+		else {
+			s << ",\n";
+		}
+		
+		to_json (s, e);
+	}
+	
+	s << " ]";
+}
+
+void to_json (stringstream & s, const Pass & p) {
+	s << "{ ";
+	
+	s << "\"renderables\": ";
+	to_json (s, p.renderables);
+	s << ", " << endl;
+	
+	s << "\"proj_view_mat\": ";
+	to_json (s, p.proj_view_mat);
+	
+	s << " }";
+}
+
 void to_json (stringstream & s, const GraphicsEcs & ecs) {
 	s << "{ ";
+	
+	s << "\"passes\": ";
+	to_json (s, ecs.passes);
+	s << ", " << endl;
 	
 	s << "\"transparent_z\": ";
 	to_json (s, ecs.transparent_z);
@@ -332,7 +373,7 @@ int main (int /* argc */, char * /* argv */ []) {
 				case GameState::Game:
 					graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, screen_opts);
 					
-					if (true || dumped_ecs) {
+					if (dumped_ecs) {
 						// Pass
 					}
 					else {

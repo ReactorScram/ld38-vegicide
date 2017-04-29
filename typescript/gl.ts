@@ -71,12 +71,10 @@ function draw () {
 	var mvMatrix = TSM.mat4.identity.copy ();
 	
 	var object_pos = new TSM.vec3 ([0.0, 0.0, -80.0]);
-	//mat4.rotateY (mvMatrix, mvMatrix, frame * 3.1415926535 / 180.0);
 	
 	var mvMatrix = TSM.mat4.identity.copy ().translate (object_pos).rotate (frame * 3.1415926535 / 180.0, new TSM.vec3 ([0.0, 1.0, 0.0]));
 	
 	var mvpMatrix = pMatrix.multiply (mvMatrix);
-	//var mvpMatrix = mvMatrix.multiply (pMatrix);
 	
 	gl.uniformMatrix4fv (mvpMatrixUniform, false, new Float32Array (mvpMatrix.all ()));
 	
@@ -85,7 +83,6 @@ function draw () {
 	
 	gl.bindTexture (gl.TEXTURE_2D, texture);
 	
-	//gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
 	gl.drawElements (gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
 }
 
