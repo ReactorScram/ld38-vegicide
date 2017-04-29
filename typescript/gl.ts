@@ -18,6 +18,9 @@ declare var indexBuffer: any;
 declare var textures: WebGLTexture [];
 declare var shaderProgram: any;
 
+declare var ecs: any;
+ecs = false;
+
 declare class XMLHttpRequest {
 	onload: any;
 	readyState: number;
@@ -36,7 +39,7 @@ function start () {
 	
 	if (gl) {
 		gl.clearColor (0.0, 0.0, 0.0, 1.0);
-		gl.enable (gl.DEPTH_TEST);
+		gl.disable (gl.DEPTH_TEST);
 		gl.depthFunc (gl.LEQUAL);
 		
 		initBuffers ();
@@ -48,6 +51,13 @@ function start () {
 		// ms between frames
 		window.setInterval (step, 1000.0 / 1.0);
 	}
+	
+	var xhr = new XMLHttpRequest ();
+	
+	xhr.open ("GET", "graphics_ecs.json", false);
+	xhr.send ();
+	
+	ecs = JSON.parse (xhr.responseText);
 }
 
 function step () {
@@ -67,20 +77,25 @@ function draw () {
 	gl.vertexAttribPointer (vertexPositionAttribute, 3, gl.FLOAT, false, 5 * 4, 0);
 	gl.vertexAttribPointer (texCoordAttribute, 2, gl.FLOAT, false, 5 * 4, 3 * 4);
 	
-	var proj_view_mat = new TSM.mat4 ([ 0.08, 0, 0, 0, 0, -0.133333, 0, 0, 0, 0, -0.0666667, 0, -1.08, 3.13333, 0, 1 ]);
-	
-	var model_mat = new TSM.mat4 ([ 1.09289, 0, 0, 0, -0, -0.907107, -0, -0, 0, 0, 1, 0, 4, 22.9679, 0, 1 ]);
-	
-	var mvpMatrix = proj_view_mat.multiply (model_mat);
-	
-	gl.uniformMatrix4fv (mvpMatrixUniform, false, new Float32Array (mvpMatrix.all ()));
-	
+	// Everything uses the square mesh
 	gl.bindBuffer (gl.ARRAY_BUFFER, verticesBuffer);
 	gl.bindBuffer (gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 	
-	gl.bindTexture (gl.TEXTURE_2D, textures [14]);
-	
-	gl.drawElements (gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
+	if (ecs) {
+	for (var e in ecs ["passes"][2]["renderables"]) {
+		var proj_view_mat = new TSM.mat4 ([ 0.08, 0, 0, 0, 0, -0.133333, 0, 0, 0, 0, -0.0666667, 0, -1.08, 3.13333, 0, 1 ]);
+		
+		var model_mat = new TSM.mat4 (ecs ["rigid_mats"][e]);
+		
+		var mvpMatrix = proj_view_mat.multiply (model_mat);
+		
+		gl.uniformMatrix4fv (mvpMatrixUniform, false, new Float32Array (mvpMatrix.all ()));
+		
+		gl.bindTexture (gl.TEXTURE_2D, textures [ecs ["textures"][e]]);
+		
+		gl.drawElements (gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
+	}
+	}
 }
 
 function initWebGl (canvas) {
