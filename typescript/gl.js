@@ -15,7 +15,7 @@ function start() {
         initTextures();
         draw();
         // ms between frames
-        window.setInterval(step, 1000.0 / 60.0);
+        window.setInterval(step, 1000.0 / 1.0);
     }
 }
 function step() {
@@ -27,20 +27,17 @@ function step() {
 }
 function draw() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 5 * 4, 0);
     gl.vertexAttribPointer(texCoordAttribute, 2, gl.FLOAT, false, 5 * 4, 3 * 4);
-    var pMatrix = TSM.mat4.perspective(3.1415926535 / 4.0, 800.0 / 480.0, 1, 1000.0);
-    var mvMatrix = TSM.mat4.identity.copy();
-    var object_pos = new TSM.vec3([0.0, 0.0, -80.0]);
-    //mat4.rotateY (mvMatrix, mvMatrix, frame * 3.1415926535 / 180.0);
-    var mvMatrix = TSM.mat4.identity.copy().translate(object_pos).rotate(frame * 3.1415926535 / 180.0, new TSM.vec3([0.0, 1.0, 0.0]));
-    var mvpMatrix = pMatrix.multiply(mvMatrix);
-    //var mvpMatrix = mvMatrix.multiply (pMatrix);
+    var proj_view_mat = new TSM.mat4([0.08, 0, 0, 0, 0, -0.133333, 0, 0, 0, 0, -0.0666667, 0, -1.08, 3.13333, 0, 1]);
+    var model_mat = new TSM.mat4([1.09289, 0, 0, 0, -0, -0.907107, -0, -0, 0, 0, 1, 0, 4, 22.9679, 0, 1]);
+    var mvpMatrix = proj_view_mat.multiply(model_mat);
     gl.uniformMatrix4fv(mvpMatrixUniform, false, new Float32Array(mvpMatrix.all()));
     gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    //gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
+    gl.bindTexture(gl.TEXTURE_2D, textures[14]);
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 }
 function initWebGl(canvas) {
@@ -95,17 +92,44 @@ function initShaders() {
     }
 }
 function initTextures() {
-    texture = gl.createTexture();
-    textureImage = new Image();
-    textureImage.onload = function () {
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureImage);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        draw();
+    var texture_files = [
+        "beet",
+        "beet-dead",
+        "blood",
+        "carrot",
+        "carrot-dead",
+        "crab-apple",
+        "crab-apple-dead",
+        "egg",
+        "farm",
+        "pumpking",
+        "pumpking-dead",
+        "shadow",
+        "tiles",
+        "title",
+        "venus",
+        "venus-dead",
+        "victory",
+        "vignette",
+        "white"
+    ];
+    textures = [];
+    var _loop_1 = function (i) {
+        textures[i] = gl.createTexture();
+        var textureImage = new Image();
+        textureImage.onload = function () {
+            gl.bindTexture(gl.TEXTURE_2D, textures[i]);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureImage);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            draw();
+        };
+        textureImage.src = "textures/" + texture_files[i] + ".png";
     };
-    textureImage.src = "textures/shibe.png";
+    for (var i = 0; i < texture_files.length; i++) {
+        _loop_1(i);
+    }
 }
 function getShader(gl, name, type) {
     var shaderSource, shader;
