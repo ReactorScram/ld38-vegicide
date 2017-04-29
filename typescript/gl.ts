@@ -1,7 +1,9 @@
 // webgl.d.ts is from Rico Possienka https://github.com/RicoP/webgl.d.ts
+// I modified it slightly as 'bool' is now 'boolean'
 ///<reference path="webgl.d.ts" />
 
-// Thanks, MDN!
+// TSM is from Matthias Ferch https://github.com/matthiasferch/tsm
+///<reference path="tsm-master/TSM/tsm-0.7.d.ts" />
 
 declare var document: any;
 declare var frame: number;
@@ -45,7 +47,7 @@ function start () {
 		draw ();
 		
 		// ms between frames
-		window.setInterval (step, 200);
+		window.setInterval (step, 1000.0 / 60.0);
 	}
 }
 
@@ -64,20 +66,19 @@ function draw () {
 	gl.vertexAttribPointer (vertexPositionAttribute, 3, gl.FLOAT, false, 5 * 4, 0);
 	gl.vertexAttribPointer (texCoordAttribute, 2, gl.FLOAT, false, 5 * 4, 3 * 4);
 	
-	var pMatrix = mat4.create ();
-	mat4.perspective (pMatrix, 3.1415926535 / 4.0, 800.0 / 480.0, 1, 1000.0);
+	var pMatrix = TSM.mat4.perspective (3.1415926535 / 4.0, 800.0 / 480.0, 1, 1000.0);
 	
-	var mvMatrix = mat4.create ();
+	var mvMatrix = TSM.mat4.identity.copy ();
 	
-	var objectPos = vec3.create ();
-	vec3.set (objectPos, 0.0, 0.0, -2.0);
-	mat4.translate (mvMatrix, mvMatrix, objectPos);
-	mat4.rotateY (mvMatrix, mvMatrix, frame * 3.1415926535 / 180.0);
+	var object_pos = new TSM.vec3 ([0.0, 0.0, -80.0]);
+	//mat4.rotateY (mvMatrix, mvMatrix, frame * 3.1415926535 / 180.0);
 	
-	var mvpMatrix = mat4.create ();
-	mat4.multiply (mvpMatrix, pMatrix, mvMatrix);
+	var mvMatrix = TSM.mat4.identity.copy ().translate (object_pos).rotate (frame * 3.1415926535 / 180.0, new TSM.vec3 ([0.0, 1.0, 0.0]));
 	
-	gl.uniformMatrix4fv (mvpMatrixUniform, false, new Float32Array (mvpMatrix));
+	var mvpMatrix = pMatrix.multiply (mvMatrix);
+	//var mvpMatrix = mvMatrix.multiply (pMatrix);
+	
+	gl.uniformMatrix4fv (mvpMatrixUniform, false, new Float32Array (mvpMatrix.all ()));
 	
 	gl.bindBuffer (gl.ARRAY_BUFFER, verticesBuffer);
 	gl.bindBuffer (gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
