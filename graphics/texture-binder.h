@@ -7,8 +7,7 @@
 #include <string>
 
 #include "colorado/gl.h"
-
-typedef int64_t TextureKey;
+#include "../ecs/ecs.h"
 
 namespace Terf {
 class Archive;

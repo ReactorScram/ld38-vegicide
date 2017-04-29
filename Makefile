@@ -1,6 +1,6 @@
 default: all
 
-MODULES = graphics audio platformer
+MODULES = ecs graphics audio platformer
 
 DEP_PATH = $(realpath ..)
 

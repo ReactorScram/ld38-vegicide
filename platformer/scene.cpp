@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "colorado/camera.h"
+#include "colorado/gl.h"
 #include "colorado/screen-options.h"
 
 #include "level.h"
@@ -15,42 +16,6 @@ using namespace Colorado;
 using namespace glm;
 using std::cerr;
 using std::endl;
-
-ResourceTable make_resource_table () {
-	ResourceTable rc;
-	
-	rc.shaders [(ShaderKey)EShader::Opaque] = ShaderFiles {"shaders/shader.vert", "shaders/shader.frag"};
-	//rc.shaders [(ShaderKey)EShader::Tile] = ShaderFiles {"shaders/tile.vert", "shaders/shader.frag"};
-	//rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
-	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
-	
-	rc.textures [(TextureKey)ETexture::Beet] = "textures/beet.png";
-	rc.textures [(TextureKey)ETexture::BeetDead] = "textures/beet-dead.png";
-	rc.textures [(TextureKey)ETexture::Blood] = "textures/blood.png";
-	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
-	rc.textures [(TextureKey)ETexture::CarrotDead] = "textures/carrot-dead.png";
-	rc.textures [(TextureKey)ETexture::CrabApple] = "textures/crab-apple.png";
-	rc.textures [(TextureKey)ETexture::CrabAppleDead] = "textures/crab-apple-dead.png";
-	rc.textures [(TextureKey)ETexture::Egg] = "textures/egg.png";
-	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
-	rc.textures [(TextureKey)ETexture::Pumpking] = "textures/pumpking.png";
-	rc.textures [(TextureKey)ETexture::PumpkingDead] = "textures/pumpking-dead.png";
-	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
-	// Meine tilen!
-	rc.textures [(TextureKey)ETexture::Tiles] = "textures/tiles.png";
-	rc.textures [(TextureKey)ETexture::Title] = "textures/title.png";
-	rc.textures [(TextureKey)ETexture::Venus] = "textures/venus.png";
-	rc.textures [(TextureKey)ETexture::VenusDead] = "textures/venus-dead.png";
-	rc.textures [(TextureKey)ETexture::Victory] = "textures/victory.png";
-	rc.textures [(TextureKey)ETexture::Vignette] = "textures/vignette.png";
-	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
-	
-	rc.meshes [(MeshKey)EMesh::DangerZone] = "meshes/danger-zone.iqm";
-	rc.meshes [(MeshKey)EMesh::Square] = "meshes/square.iqm";
-	rc.meshes [(MeshKey)EMesh::Venus] = "meshes/venus.iqm";
-	
-	return rc;
-}
 
 vec3 two2three (vec3 v) {
 	return vec3 (v.x, v.y - v.z, 0.0f);

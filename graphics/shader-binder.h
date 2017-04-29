@@ -4,10 +4,9 @@
 #include <memory>
 #include <stdint.h>
 
+#include "../ecs/ecs.h"
 #include "colorado/triangle-shader.h"
 #include "terf/terf.h"
-
-typedef int64_t ShaderKey;
 
 struct ShaderBinder {
 	ShaderBinder ();

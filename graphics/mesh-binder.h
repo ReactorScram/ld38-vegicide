@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+
+#include "../ecs/ecs.h"
 #include "colorado/vbo.h"
 #include "colorado/obj-loader.h"
 #include "terf/terf.h"
@@ -27,8 +29,6 @@ struct Mesh {
 	static void renderPlacementIndexed (const Colorado::VboNodePlacement &);
 	void renderPlacementIndexed (int) const;
 };
-
-typedef int32_t MeshKey;
 
 struct MeshBinder {
 	MeshBinder ();

@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <stdint.h>
 #include <sstream>
+#include <string>
 
 //#include "boost/date_time/posix_time/posix_time.hpp"
 #include <glm/glm.hpp>
@@ -41,6 +42,127 @@ enum class GameState {
 	Title,
 	Game,
 };
+
+ResourceTable make_resource_table () {
+	ResourceTable rc;
+	
+	rc.shaders [(ShaderKey)EShader::Opaque] = ShaderFiles {"shaders/shader.vert", "shaders/shader.frag"};
+	//rc.shaders [(ShaderKey)EShader::Tile] = ShaderFiles {"shaders/tile.vert", "shaders/shader.frag"};
+	//rc.shaders [(ShaderKey)EShader::Particle] = ShaderFiles {"shaders/particle.vert", "shaders/particle.frag"};
+	rc.shaders [(ShaderKey)EShader::Shadow] = ShaderFiles {"shaders/shader.vert", "shaders/shadow.frag"};
+	
+	rc.textures [(TextureKey)ETexture::Beet] = "textures/beet.png";
+	rc.textures [(TextureKey)ETexture::BeetDead] = "textures/beet-dead.png";
+	rc.textures [(TextureKey)ETexture::Blood] = "textures/blood.png";
+	rc.textures [(TextureKey)ETexture::Carrot] = "textures/carrot.png";
+	rc.textures [(TextureKey)ETexture::CarrotDead] = "textures/carrot-dead.png";
+	rc.textures [(TextureKey)ETexture::CrabApple] = "textures/crab-apple.png";
+	rc.textures [(TextureKey)ETexture::CrabAppleDead] = "textures/crab-apple-dead.png";
+	rc.textures [(TextureKey)ETexture::Egg] = "textures/egg.png";
+	rc.textures [(TextureKey)ETexture::Farm] = "textures/farm.png";
+	rc.textures [(TextureKey)ETexture::Pumpking] = "textures/pumpking.png";
+	rc.textures [(TextureKey)ETexture::PumpkingDead] = "textures/pumpking-dead.png";
+	rc.textures [(TextureKey)ETexture::Shadow] = "textures/shadow.png";
+	// Meine tilen!
+	rc.textures [(TextureKey)ETexture::Tiles] = "textures/tiles.png";
+	rc.textures [(TextureKey)ETexture::Title] = "textures/title.png";
+	rc.textures [(TextureKey)ETexture::Venus] = "textures/venus.png";
+	rc.textures [(TextureKey)ETexture::VenusDead] = "textures/venus-dead.png";
+	rc.textures [(TextureKey)ETexture::Victory] = "textures/victory.png";
+	rc.textures [(TextureKey)ETexture::Vignette] = "textures/vignette.png";
+	rc.textures [(TextureKey)ETexture::White] = "textures/white.png";
+	
+	rc.meshes [(MeshKey)EMesh::DangerZone] = "meshes/danger-zone.iqm";
+	rc.meshes [(MeshKey)EMesh::Square] = "meshes/square.iqm";
+	rc.meshes [(MeshKey)EMesh::Venus] = "meshes/venus.iqm";
+	
+	return rc;
+}
+
+void to_json (stringstream & s, const float f) {
+	s << f;
+}
+
+void to_json (stringstream & s, const int32_t i) {
+	s << i;
+}
+
+void to_json (stringstream & s, const vec4 & v) {
+	s << "[ ";
+	
+	for (int i = 0; i < 4; i++) {
+		if (i > 0) {
+			s << ", ";
+		}
+		s << v [i];
+	}
+	
+	s << " ]";
+}
+
+void to_json (stringstream & s, const mat4 & m) {
+	s << "[ ";
+	
+	for (int y = 0; y < 4; y++) {
+		for (int x = 0; x < 4; x++) {
+			if (x > 0 || y > 0) {
+				s << ", ";
+			}
+			s << m [y][x];
+		}
+	}
+	
+	s << " ]";
+}
+
+template <typename T>
+void to_json (stringstream & s, const Components <T> & comps) {
+	s << "{ ";
+	
+	bool first = true;
+	
+	for (auto pair : comps) {
+		Entity e = pair.first;
+		const T & v = pair.second;
+		
+		if (first) {
+			first = false;
+		}
+		else {
+			s << ",\n";
+		}
+		
+		s << "\"" << e << "\": ";
+		to_json (s, v);
+	}
+	
+	s << " }";
+}
+
+void to_json (stringstream & s, const GraphicsEcs & ecs) {
+	s << "{ ";
+	
+	s << "\"transparent_z\": ";
+	to_json (s, ecs.transparent_z);
+	s << ", " << endl;
+	
+	s << "\"rigid_mats\": ";
+	to_json (s, ecs.rigid_mats);
+	s << ", " << endl;
+	
+	s << "\"diffuse_colors\": ";
+	to_json (s, ecs.diffuse_colors);
+	s << ", " << endl;
+	
+	s << "\"meshes\": ";
+	to_json (s, ecs.meshes);
+	s << ", " << endl;
+	
+	s << "\"textures\": ";
+	to_json (s, ecs.textures);
+	
+	s << " }";
+}
 
 int main (int /* argc */, char * /* argv */ []) {
 	string window_title = "ReactorScram LD38 Vegicide";
@@ -128,6 +250,8 @@ int main (int /* argc */, char * /* argv */ []) {
 		key_log << "# Frame count, key down, key code" << endl;
 	}
 	
+	bool dumped_ecs = false;
+	
 	while (running) {
 		auto frame_time = SDL_GetTicks ();
 		auto numSteps = timestep.step (frame_time - last_frame_time);
@@ -207,6 +331,19 @@ int main (int /* argc */, char * /* argv */ []) {
 					break;
 				case GameState::Game:
 					graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, screen_opts);
+					
+					if (true || dumped_ecs) {
+						// Pass
+					}
+					else {
+						stringstream s;
+						to_json (s, graphics_ecs);
+						
+						ofstream of ("graphics_ecs.json");
+						of << s.str () << endl;
+						
+						dumped_ecs = true;
+					}
 					break;
 			}
 			

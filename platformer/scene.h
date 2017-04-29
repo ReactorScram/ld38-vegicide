@@ -4,8 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "audio/audio-frame.h"
-// TODO: Move ECS out of graphics
-#include "graphics/ecs.h"
+#include "../ecs/ecs.h"
 
 enum class ETexture {
 	Beet,

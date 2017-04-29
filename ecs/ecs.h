@@ -1,15 +1,17 @@
-#ifndef COLORADO_ECS_H
-#define COLORADO_ECS_H
+#ifndef VEGICIDE_ECS_H
+#define VEGICIDE_ECS_H
 
 #include <map>
 #include <stdint.h>
+#include <vector>
 
 #include <glm/glm.hpp>
 
-#include "gl-state-tracker.h"
-#include "mesh-binder.h"
-#include "shader-binder.h"
-#include "texture-binder.h"
+#include "../graphics/gl-state.h"
+
+typedef int32_t TextureKey;
+typedef int32_t ShaderKey;
+typedef int32_t MeshKey;
 
 typedef int32_t Entity;
 
@@ -60,8 +62,8 @@ T get_component (const Components <T> & comps, Entity e, T default_comp)
 
 struct GraphicsEcs : Ecs {
 	std::vector <Pass> passes;
-	glm::mat4 proj_mat;
-	glm::mat4 view_mat;
+	//glm::mat4 proj_mat;
+	//glm::mat4 view_mat;
 	
 	Components <float> transparent_z;
 	Components <glm::mat4> rigid_mats;

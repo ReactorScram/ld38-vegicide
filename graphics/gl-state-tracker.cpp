@@ -1,5 +1,7 @@
 #include "gl-state-tracker.h"
 
+#include "colorado/gl.h"
+
 #include <cstring>
 
 // Handles all state that isn't directly related to the current VBO

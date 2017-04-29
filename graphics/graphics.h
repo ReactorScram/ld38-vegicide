@@ -7,7 +7,12 @@
 #include "colorado/attribute-enabler.h"
 #include "colorado/screen-options.h"
 
-#include "ecs.h"
+#include "../ecs/ecs.h"
+
+#include "gl-state-tracker.h"
+#include "mesh-binder.h"
+#include "shader-binder.h"
+#include "texture-binder.h"
 
 struct ShaderFiles {
 	std::string vert_fn;
