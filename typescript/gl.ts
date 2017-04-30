@@ -18,6 +18,7 @@ ecs = false;
 
 declare var mesh_square: any;
 declare var mesh_level: any;
+declare var animate: any;
 
 declare class XMLHttpRequest {
 	onload: any;
@@ -26,6 +27,10 @@ declare class XMLHttpRequest {
 	
 	open (verb: string, url: string, async: boolean): void;
 	send (): void;
+}
+
+function animate_start () {
+	animate = Module.cwrap('animate', 'number', ['number']);
 }
 
 function start () {
@@ -47,10 +52,11 @@ function start () {
 		draw ();
 		
 		// ms between frames
-		window.setInterval (step, 1000.0 / 1.0);
+		window.setInterval (step, 1000.0 / 60.0);
 	}
 	
 	ecs = JSON.parse (sync_xhr ("graphics_ecs.json"));
+	animate_start ();
 }
 
 function step () {
@@ -120,6 +126,23 @@ function draw () {
 		var transparent_pass = ecs ["passes"][2];
 		gl.blendFunc (gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 		draw_pass (ecs, transparent_pass, 2);
+		
+		{
+			var model_mat = new TSM.mat4 ([ 0.875685, 0, 0, 0, -0, -1.12432, -0, -0, 0, 0, 1, 0, 4, 22.7507, 0, 1 ]);
+			
+			var mvpMatrix = new TSM.mat4 (ecs ["passes"][2].proj_view_mat).multiply (model_mat);
+			
+			gl.uniformMatrix4fv (current_shader.mvpUniform, false, new Float32Array (mvpMatrix.all ()));
+			
+			var alpha = animate (frame);
+			
+			var color = [1, 0, 1, alpha];
+			gl.uniform4fv (current_shader.colorUniform, color);
+			
+			gl.bindTexture (gl.TEXTURE_2D, textures [14]);
+			
+			gl.drawElements (gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
+		}
 	}
 }
 
