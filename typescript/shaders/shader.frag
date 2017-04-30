@@ -5,5 +5,5 @@ varying mediump vec2 varyingTexCoord;
 
 void main (void) {
 	lowp vec4 rgba = texture2D (color_tex, varyingTexCoord);
-	gl_FragColor = varyingColor * rgba;
+	gl_FragColor = varyingColor * rgba * vec4 (rgba.aaa, 1.0);
 }

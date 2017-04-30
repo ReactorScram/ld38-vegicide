@@ -10,13 +10,10 @@ declare var frame: number;
 declare var gl: WebGLRenderingContext;
 declare var window: any;
 
-declare var vertexPositionAttribute: number;
-declare var texCoordAttribute: number;
-declare var mvpMatrixUniform: any;
 declare var verticesBuffer: any;
 declare var indexBuffer: any;
 declare var textures: WebGLTexture [];
-declare var shaderProgram: any;
+declare var defaultShader: any;
 
 declare var ecs: any;
 ecs = false;
@@ -38,7 +35,7 @@ function start () {
 	initWebGl (canvas);
 	
 	if (gl) {
-		gl.clearColor (0.0, 0.0, 0.0, 1.0);
+		gl.clearColor (1.0, 1.0, 1.0, 1.0);
 		gl.disable (gl.DEPTH_TEST);
 		gl.depthFunc (gl.LEQUAL);
 		
@@ -74,22 +71,44 @@ function draw () {
 	gl.enable (gl.BLEND);
 	gl.blendFunc (gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	
-	gl.vertexAttribPointer (vertexPositionAttribute, 3, gl.FLOAT, false, 5 * 4, 0);
-	gl.vertexAttribPointer (texCoordAttribute, 2, gl.FLOAT, false, 5 * 4, 3 * 4);
-	
 	// Everything uses the square mesh
 	gl.bindBuffer (gl.ARRAY_BUFFER, verticesBuffer);
 	gl.bindBuffer (gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 	
 	if (ecs) {
-	for (var e in ecs ["passes"][2]["renderables"]) {
-		var proj_view_mat = new TSM.mat4 ([ 0.08, 0, 0, 0, 0, -0.133333, 0, 0, 0, 0, -0.0666667, 0, -1.08, 3.13333, 0, 1 ]);
+	gl.blendFunc (gl.DST_COLOR, gl.ZERO);
+	
+	gl.useProgram (defaultShader.program);
+	gl.vertexAttribPointer (defaultShader.posAttr, 3, gl.FLOAT, false, 5 * 4, 0);
+	gl.vertexAttribPointer (defaultShader.texCoordAttr, 2, gl.FLOAT, false, 5 * 4, 3 * 4);
+	
+	var shadow_pass = ecs ["passes"][1];
+	gl.uniform4f (defaultShader.colorUniform, 0.5, 0.5, 0.5, 1.0);
+	for (var e in shadow_pass ["renderables"]) {
+		var proj_view_mat = new TSM.mat4 (shadow_pass ["proj_view_mat"]);
 		
 		var model_mat = new TSM.mat4 (ecs ["rigid_mats"][e]);
 		
 		var mvpMatrix = proj_view_mat.multiply (model_mat);
 		
-		gl.uniformMatrix4fv (mvpMatrixUniform, false, new Float32Array (mvpMatrix.all ()));
+		gl.uniformMatrix4fv (defaultShader.mvpUniform, false, new Float32Array (mvpMatrix.all ()));
+		
+		gl.bindTexture (gl.TEXTURE_2D, textures [ecs ["textures"][e]]);
+		
+		gl.drawElements (gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+	}
+	
+	var transparent_pass = ecs ["passes"][2];
+	gl.uniform4f (defaultShader.colorUniform, 1.0, 1.0, 1.0, 1.0);
+	gl.blendFunc (gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	for (var e in transparent_pass ["renderables"]) {
+		var proj_view_mat = new TSM.mat4 (transparent_pass ["proj_view_mat"]);
+		
+		var model_mat = new TSM.mat4 (ecs ["rigid_mats"][e]);
+		
+		var mvpMatrix = proj_view_mat.multiply (model_mat);
+		
+		gl.uniformMatrix4fv (defaultShader.mvpUniform, false, new Float32Array (mvpMatrix.all ()));
 		
 		gl.bindTexture (gl.TEXTURE_2D, textures [ecs ["textures"][e]]);
 		
@@ -118,10 +137,10 @@ function initBuffers () {
 	gl.bindBuffer (gl.ARRAY_BUFFER, verticesBuffer);
 	
 	var vertices = [
-		-1.0, -1.0, 0.0, 0.0, 1.0,
-		-1.0, 1.0,  0.0, 0.0, 0.0,
-		1.0,  1.0,  0.0, 1.0, 0.0,
-		1.0,  -1.0, 0.0, 1.0, 1.0
+		-1.0, -1.0, 0.0, 0.0, 0.0,
+		-1.0, 1.0,  0.0, 0.0, 1.0,
+		1.0,  1.0,  0.0, 1.0, 1.0,
+		1.0,  -1.0, 0.0, 1.0, 0.0
 	];
 	
 	gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (vertices), gl.STATIC_DRAW);
@@ -137,34 +156,68 @@ function initBuffers () {
 	gl.bufferData (gl.ELEMENT_ARRAY_BUFFER, new Uint16Array (indices), gl.STATIC_DRAW);
 }
 
-function initShaders () {
-	var fragmentShader = getShader (gl, "shaders/test.fs", gl.FRAGMENT_SHADER);
-	var vertexShader = getShader (gl, "shaders/test.vs", gl.VERTEX_SHADER);
+function getShader (gl, name, type) {
+	var shaderSource,  shader;
 	
-	if (fragmentShader && vertexShader) {
-		shaderProgram = gl.createProgram ();
+	var xhr = new XMLHttpRequest ();
+	
+	xhr.open ("GET", name, false);
+	xhr.send ();
+	
+	shaderSource = xhr.responseText;
+	
+	shader = gl.createShader (type);
+	
+	gl.shaderSource (shader, shaderSource);
+	
+	gl.compileShader (shader);
+	
+	if (! gl.getShaderParameter (shader, gl.COMPILE_STATUS)) {
+		alert ("Couldn't compile a shader: " + gl.getShaderInfoLog (shader));
 		
-		gl.attachShader (shaderProgram, fragmentShader);
-		gl.attachShader (shaderProgram, vertexShader);
-		gl.linkProgram (shaderProgram);
-		
-		if (! gl.getProgramParameter (shaderProgram, gl.LINK_STATUS)) {
-			//alert ("Couldn't compile shader program");
-		}
-		
-		gl.useProgram (shaderProgram);
-		
-		vertexPositionAttribute = gl.getAttribLocation (shaderProgram, "attribVertexPosition");
-		gl.enableVertexAttribArray (vertexPositionAttribute);
-		
-		texCoordAttribute = gl.getAttribLocation (shaderProgram, "attribTexCoord");
-		gl.enableVertexAttribArray (texCoordAttribute);
-		
-		mvpMatrixUniform = gl.getUniformLocation (shaderProgram, "mvpMatrix");
+		return null;
 	}
-	else {
-		//alert ("Couldn't load shaders");
+	
+	return shader;
+}
+
+function getShaderProgram (vert, frag) {
+	var program = gl.createProgram ();
+	
+	gl.attachShader (program, frag);
+	gl.attachShader (program, vert);
+	gl.linkProgram (program);
+	
+	if (! gl.getProgramParameter (program, gl.LINK_STATUS)) {
+		//alert ("Couldn't compile shader program");
 	}
+	
+	gl.useProgram (program);
+	
+	var posAttr = gl.getAttribLocation (program, "attribPos");
+	gl.enableVertexAttribArray (posAttr);
+	
+	var texCoordAttr = gl.getAttribLocation (program, "attribTexCoord");
+	gl.enableVertexAttribArray (texCoordAttr);
+	
+	var mvpUniform = gl.getUniformLocation (program, "mvpMatrix");
+	
+	var colorUniform = gl.getUniformLocation (program, "color");
+	
+	return {
+		program,
+		posAttr,
+		texCoordAttr,
+		mvpUniform,
+		colorUniform
+	};
+}
+
+function initShaders () {
+	var defaultVert = getShader (gl, "shaders/shader.vert", gl.VERTEX_SHADER);
+	var defaultFrag = getShader (gl, "shaders/shader.frag", gl.FRAGMENT_SHADER);
+	
+	defaultShader = getShaderProgram (defaultVert, defaultFrag);
 }
 
 function initTextures () {
@@ -177,7 +230,7 @@ function initTextures () {
 		"crab-apple",
 		"crab-apple-dead",
 		"egg",
-		"farm",
+		"white", // Farm
 		"pumpking",
 		"pumpking-dead",
 		"shadow",
@@ -200,7 +253,7 @@ function initTextures () {
 			gl.bindTexture (gl.TEXTURE_2D, textures [i]);
 			gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureImage);
 			gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-			gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+			gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 			gl.generateMipmap (gl.TEXTURE_2D);
 			
 			draw ();
@@ -208,29 +261,4 @@ function initTextures () {
 		
 		textureImage.src = "textures/" + texture_files [i] + ".png";
 	}
-}
-
-function getShader (gl, name, type) {
-	var shaderSource,  shader;
-	
-	var xhr = new XMLHttpRequest ();
-	
-	xhr.open ("GET", name, false);
-	xhr.send ();
-	
-	shaderSource = xhr.responseText;
-	
-	shader = gl.createShader (type);
-	
-	gl.shaderSource (shader, shaderSource);
-	
-	gl.compileShader (shader);
-	
-	if (! gl.getShaderParameter (shader, gl.COMPILE_STATUS)) {
-		//alert ("Couldn't compile a shader: " + gl.getShaderInfoLog (shader));
-		
-		return null;
-	}
-	
-	return shader;
 }
