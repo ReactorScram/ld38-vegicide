@@ -11,7 +11,7 @@ function start() {
         gl.clearColor(1.0, 1.0, 1.0, 1.0);
         gl.disable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
-        initBuffers();
+        mesh_square = init_square();
         initShaders();
         initTextures();
         draw();
@@ -46,18 +46,19 @@ function draw() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
     // Everything uses the square mesh
-    gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, mesh_square.vertices);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh_square.indices);
     if (ecs) {
         gl.blendFunc(gl.DST_COLOR, gl.ZERO);
         gl.useProgram(defaultShader.program);
         gl.vertexAttribPointer(defaultShader.posAttr, 3, gl.FLOAT, false, 5 * 4, 0);
         gl.vertexAttribPointer(defaultShader.texCoordAttr, 2, gl.FLOAT, false, 5 * 4, 3 * 4);
         var shadow_pass = ecs["passes"][1];
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        // Idk why but WebGL doesn't like SRC_ALPHA? shrug
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         draw_pass(ecs, shadow_pass);
         var transparent_pass = ecs["passes"][2];
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         draw_pass(ecs, transparent_pass);
     }
 }
@@ -72,23 +73,27 @@ function initWebGl(canvas) {
         //alert ("Can't initialize WebGL");
     }
 }
-function initBuffers() {
-    verticesBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-    var vertices = [
+function init_square() {
+    var vertices = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
+    var vs = [
         -1.0, -1.0, 0.0, 0.0, 0.0,
         -1.0, 1.0, 0.0, 0.0, 1.0,
         1.0, 1.0, 0.0, 1.0, 1.0,
         1.0, -1.0, 0.0, 1.0, 0.0
     ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    var indices = [
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vs), gl.STATIC_DRAW);
+    var indices = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indices);
+    var is = [
         0, 1, 2,
         0, 2, 3
     ];
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(is), gl.STATIC_DRAW);
+    return {
+        vertices: vertices,
+        indices: indices
+    };
 }
 function getShader(gl, name, type) {
     var shaderSource, shader;
@@ -162,8 +167,8 @@ function initTextures() {
         textureImage.onload = function () {
             gl.bindTexture(gl.TEXTURE_2D, textures[i]);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureImage);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
             gl.generateMipmap(gl.TEXTURE_2D);
             draw();
         };
