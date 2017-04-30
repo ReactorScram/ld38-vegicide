@@ -66,10 +66,28 @@ function step () {
 	draw ();
 }
 
+function draw_pass (ecs, pass) {
+	for (var e in pass ["renderables"]) {
+		var proj_view_mat = new TSM.mat4 (pass ["proj_view_mat"]);
+		
+		var model_mat = new TSM.mat4 (ecs ["rigid_mats"][e]);
+		
+		var mvpMatrix = proj_view_mat.multiply (model_mat);
+		
+		gl.uniformMatrix4fv (defaultShader.mvpUniform, false, new Float32Array (mvpMatrix.all ()));
+		
+		var color = ecs ["diffuse_colors"][e];
+		gl.uniform4fv (defaultShader.colorUniform, color);
+		
+		gl.bindTexture (gl.TEXTURE_2D, textures [ecs ["textures"][e]]);
+		
+		gl.drawElements (gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
+	}
+}
+
 function draw () {
 	gl.clear (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.enable (gl.BLEND);
-	gl.blendFunc (gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	
 	// Everything uses the square mesh
 	gl.bindBuffer (gl.ARRAY_BUFFER, verticesBuffer);
@@ -83,37 +101,12 @@ function draw () {
 	gl.vertexAttribPointer (defaultShader.texCoordAttr, 2, gl.FLOAT, false, 5 * 4, 3 * 4);
 	
 	var shadow_pass = ecs ["passes"][1];
-	gl.uniform4f (defaultShader.colorUniform, 0.5, 0.5, 0.5, 1.0);
-	for (var e in shadow_pass ["renderables"]) {
-		var proj_view_mat = new TSM.mat4 (shadow_pass ["proj_view_mat"]);
-		
-		var model_mat = new TSM.mat4 (ecs ["rigid_mats"][e]);
-		
-		var mvpMatrix = proj_view_mat.multiply (model_mat);
-		
-		gl.uniformMatrix4fv (defaultShader.mvpUniform, false, new Float32Array (mvpMatrix.all ()));
-		
-		gl.bindTexture (gl.TEXTURE_2D, textures [ecs ["textures"][e]]);
-		
-		gl.drawElements (gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-	}
+	gl.blendFunc (gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	draw_pass (ecs, shadow_pass);
 	
 	var transparent_pass = ecs ["passes"][2];
-	gl.uniform4f (defaultShader.colorUniform, 1.0, 1.0, 1.0, 1.0);
 	gl.blendFunc (gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-	for (var e in transparent_pass ["renderables"]) {
-		var proj_view_mat = new TSM.mat4 (transparent_pass ["proj_view_mat"]);
-		
-		var model_mat = new TSM.mat4 (ecs ["rigid_mats"][e]);
-		
-		var mvpMatrix = proj_view_mat.multiply (model_mat);
-		
-		gl.uniformMatrix4fv (defaultShader.mvpUniform, false, new Float32Array (mvpMatrix.all ()));
-		
-		gl.bindTexture (gl.TEXTURE_2D, textures [ecs ["textures"][e]]);
-		
-		gl.drawElements (gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
-	}
+	draw_pass (ecs, transparent_pass);
 	}
 }
 
