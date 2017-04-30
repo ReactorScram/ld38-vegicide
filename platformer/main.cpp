@@ -83,6 +83,11 @@ void to_json (stringstream & s, const float f) {
 	s << f;
 }
 
+void to_json (stringstream & s, const int16_t i) {
+	s << i;
+}
+
+
 void to_json (stringstream & s, const int32_t i) {
 	s << i;
 }
@@ -205,6 +210,18 @@ void to_json (stringstream & s, const GraphicsEcs & ecs) {
 	s << " }";
 }
 
+void to_json (stringstream & s, const Level & level) {
+	s << "{ ";
+	
+	s << "\"width\": " << level.width << "," << endl;
+	s << "\"height\": " << level.height << "," << endl;
+	s << "\"data\": ";
+	
+	to_json (s, level.data);
+	
+	s << " }";
+}
+
 int main (int /* argc */, char * /* argv */ []) {
 	string window_title = "ReactorScram LD38 Vegicide";
 	Terf::Archive terf ("rom.tar", "rom.tar.index");
@@ -232,6 +249,14 @@ int main (int /* argc */, char * /* argv */ []) {
 	
 	Level level (terf.lookupFile ("maps/demo.bin"));
 	level.load_sqlite_objects ("maps/demo.sqlite");
+	
+	if (true) {
+		stringstream s;
+		to_json (s, level);
+		
+		ofstream of ("maps/demo.json");
+		of << s.str () << endl;
+	}
 	
 	auto level_iqm = level.to_iqm ();
 	if (false) {
