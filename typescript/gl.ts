@@ -35,6 +35,62 @@ declare class XMLHttpRequest {
 	send (): void;
 }
 
+var key_map = {
+	ArrowRight: 0,
+	d: 0,
+	l: 0,
+	ArrowUp: 1,
+	w: 1,
+	i: 1,
+	ArrowLeft: 2, 
+	a: 2,
+	j: 2,
+	ArrowDown: 3,
+	s: 3,
+	k: 3,
+	Control: 4,
+	r: 5
+};
+
+var key_buttons: boolean [] = [];
+var key_taps: boolean [] = [];
+
+function clear_taps () {
+	key_taps = [];
+}
+
+function process_key_event (down: boolean, code: number) {
+	if (code >= 0 && code <= 10) {
+		key_buttons [code] = down;
+		key_taps [code] = down;
+	}
+	
+	//var debug_div = <HTMLCanvasElement> document.getElementById ("debug_div");
+	//debug_div.innerText = key_buttons;
+}
+
+document.addEventListener('keydown', (event) => {
+	const keyName = event.key;
+	
+	process_key_event (true, key_map [keyName]);
+}, false);
+
+document.addEventListener('keyup', (event) => {
+	const keyName = event.key;
+	
+	process_key_event (false, key_map [keyName]);
+}, false);
+
+document.addEventListener('keypress', (event) => {
+	const keyName = event.key;
+	
+	if (key_map [keyName]) {
+		event.stopPropagation ();
+		event.preventDefault ();
+	}
+}, false);
+
+
 function animate_start () {
 	animate = Module.cwrap ('animate', 'number', ['number']);
 	get_msg = Module.cwrap ("get_msg", "string", ["number"]);
@@ -61,10 +117,11 @@ function start () {
 		initShaders ();
 		initTextures ();
 		
-		draw ();
+		//draw ();
 		
 		// ms between frames
-		window.setInterval (step, 1000.0 / 60.0);
+		//window.setInterval (step, 1000.0 / 60.0);
+		window.requestAnimationFrame (step);
 	}
 	
 	scene_ecs = JSON.parse (sync_xhr ("scene_ecs.json"));
@@ -73,13 +130,14 @@ function start () {
 }
 
 function step () {
+	window.requestAnimationFrame (step);
 	vegicide_step ();
 	
 	frame += 1.0;
 	
 	var ecs_json = vegicide_get_graphics_json ();
 	ecs = JSON.parse (ecs_json);
-	draw ();
+	draw ()
 }
 
 function set_shader (shader) {
@@ -112,6 +170,8 @@ function set_vertex_attribs () {
 }
 
 function draw () {
+	//window.requestAnimationFrame (draw);
+	
 	gl.clear (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
 	if (ecs) {
@@ -140,27 +200,6 @@ function draw () {
 		var transparent_pass = ecs ["passes"][2];
 		gl.blendFunc (gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 		draw_pass (ecs, transparent_pass, 2);
-		
-		if (false) {
-			var model_mat = new TSM.mat4 ([ 0.875685, 0, 0, 0, -0, -1.12432, -0, -0, 0, 0, 1, 0, 4, 22.7507, 0, 1 ]);
-			
-			var mvpMatrix = new TSM.mat4 (ecs ["passes"][2].proj_view_mat).multiply (model_mat);
-			
-			gl.uniformMatrix4fv (current_shader.mvpUniform, false, new Float32Array (mvpMatrix.all ()));
-			
-			var alpha = animate (frame);
-			
-			var color = [1, 0, 1, alpha];
-			gl.uniform4fv (current_shader.colorUniform, color);
-			
-			gl.bindTexture (gl.TEXTURE_2D, textures [14]);
-			
-			gl.drawElements (gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
-			
-			var msg = get_msg (frame);
-			var debug_div = <HTMLCanvasElement> document.getElementById ("debug_div");
-			debug_div.innerText = msg;
-		}
 	}
 }
 
@@ -175,7 +214,7 @@ function initWebGl (canvas) {
 	}
 	
 	if (! gl) {
-		alert ("Can't initialize WebGL");
+		window.alert ("Can't initialize WebGL");
 	}
 }
 
@@ -286,7 +325,7 @@ function getShader (gl, name, type) {
 	gl.compileShader (shader);
 	
 	if (! gl.getShaderParameter (shader, gl.COMPILE_STATUS)) {
-		alert ("Couldn't compile a shader: " + gl.getShaderInfoLog (shader));
+		window.alert ("Couldn't compile a shader: " + gl.getShaderInfoLog (shader));
 		
 		return null;
 	}
