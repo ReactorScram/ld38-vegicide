@@ -14,6 +14,7 @@ struct Logic {
 	SceneEcs quicksave;
 	SceneEcs checkpoint;
 	
+	Logic () {}
 	Logic (const Level & l);
 	void step (const InputFrame & input, long frames);
 };

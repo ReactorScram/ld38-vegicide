@@ -302,7 +302,7 @@ EnemyBase animate_beetnik (GraphicsEcs & ecs, const SceneEcs & scene, Entity old
 	return eb;
 }
 
-GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames, const ScreenOptions & screen_opts) 
+GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames, float aspect) 
 {
 	const float t = frames * 2.0 * 3.1415926535 / 60.0f;
 	float screen_shake = scene.screenshake_t;
@@ -316,8 +316,6 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	vec3 camera (floor (scene.camera.x + noise), floor (scene.camera.y), 0);
 	
 	//vec3 camera (0.0f);
-	
-	const float aspect = (double)screen_opts.width / (double)screen_opts.height;
 	
 	const float mob_scale = 1.0f / 15.0f;
 	

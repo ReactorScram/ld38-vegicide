@@ -109,7 +109,7 @@ int main (int /* argc */, char * /* argv */ []) {
 	Level level (terf.lookupFile ("maps/demo.bin"));
 	level.load_sqlite_objects ("maps/demo.sqlite");
 	
-	if (true) {
+	if (false) {
 		stringstream s;
 		to_json (s, level);
 		

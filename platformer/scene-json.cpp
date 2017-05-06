@@ -1,6 +1,6 @@
 #include "scene-json.h"
 
-//#include <stdint.h>
+#include <stdint.h>
 #include <string>
 
 #include <glm/glm.hpp>

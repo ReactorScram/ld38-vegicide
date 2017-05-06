@@ -341,7 +341,7 @@ enum class EPounceResult {
 EPounceResult kill_enemies (SceneEcs & scene, const vector <Entity> & victims, long t) 
 {
 	for (Entity pouncee_e : victims) {
-		if (get_component (scene.damage_flash, pouncee_e, (long)0) <= t) {
+		if (get_component (scene.damage_flash, pouncee_e, (int64_t)0) <= t) {
 			scene.hp [pouncee_e] -= 1;
 			shake_screen (scene, 0.375f);
 			if (scene.hp.at (pouncee_e) <= 0) {
@@ -622,7 +622,7 @@ void save_at_egg (SceneEcs & scene, Entity touched_e) {
 
 void damage_player (SceneEcs & scene, Entity player_e, int amount, long t) {
 	if (! get_component (scene.dead, player_e, false)) {
-		scene.damage_flash [player_e] = glm::max (t + 60, get_component (scene.damage_flash, player_e, (long)0));
+		scene.damage_flash [player_e] = glm::max ((int64_t)t + 60, get_component (scene.damage_flash, player_e, (int64_t)0));
 		scene.hp [player_e] -= amount;
 		if (get_component (scene.hp, player_e, 0) <= 0) {
 			cerr << "You are dead" << endl;
@@ -646,7 +646,7 @@ void beetnik_ai (const Level & level, SceneEcs & scene, Entity e, Entity player_
 	scene.ai_active [e] = alive;
 	
 	if (alive) {
-		bool player_vulnerable = get_component (scene.damage_flash, player_e, (long)0) < t;
+		bool player_vulnerable = get_component (scene.damage_flash, player_e, (int64_t)0) < t;
 		
 		if (player_vulnerable && length (player_pos - pos) <= 0.5f) {
 			// Attack!
@@ -685,7 +685,7 @@ void crabapple_ai (const Level & level, SceneEcs & scene, Entity e, Entity playe
 		direction.z = 0.0f;
 		vec3 crab = cross (direction, vec3 (0.0f, 0.0f, 1.0f));
 		
-		bool player_vulnerable = get_component (scene.damage_flash, player_e, (long)0) < t;
+		bool player_vulnerable = get_component (scene.damage_flash, player_e, (int64_t)0) < t;
 		
 		if (! player_vulnerable) {
 			// Player is invuln - Avoid them
@@ -749,7 +749,7 @@ void pumpking_ai (const Level & level, SceneEcs & scene, Entity e, Entity player
 		direction.z = 0.0f;
 		vec3 crab = cross (direction, vec3 (0.0f, 0.0f, 1.0f));
 		
-		bool player_vulnerable = get_component (scene.damage_flash, player_e, (long)0) < t;
+		bool player_vulnerable = get_component (scene.damage_flash, player_e, (int64_t)0) < t;
 		
 		if (! player_vulnerable) {
 			// Player is invuln - Avoid them

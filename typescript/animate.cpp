@@ -3,11 +3,18 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 
 #include "platformer/animation.h"
-
 #include "platformer/level.h"
+#include "platformer/logic.h"
+#include "platformer/scene-json.h"
+
+// Don't ever do this
+#include "ecs/ecs.cpp"
+#include "platformer/logic.cpp"
+#include "platformer/scene-json.cpp"
 
 using namespace std;
 
@@ -27,6 +34,8 @@ extern "C" {
 	double animate (double t);
 	char * get_msg (double t);
 	VgHandle vegicide_init ();
+	void vegicide_step (VgHandle);
+	const char * vegicide_get_graphics_json (VgHandle);
 }
 
 char foo[] = "Foosball";
@@ -72,14 +81,48 @@ vector <uint8_t> lookup_file (const std::string & fn) {
 
 struct VgContext {
 	Level level;
+	Logic logic;
+	long frames;
+	string graphics_json;
 	
 	VgContext () {
 		emscripten_wget ("maps/demo.bin", "maps/demo.bin");
 		
 		level = Level (lookup_file ("maps/demo.bin"));
+		logic = Logic (level);
+		frames = 0;
+	}
+	
+	void step () {
+		InputFrame input_frame;
+		logic.step (input_frame, frames);
+		
+		frames++;
+	}
+	
+	const char * get_graphics_json () {
+		GraphicsEcs graphics_ecs;
+		graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, 800.0 / 480.0);
+		
+		stringstream s;
+		to_json (s, logic.scene);
+		
+		graphics_json = s.str ();
+		
+		return graphics_json.c_str ();
 	}
 };
 
 VgHandle vegicide_init () {
 	return new VgContext ();
+}
+
+void vegicide_step (VgHandle h) {
+	VgContext & ctx = *(VgContext *)h;
+	ctx.step ();
+}
+
+const char * vegicide_get_graphics_json (VgHandle h) {
+	VgContext & ctx = *(VgContext *)h;
+	return ctx.get_graphics_json ();
 }

@@ -1,6 +1,8 @@
 #ifndef VEGICIDE_SCENE_H
 #define VEGICIDE_SCENE_H
 
+#include <stdint.h>
+
 #include <glm/glm.hpp>
 
 #include "audio/audio-frame.h"
@@ -74,7 +76,7 @@ struct SceneEcs : Ecs {
 	Components <glm::vec2> pounce_vec;
 	Components <glm::vec3> pounce_vel;
 	// Doubles as invuln frames on enemies with big health
-	Components <long> damage_flash;
+	Components <int64_t> damage_flash;
 	Components <bool> dead;
 	Components <int> hp;
 	Components <ESound> pain_sound;
