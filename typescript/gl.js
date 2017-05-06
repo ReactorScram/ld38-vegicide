@@ -5,6 +5,7 @@
 ecs = false;
 function animate_start() {
     animate = Module.cwrap('animate', 'number', ['number']);
+    get_msg = Module.cwrap("get_msg", "string", ["number"]);
 }
 function start() {
     var canvas = document.getElementById("glCanvas");
@@ -84,6 +85,9 @@ function draw() {
             gl.uniform4fv(current_shader.colorUniform, color);
             gl.bindTexture(gl.TEXTURE_2D, textures[14]);
             gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+            var msg = get_msg(frame);
+            var debug_div = document.getElementById("debug_div");
+            debug_div.innerText = msg;
         }
     }
 }

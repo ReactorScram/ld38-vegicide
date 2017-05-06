@@ -19,6 +19,7 @@ ecs = false;
 declare var mesh_square: any;
 declare var mesh_level: any;
 declare var animate: any;
+declare var get_msg: any;
 
 declare class XMLHttpRequest {
 	onload: any;
@@ -30,7 +31,8 @@ declare class XMLHttpRequest {
 }
 
 function animate_start () {
-	animate = Module.cwrap('animate', 'number', ['number']);
+	animate = Module.cwrap ('animate', 'number', ['number']);
+	get_msg = Module.cwrap ("get_msg", "string", ["number"]);
 }
 
 function start () {
@@ -142,6 +144,10 @@ function draw () {
 			gl.bindTexture (gl.TEXTURE_2D, textures [14]);
 			
 			gl.drawElements (gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
+			
+			var msg = get_msg (frame);
+			var debug_div = <HTMLCanvasElement> document.getElementById ("debug_div");
+			debug_div.innerText = msg;
 		}
 	}
 }
