@@ -13,6 +13,7 @@ declare var window: any;
 declare var textures: WebGLTexture [];
 declare var defaultShader: any;
 
+declare var scene_ecs: any;
 declare var ecs: any;
 ecs = false;
 
@@ -20,6 +21,8 @@ declare var mesh_square: any;
 declare var mesh_level: any;
 declare var animate: any;
 declare var get_msg: any;
+declare var vegicide_init: any;
+declare var vg_handle: any;
 
 declare class XMLHttpRequest {
 	onload: any;
@@ -33,6 +36,9 @@ declare class XMLHttpRequest {
 function animate_start () {
 	animate = Module.cwrap ('animate', 'number', ['number']);
 	get_msg = Module.cwrap ("get_msg", "string", ["number"]);
+	vegicide_init = Module.cwrap ("vegicide_init", "void *", []);
+	
+	vg_handle = vegicide_init ();
 }
 
 function start () {
@@ -54,9 +60,10 @@ function start () {
 		draw ();
 		
 		// ms between frames
-		window.setInterval (step, 1000.0 / 10.0);
+		window.setInterval (step, 1000.0 / 60.0);
 	}
 	
+	scene_ecs = JSON.parse (sync_xhr ("scene_ecs.json"));
 	ecs = JSON.parse (sync_xhr ("graphics_ecs.json"));
 	animate_start ();
 }

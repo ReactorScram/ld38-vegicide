@@ -6,6 +6,8 @@ ecs = false;
 function animate_start() {
     animate = Module.cwrap('animate', 'number', ['number']);
     get_msg = Module.cwrap("get_msg", "string", ["number"]);
+    vegicide_init = Module.cwrap("vegicide_init", "void *", []);
+    vg_handle = vegicide_init();
 }
 function start() {
     var canvas = document.getElementById("glCanvas");
@@ -20,8 +22,9 @@ function start() {
         initTextures();
         draw();
         // ms between frames
-        window.setInterval(step, 1000.0 / 10.0);
+        window.setInterval(step, 1000.0 / 60.0);
     }
+    scene_ecs = JSON.parse(sync_xhr("scene_ecs.json"));
     ecs = JSON.parse(sync_xhr("graphics_ecs.json"));
     animate_start();
 }
