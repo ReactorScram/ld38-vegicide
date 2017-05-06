@@ -22,6 +22,8 @@ declare var mesh_level: any;
 declare var animate: any;
 declare var get_msg: any;
 declare var vegicide_init: any;
+declare var vegicide_step: any;
+declare var vegicide_get_graphics_json: any;
 declare var vg_handle: any;
 
 declare class XMLHttpRequest {
@@ -36,7 +38,9 @@ declare class XMLHttpRequest {
 function animate_start () {
 	animate = Module.cwrap ('animate', 'number', ['number']);
 	get_msg = Module.cwrap ("get_msg", "string", ["number"]);
-	vegicide_init = Module.cwrap ("vegicide_init", "void *", []);
+	vegicide_init = Module.cwrap ("vegicide_init", "VgHandle", []);
+	vegicide_step = Module.cwrap ("vegicide_step", "void", []);
+	vegicide_get_graphics_json = Module.cwrap ("vegicide_get_graphics_json", "string", []);
 	
 	vg_handle = vegicide_init ();
 }
@@ -64,16 +68,17 @@ function start () {
 	}
 	
 	scene_ecs = JSON.parse (sync_xhr ("scene_ecs.json"));
-	ecs = JSON.parse (sync_xhr ("graphics_ecs.json"));
+	//ecs = JSON.parse (sync_xhr ("graphics_ecs.json"));
 	animate_start ();
 }
 
 function step () {
-	frame += 1.0;
-	if (frame > 360.0) {
-		frame -= 360.0;
-	}
+	vegicide_step ();
 	
+	frame += 1.0;
+	
+	var ecs_json = vegicide_get_graphics_json ();
+	ecs = JSON.parse (ecs_json);
 	draw ();
 }
 
@@ -136,7 +141,7 @@ function draw () {
 		gl.blendFunc (gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 		draw_pass (ecs, transparent_pass, 2);
 		
-		{
+		if (false) {
 			var model_mat = new TSM.mat4 ([ 0.875685, 0, 0, 0, -0, -1.12432, -0, -0, 0, 0, 1, 0, 4, 22.7507, 0, 1 ]);
 			
 			var mvpMatrix = new TSM.mat4 (ecs ["passes"][2].proj_view_mat).multiply (model_mat);
@@ -170,7 +175,7 @@ function initWebGl (canvas) {
 	}
 	
 	if (! gl) {
-		//alert ("Can't initialize WebGL");
+		alert ("Can't initialize WebGL");
 	}
 }
 

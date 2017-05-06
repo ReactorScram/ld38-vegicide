@@ -3,16 +3,24 @@
 	<meta charset="UTF-8" />
 	<title>WebGL demo</title>
 	<script type="text/javascript" src="tsm-master/TSM/tsm-0.7.min.js"></script>
-	<script type="text/javascript" src="animate.js"></script>
 	<script type="text/javascript" src="gl.js"></script>
-	<link rel="stylesheet" type="text/css" href="../style.css">
+	<script type="text/javascript">
+        var Module = {
+            onRuntimeInitialized: function() {
+                start ();
+            }
+        }
+    </script>
+	<script type="text/javascript" src="animate.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="../../style.css">
 <meta name=viewport content="width=device-width, initial-scale=1">
 </head>
-<body onload="start ()">
+<body onload="">
 
 <div>
 <a href="../">
-<img src="../digital-doge.png" width="83" height="88" />
+<img src="../../digital-doge.png" width="83" height="88" />
 </a>
 </div>
 
@@ -25,7 +33,7 @@ Your browser doesn't support the HTML5 canvas element
 
 <div class="footer">
 <a href="../">
-<img src="../digital-doge.png" width="41" height="44" />
+<img src="../../digital-doge.png" width="41" height="44" />
 </a>
 </div>
 

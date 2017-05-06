@@ -139,7 +139,7 @@ EnemyBase animate_carrot (GraphicsEcs & ecs, const SceneEcs & scene, Entity old_
 	vec4 base_color (1.0f);
 	
 	vec4 blood_color = shadow_color;
-	float shadow_scale = max (0.0f, 0.25f / (jump_ofs + 1.0f));
+	float shadow_scale = glm::max (0.0f, 0.25f / (jump_ofs + 1.0f));
 	auto shadow_tex = ETexture::Shadow;
 	
 	if (dead) {
@@ -200,7 +200,7 @@ EnemyBase animate_crabapple (GraphicsEcs & ecs, const SceneEcs & scene, Entity o
 	vec4 base_color (1.0f);
 	
 	vec4 blood_color = shadow_color;
-	float shadow_scale = max (0.0f, 0.25f / (jump_ofs + 1.0f));
+	float shadow_scale = glm::max (0.0f, 0.25f / (jump_ofs + 1.0f));
 	auto shadow_tex = ETexture::Shadow;
 	
 	if (dead) {
@@ -261,7 +261,7 @@ EnemyBase animate_beetnik (GraphicsEcs & ecs, const SceneEcs & scene, Entity old
 	vec4 base_color (1.0f);
 	
 	vec4 blood_color = shadow_color;
-	float shadow_scale = max (0.0f, 0.25f / (jump_ofs + 1.0f));
+	float shadow_scale = glm::max (0.0f, 0.25f / (jump_ofs + 1.0f));
 	auto shadow_tex = ETexture::Shadow;
 	
 	if (dead) {
@@ -413,7 +413,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		}
 		
 		vec4 blood_color = shadow_color;
-		float shadow_scale = max (0.0f, 2.0f / (base_pos.z + 1.0f));
+		float shadow_scale = glm::max (0.0f, 2.0f / (base_pos.z + 1.0f));
 		auto shadow_tex = ETexture::Shadow;
 		
 		if (dead) {
@@ -498,7 +498,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		//cerr << "venus: (" << base_pos.x << ", " << base_pos.y << ")" << endl;
 		
 		{
-			float shadow_scale = max (0.0f, 0.5f / (pos.z + 1.0f));
+			float shadow_scale = glm::max (0.0f, 0.5f / (pos.z + 1.0f));
 			auto s = add_sprite (ecs, pos * vec3 (1.0f, 1.0f, 0.0f), vec3 (shadow_scale, 0.5f * shadow_scale, shadow_scale), shadow_color, ETexture::Shadow);
 			
 			shadows.renderables [s];
@@ -514,7 +514,7 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 		
 		ecs.diffuse_colors [e] = vec4 (1.0f);
 		
-		if (flash && get_component (scene.damage_flash, old_e, (long)0) >= frames) {
+		if (flash && get_component (scene.damage_flash, old_e, (int64_t)0) >= frames) {
 			ecs.diffuse_colors [e] = vec4 (1.0f, 0.1f, 0.1f, 1.0f);
 		}
 		

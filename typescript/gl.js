@@ -6,7 +6,9 @@ ecs = false;
 function animate_start() {
     animate = Module.cwrap('animate', 'number', ['number']);
     get_msg = Module.cwrap("get_msg", "string", ["number"]);
-    vegicide_init = Module.cwrap("vegicide_init", "void *", []);
+    vegicide_init = Module.cwrap("vegicide_init", "VgHandle", []);
+    vegicide_step = Module.cwrap("vegicide_step", "void", []);
+    vegicide_get_graphics_json = Module.cwrap("vegicide_get_graphics_json", "string", []);
     vg_handle = vegicide_init();
 }
 function start() {
@@ -25,14 +27,14 @@ function start() {
         window.setInterval(step, 1000.0 / 60.0);
     }
     scene_ecs = JSON.parse(sync_xhr("scene_ecs.json"));
-    ecs = JSON.parse(sync_xhr("graphics_ecs.json"));
+    //ecs = JSON.parse (sync_xhr ("graphics_ecs.json"));
     animate_start();
 }
 function step() {
+    vegicide_step();
     frame += 1.0;
-    if (frame > 360.0) {
-        frame -= 360.0;
-    }
+    var ecs_json = vegicide_get_graphics_json();
+    ecs = JSON.parse(ecs_json);
     draw();
 }
 function set_shader(shader) {
@@ -79,7 +81,7 @@ function draw() {
         var transparent_pass = ecs["passes"][2];
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         draw_pass(ecs, transparent_pass, 2);
-        {
+        if (false) {
             var model_mat = new TSM.mat4([0.875685, 0, 0, 0, -0, -1.12432, -0, -0, 0, 0, 1, 0, 4, 22.7507, 0, 1]);
             var mvpMatrix = new TSM.mat4(ecs["passes"][2].proj_view_mat).multiply(model_mat);
             gl.uniformMatrix4fv(current_shader.mvpUniform, false, new Float32Array(mvpMatrix.all()));
@@ -102,7 +104,7 @@ function initWebGl(canvas) {
     catch (e) {
     }
     if (!gl) {
-        //alert ("Can't initialize WebGL");
+        alert("Can't initialize WebGL");
     }
 }
 function init_square() {
