@@ -5,7 +5,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "colorado/gl.h"
+#include "gl-consts.h"
 
 #include "level.h"
 
@@ -44,8 +44,8 @@ void curtain (GraphicsEcs & ecs, float t) {
 	float smooth_t = (1 - t) * (1 - t);
 	
 	GlState opaque_state;
-	opaque_state.bools [GL_DEPTH_TEST] = false;
-	opaque_state.bools [GL_CULL_FACE] = false;
+	opaque_state.bools [VEGL_DEPTH_TEST] = false;
+	opaque_state.bools [VEGL_CULL_FACE] = false;
 	
 	Pass curtain;
 	curtain.shader = (ShaderKey)EShader::Opaque;
@@ -83,8 +83,8 @@ GraphicsEcs animate_title (long frames, float curtain_t, float /*aspect*/)
 	vec3 camera (floor (-56 + noise), floor (0), 0);
 	
 	GlState opaque_state;
-	opaque_state.bools [GL_DEPTH_TEST] = false;
-	opaque_state.bools [GL_CULL_FACE] = false;
+	opaque_state.bools [VEGL_DEPTH_TEST] = false;
+	opaque_state.bools [VEGL_CULL_FACE] = false;
 	
 	Pass opaque;
 	opaque.shader = (ShaderKey)EShader::Opaque;
@@ -325,22 +325,22 @@ GraphicsEcs animate_vegicide (const SceneEcs & scene, const Level &, long frames
 	const auto proj_view_mat = proj_mat * view_mat;
 	
 	GlState opaque_state;
-	opaque_state.bools [GL_DEPTH_TEST] = false;
-	opaque_state.bools [GL_CULL_FACE] = false;
+	opaque_state.bools [VEGL_DEPTH_TEST] = false;
+	opaque_state.bools [VEGL_CULL_FACE] = false;
 	
 	GlState transparent_state;
-	transparent_state.bools [GL_DEPTH_TEST] = false;
-	transparent_state.bools [GL_BLEND] = true;
-	transparent_state.bools [GL_CULL_FACE] = false;
-	transparent_state.blendFunc [0] = GL_SRC_ALPHA;
-	transparent_state.blendFunc [1] = GL_ONE_MINUS_SRC_ALPHA;
+	transparent_state.bools [VEGL_DEPTH_TEST] = false;
+	transparent_state.bools [VEGL_BLEND] = true;
+	transparent_state.bools [VEGL_CULL_FACE] = false;
+	transparent_state.blendFunc [0] = VEGL_SRC_ALPHA;
+	transparent_state.blendFunc [1] = VEGL_ONE_MINUS_SRC_ALPHA;
 	
 	GlState shadow_state;
-	shadow_state.bools [GL_DEPTH_TEST] = false;
-	shadow_state.bools [GL_BLEND] = true;
-	shadow_state.bools [GL_CULL_FACE] = false;
-	shadow_state.blendFunc [0] = GL_DST_COLOR;
-	shadow_state.blendFunc [1] = GL_ZERO;
+	shadow_state.bools [VEGL_DEPTH_TEST] = false;
+	shadow_state.bools [VEGL_BLEND] = true;
+	shadow_state.bools [VEGL_CULL_FACE] = false;
+	shadow_state.blendFunc [0] = VEGL_DST_COLOR;
+	shadow_state.blendFunc [1] = VEGL_ZERO;
 	
 	Pass opaque;
 	opaque.shader = (ShaderKey)EShader::Opaque;
