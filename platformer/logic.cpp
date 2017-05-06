@@ -4,7 +4,11 @@
 
 #include <glm/glm.hpp>
 
-using namespace glm;
+using glm::vec2;
+using glm::vec3;
+using glm::vec4;
+using glm::mat4;
+using glm::clamp;
 using namespace std;
 
 EPowerup name_to_powerup (string name) {

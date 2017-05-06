@@ -252,10 +252,10 @@ int main (int /* argc */, char * /* argv */ []) {
 			GraphicsEcs graphics_ecs;
 			switch (game_state) {
 				case GameState::Title:
-					graphics_ecs = animate_title (frames, curtain_t, screen_opts);
+					graphics_ecs = animate_title (frames, curtain_t, 800.0 / 480.0);
 					break;
 				case GameState::Game:
-					graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, screen_opts);
+					graphics_ecs = animate_vegicide (logic.scene, logic.level, frames, 800.0 / 480.0);
 					
 					if (dumped_ecs) {
 						// Pass

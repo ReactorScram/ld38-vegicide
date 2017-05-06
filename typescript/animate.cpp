@@ -15,6 +15,7 @@
 #include "ecs/ecs.cpp"
 #include "platformer/logic.cpp"
 #include "platformer/scene-json.cpp"
+#include "platformer/input-frame.cpp"
 
 using namespace std;
 

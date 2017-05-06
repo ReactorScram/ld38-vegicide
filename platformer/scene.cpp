@@ -5,12 +5,9 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "colorado/camera.h"
 #include "colorado/gl.h"
-#include "colorado/screen-options.h"
 
 #include "level.h"
-#include "prns.h"
 
 using namespace Colorado;
 using namespace glm;
@@ -71,7 +68,7 @@ void curtain (GraphicsEcs & ecs, float t) {
 /*
 "If a man will begin with curtain_t's, he shall end in doubts; but if he will be content to begin with doubts, he shall end in curtain_t's." -- France is Bacon 
  */
-GraphicsEcs animate_title (long frames, float curtain_t, const ScreenOptions & /*screen_opts*/)
+GraphicsEcs animate_title (long frames, float curtain_t, float /*aspect*/)
 {
 	const float t = frames / 60.0f;
 	float phase = t * 2.0 * 3.1415926535;

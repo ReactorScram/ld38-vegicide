@@ -12,7 +12,7 @@ struct ScreenOptions;
 
 struct Level;
 
-GraphicsEcs animate_title (long frames, float curtain_t, const Colorado::ScreenOptions & screen_opts);
+GraphicsEcs animate_title (long frames, float curtain_t, float aspect);
 GraphicsEcs animate_vegicide (const SceneEcs & ecs, const Level & level, long frames, float aspect);
 
 #endif

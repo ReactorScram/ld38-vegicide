@@ -8,4 +8,4 @@ gl.js: gl.ts webgl.d.ts
 INC_DIR = -I.. -I../../glm-0.9.6.1/glm
 
 animate.js: animate.cpp
-	em++ --std=c++1y -s EXPORTED_FUNCTIONS="['_animate', '_get_msg', '_vegicide_init']" -g0 -O2 $(INC_DIR) -s ASYNCIFY=1 -o $@ $<
+	em++ --std=c++1y -s EXPORTED_FUNCTIONS="['_animate', '_get_msg', '_vegicide_init', '_vegicide_step', '_vegicide_get_graphics_json']" -g0 -O2 $(INC_DIR) -s ASYNCIFY=1 -o $@ $<
