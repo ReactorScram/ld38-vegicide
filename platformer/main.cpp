@@ -458,7 +458,7 @@ int main (int /* argc */, char * /* argv */ []) {
 	
 	Audio audio (terf);
 	
-	bool play_demo = false;
+	bool play_demo = true;
 	map <long, vector <KeyEvent> > input_key_log;
 	if (play_demo) {
 		auto buffer = terf.lookupFile ("key_log.bin");
@@ -484,7 +484,7 @@ int main (int /* argc */, char * /* argv */ []) {
 	
 	ofstream key_log ("key_log.txt", ios_base::app);
 	
-	bool record_demo = true;
+	bool record_demo = !play_demo;
 	if (record_demo) {
 		key_log << "# Vegicide writes this file for debugging purposes but never reads it back" << endl;
 		key_log << "# Frame count, key down, key code" << endl;

@@ -52,7 +52,7 @@ function start () {
 		draw ();
 		
 		// ms between frames
-		window.setInterval (step, 1000.0 / 60.0);
+		window.setInterval (step, 1000.0 / 10.0);
 	}
 	
 	ecs = JSON.parse (sync_xhr ("graphics_ecs.json"));
