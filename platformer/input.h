@@ -20,6 +20,9 @@ struct KeyEvent {
 	uint8_t code;
 };
 
+union SDL_Event;
+KeyEvent encode (const SDL_Event & ev);
+
 struct InputFrame {
 	bool buttons [(int)InputButton::NUM_BUTTONS];
 	bool taps [(int)InputButton::NUM_BUTTONS];
@@ -32,15 +35,11 @@ struct InputFrame {
 	void clear_taps ();
 };
 
-union SDL_Event;
-
 struct Input {
 	InputFrame frame;
 	
 	void clear_taps ();
 	void process (const KeyEvent & ev);
-	
-	static KeyEvent encode (const SDL_Event & ev);
 };
 
 #endif

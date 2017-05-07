@@ -19,9 +19,8 @@ ecs = false;
 
 declare var mesh_square: any;
 declare var mesh_level: any;
-declare var animate: any;
-declare var get_msg: any;
 declare var vegicide_init: any;
+declare var vegicide_process_input: any;
 declare var vegicide_step: any;
 declare var vegicide_get_graphics_json: any;
 declare var vg_handle: any;
@@ -51,19 +50,22 @@ var key_map = {
 	Control: 4,
 	r: 5
 };
-
+/*
 var key_buttons: boolean [] = [];
 var key_taps: boolean [] = [];
 
 function clear_taps () {
 	key_taps = [];
 }
-
+*/
 function process_key_event (down: boolean, code: number) {
+	/*
 	if (code >= 0 && code <= 10) {
 		key_buttons [code] = down;
 		key_taps [code] = down;
 	}
+	*/
+	vegicide_process_input (down, code);
 	
 	//var debug_div = <HTMLCanvasElement> document.getElementById ("debug_div");
 	//debug_div.innerText = key_buttons;
@@ -92,13 +94,16 @@ document.addEventListener('keypress', (event) => {
 
 
 function animate_start () {
-	animate = Module.cwrap ('animate', 'number', ['number']);
-	get_msg = Module.cwrap ("get_msg", "string", ["number"]);
 	vegicide_init = Module.cwrap ("vegicide_init", "VgHandle", []);
-	vegicide_step = Module.cwrap ("vegicide_step", "void", []);
+	
+	vegicide_step = Module.cwrap ("vegicide_step", "", []);
 	vegicide_get_graphics_json = Module.cwrap ("vegicide_get_graphics_json", "string", []);
 	
 	vg_handle = vegicide_init ();
+	
+	vegicide_process_input = Module.cwrap ("vegicide_process_input", "", ["number", "number"]);
+	
+	alert (Module.cwrap ("vegicide_suck_futanari_cock", "", ["boolean"]));
 }
 
 function start () {
@@ -174,7 +179,7 @@ function draw () {
 	
 	gl.clear (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
-	if (ecs) {
+	if (ecs && ecs ["passes"]) {
 		set_shader (defaultShader);
 		var opaque_pass = ecs ["passes"][0];
 		gl.disable (gl.BLEND);
