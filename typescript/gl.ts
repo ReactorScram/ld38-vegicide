@@ -50,25 +50,9 @@ var key_map = {
 	Control: 4,
 	r: 5
 };
-/*
-var key_buttons: boolean [] = [];
-var key_taps: boolean [] = [];
 
-function clear_taps () {
-	key_taps = [];
-}
-*/
 function process_key_event (down: boolean, code: number) {
-	/*
-	if (code >= 0 && code <= 10) {
-		key_buttons [code] = down;
-		key_taps [code] = down;
-	}
-	*/
 	vegicide_process_input (down, code);
-	
-	//var debug_div = <HTMLCanvasElement> document.getElementById ("debug_div");
-	//debug_div.innerText = key_buttons;
 }
 
 document.addEventListener('keydown', (event) => {
