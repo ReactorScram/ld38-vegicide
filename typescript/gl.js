@@ -2,7 +2,6 @@
 // I modified it slightly as 'bool' is now 'boolean'
 ///<reference path="webgl.d.ts" />
 ///<reference path="tsm-master/TSM/tsm-0.7.d.ts" />
-ecs = false;
 var key_map = {
     ArrowRight: 0,
     d: 0,
@@ -32,7 +31,7 @@ document.addEventListener('keydown', function (event) {
         event.stopPropagation();
         event.preventDefault();
     }
-    process_key_event(true, key_map[keyName]);
+    process_key_event(1, key_map[keyName]);
 }, false);
 document.addEventListener('keyup', function (event) {
     var keyName = event.key;
@@ -40,7 +39,7 @@ document.addEventListener('keyup', function (event) {
         event.stopPropagation();
         event.preventDefault();
     }
-    process_key_event(false, key_map[keyName]);
+    process_key_event(0, key_map[keyName]);
 }, false);
 document.addEventListener('keypress', function (event) {
     var keyName = event.key;
@@ -53,8 +52,34 @@ function animate_start() {
     vegicide_init = Module.cwrap("vegicide_init", "VgHandle", []);
     vegicide_step = Module.cwrap("vegicide_step", "", []);
     vegicide_get_graphics_json = Module.cwrap("vegicide_get_graphics_json", "string", []);
+    vegicide_get_audio_json = Module.cwrap("vegicide_get_audio_json", "string", []);
     vg_handle = vegicide_init();
     vegicide_process_input = Module.cwrap("vegicide_process_input", "", ["number", "number"]);
+}
+function load_sound(name) {
+    return new Howl({
+        src: ["sounds/" + name + ".ogg", "sounds/" + name + ".webm", "sounds/" + name + ".mp3"]
+    });
+}
+function sound_start() {
+    sounds = new Map([
+        ["ambient", load_sound("ambient")],
+        ["attack", load_sound("attack")],
+        ["bling", load_sound("bling")],
+        ["crunch", load_sound("crunch")],
+        ["gasp", load_sound("gasp")],
+        ["king-laugh", load_sound("king-laugh")],
+        ["king-pain", load_sound("king-pain")],
+        ["king-roar", load_sound("king-roar")],
+        ["king-you", load_sound("king-you")],
+        ["respawn", load_sound("respawn")],
+        ["swooce", load_sound("swooce")],
+    ]);
+    sounds.get("ambient").loop(true);
+    sounds.get("ambient").play();
+}
+function play_sound(name) {
+    sounds.get(name).play();
 }
 function start() {
     var canvas = document.getElementById("glCanvas");
@@ -75,14 +100,35 @@ function start() {
     scene_ecs = JSON.parse(sync_xhr("scene_ecs.json"));
     //ecs = JSON.parse (sync_xhr ("graphics_ecs.json"));
     animate_start();
+    sound_start();
 }
 function step() {
     window.requestAnimationFrame(step);
     vegicide_step();
     frame += 1.0;
-    var ecs_json = vegicide_get_graphics_json();
-    ecs = JSON.parse(ecs_json);
-    draw();
+    var graphics_json = vegicide_get_graphics_json();
+    var graphics_ecs = JSON.parse(graphics_json);
+    draw(graphics_ecs);
+    var audio_json = vegicide_get_audio_json();
+    //console.log (audio_json);
+    var audio_ecs = JSON.parse(audio_json);
+    process_audio(audio_ecs);
+}
+function process_audio(ecs) {
+    var audio_names = [
+        "bling",
+        "crunch",
+        "gasp",
+        "king-laugh",
+        "king-pain",
+        "king-roar",
+        "king-you",
+        "respawn",
+        "swooce",
+    ];
+    ecs.sounds.forEach(function (sound_code) {
+        play_sound(audio_names[sound_code]);
+    });
 }
 function set_shader(shader) {
     current_shader = shader;
@@ -104,7 +150,7 @@ function set_vertex_attribs() {
     gl.vertexAttribPointer(current_shader.posAttr, 3, gl.FLOAT, false, 5 * 4, 0);
     gl.vertexAttribPointer(current_shader.texCoordAttr, 2, gl.FLOAT, false, 5 * 4, 3 * 4);
 }
-function draw() {
+function draw(ecs) {
     //window.requestAnimationFrame (draw);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if (ecs && ecs["passes"]) {
@@ -287,7 +333,7 @@ function initTextures() {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
             gl.generateMipmap(gl.TEXTURE_2D);
-            draw();
+            //draw ();
         };
         textureImage.src = "textures/" + texture_files[i] + ".png";
     };

@@ -5,6 +5,7 @@
 
 #include <glm/glm.hpp>
 
+#include "audio/audio-frame.h"
 #include "level.h"
 #include "scene.h"
 
@@ -326,6 +327,33 @@ void to_json (stringstream & s, const Level & level) {
 	s << "\"data\": ";
 	
 	to_json (s, level.data);
+	
+	s << " }";
+}
+
+void to_json (std::stringstream & s, const AudioFrame & audio_frame) {
+	s << "{ ";
+	s << "\"bgm\": " << (int)audio_frame.bgm << ", ";
+	
+	s << "\"sounds\": [ ";
+	
+	bool first = true;
+	for (int i = 0; i < (int)ESound::NUM_SOUNDS; i++) {
+		bool b = audio_frame.sounds [i];
+		
+		if (b) {
+			if (first) {
+				first = false;
+			}
+			else {
+				s << ", ";
+			}
+			
+			s << i;
+		}
+	}
+	
+	s << " ]";
 	
 	s << " }";
 }

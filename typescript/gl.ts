@@ -5,6 +5,11 @@
 // TSM is from Matthias Ferch https://github.com/matthiasferch/tsm
 ///<reference path="tsm-master/TSM/tsm-0.7.d.ts" />
 
+declare var Module: {
+	cwrap: (name: string, returnType: string, params: string[]) => any;
+	setValue: (ptr: number, value: number, type: string) => void;
+}
+
 declare var document: any;
 declare var frame: number;
 declare var gl: WebGLRenderingContext;
@@ -14,16 +19,27 @@ declare var textures: WebGLTexture [];
 declare var defaultShader: any;
 
 declare var scene_ecs: any;
-declare var ecs: any;
-ecs = false;
+declare var current_shader: any;
+declare var shadow_shader: any;
 
 declare var mesh_square: any;
 declare var mesh_level: any;
-declare var vegicide_init: any;
-declare var vegicide_process_input: any;
-declare var vegicide_step: any;
-declare var vegicide_get_graphics_json: any;
+
+declare var vegicide_init: () => any;
+declare var vegicide_process_input: (down: number, code: number) => void;
+declare var vegicide_step: () => void;
+declare var vegicide_get_graphics_json: () => string;
+declare var vegicide_get_audio_json: () => string;
+
 declare var vg_handle: any;
+
+declare class Howl {
+	constructor (params: Object);
+	play (): void;
+	loop (loop: boolean): void;
+}
+
+declare var sounds: Map <string, Howl>;
 
 declare class XMLHttpRequest {
 	onload: any;
@@ -51,7 +67,7 @@ var key_map = {
 	r: 5
 };
 
-function process_key_event (down: boolean, code: number) {
+function process_key_event (down: number, code: number) {
 	vegicide_process_input (down, code);
 }
 
@@ -67,7 +83,7 @@ document.addEventListener('keydown', (event) => {
 		event.stopPropagation ();
 		event.preventDefault ();
 	}
-	process_key_event (true, key_map [keyName]);
+	process_key_event (1, key_map [keyName]);
 }, false);
 
 document.addEventListener('keyup', (event) => {
@@ -77,7 +93,7 @@ document.addEventListener('keyup', (event) => {
 		event.stopPropagation ();
 		event.preventDefault ();
 	}
-	process_key_event (false, key_map [keyName]);
+	process_key_event (0, key_map [keyName]);
 }, false);
 
 document.addEventListener('keypress', (event) => {
@@ -95,10 +111,40 @@ function animate_start () {
 	
 	vegicide_step = Module.cwrap ("vegicide_step", "", []);
 	vegicide_get_graphics_json = Module.cwrap ("vegicide_get_graphics_json", "string", []);
+	vegicide_get_audio_json = Module.cwrap ("vegicide_get_audio_json", "string", []);
 	
 	vg_handle = vegicide_init ();
 	
 	vegicide_process_input = Module.cwrap ("vegicide_process_input", "", ["number", "number"]);
+}
+
+function load_sound (name) {
+	return new Howl ({
+		src: ["sounds/" + name + ".ogg", "sounds/" + name + ".webm", "sounds/" + name + ".mp3"]
+	});
+}
+
+function sound_start () {
+	sounds = new Map ([
+		["ambient", load_sound ("ambient")],
+		["attack", load_sound ("attack")],
+		["bling", load_sound ("bling")],
+		["crunch", load_sound ("crunch")],
+		["gasp", load_sound ("gasp")],
+		["king-laugh", load_sound ("king-laugh")],
+		["king-pain", load_sound ("king-pain")],
+		["king-roar", load_sound ("king-roar")],
+		["king-you", load_sound ("king-you")],
+		["respawn", load_sound ("respawn")],
+		["swooce", load_sound ("swooce")],
+	]);
+	
+	sounds.get ("ambient").loop (true);
+	sounds.get ("ambient").play ();
+}
+
+function play_sound (name: string) {
+	sounds.get (name).play ();
 }
 
 function start () {
@@ -127,6 +173,7 @@ function start () {
 	scene_ecs = JSON.parse (sync_xhr ("scene_ecs.json"));
 	//ecs = JSON.parse (sync_xhr ("graphics_ecs.json"));
 	animate_start ();
+	sound_start ();
 }
 
 function step () {
@@ -135,9 +182,32 @@ function step () {
 	
 	frame += 1.0;
 	
-	var ecs_json = vegicide_get_graphics_json ();
-	ecs = JSON.parse (ecs_json);
-	draw ()
+	var graphics_json = vegicide_get_graphics_json ();
+	var graphics_ecs = JSON.parse (graphics_json);
+	draw (graphics_ecs);
+	
+	var audio_json = vegicide_get_audio_json ();
+	//console.log (audio_json);
+	var audio_ecs = JSON.parse (audio_json);
+	process_audio (audio_ecs);
+}
+
+function process_audio (ecs: Object) {
+	var audio_names: string [] = [
+		"bling",
+		"crunch",
+		"gasp",
+		"king-laugh",
+		"king-pain",
+		"king-roar",
+		"king-you",
+		"respawn",
+		"swooce",
+	];
+	
+	ecs.sounds.forEach (function (sound_code) {
+		play_sound (audio_names [sound_code]);
+	});
 }
 
 function set_shader (shader) {
@@ -169,7 +239,7 @@ function set_vertex_attribs () {
 	gl.vertexAttribPointer (current_shader.texCoordAttr, 2, gl.FLOAT, false, 5 * 4, 3 * 4);
 }
 
-function draw () {
+function draw (ecs: Object) {
 	//window.requestAnimationFrame (draw);
 	
 	gl.clear (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -412,7 +482,7 @@ function initTextures () {
 			gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 			gl.generateMipmap (gl.TEXTURE_2D);
 			
-			draw ();
+			//draw ();
 		}
 		
 		textureImage.src = "textures/" + texture_files [i] + ".png";
