@@ -1,4 +1,4 @@
-#include "gl-state-tracker.h"
+#include "../graphics/gl-state-tracker.h"
 
 GlState::GlState () :
 	bools (),

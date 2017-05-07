@@ -13,13 +13,13 @@
 
 // Don't ever do this
 #include "ecs/ecs.cpp"
-#include "graphics/gl-dummy-state.cpp"
+#include "headless/gl-dummy-state.cpp"
 #include "platformer/input.cpp"
 #include "platformer/logic.cpp"
 #include "platformer/scene-json.cpp"
 #include "platformer/scene.cpp"
 #include "platformer/input-frame.cpp"
-#include "platformer/gl-dummy-consts.cpp"
+#include "headless/gl-dummy-consts.cpp"
 
 using namespace std;
 
@@ -29,9 +29,6 @@ extern "C" {
 	double animate (double t);
 	char * get_msg (double t);
 	VgHandle vegicide_init ();
-	void vegicide_suck_futanari_cock (bool always_true) {
-		// cout << "emscriipten is so gay it won't even suck futa cock";
-	}
 	void vegicide_process_input (int down, int code);
 	void vegicide_step ();
 	const char * vegicide_get_graphics_json ();

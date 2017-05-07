@@ -1,5 +1,7 @@
 #include "input.h"
 
+#include <SDL/SDL.h>
+
 InputButton map_key (int key) {
 	switch (key) {
 		case SDLK_LEFT:

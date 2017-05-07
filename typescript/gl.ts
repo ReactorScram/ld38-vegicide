@@ -55,15 +55,28 @@ function process_key_event (down: boolean, code: number) {
 	vegicide_process_input (down, code);
 }
 
+function vegicide_fullscreen () {
+	var game_div: any = document.getElementById ("game_div");
+	game_div.requestFullscreen ();
+}
+
 document.addEventListener('keydown', (event) => {
 	const keyName = event.key;
 	
+	if (key_map [keyName]) {
+		event.stopPropagation ();
+		event.preventDefault ();
+	}
 	process_key_event (true, key_map [keyName]);
 }, false);
 
 document.addEventListener('keyup', (event) => {
 	const keyName = event.key;
 	
+	if (key_map [keyName]) {
+		event.stopPropagation ();
+		event.preventDefault ();
+	}
 	process_key_event (false, key_map [keyName]);
 }, false);
 
@@ -86,8 +99,6 @@ function animate_start () {
 	vg_handle = vegicide_init ();
 	
 	vegicide_process_input = Module.cwrap ("vegicide_process_input", "", ["number", "number"]);
-	
-	alert (Module.cwrap ("vegicide_suck_futanari_cock", "", ["boolean"]));
 }
 
 function start () {

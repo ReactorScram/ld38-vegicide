@@ -19,31 +19,27 @@ var key_map = {
     Control: 4,
     r: 5
 };
-/*
-var key_buttons: boolean [] = [];
-var key_taps: boolean [] = [];
-
-function clear_taps () {
-    key_taps = [];
-}
-*/
 function process_key_event(down, code) {
-    /*
-    if (code >= 0 && code <= 10) {
-        key_buttons [code] = down;
-        key_taps [code] = down;
-    }
-    */
     vegicide_process_input(down, code);
-    //var debug_div = <HTMLCanvasElement> document.getElementById ("debug_div");
-    //debug_div.innerText = key_buttons;
+}
+function vegicide_fullscreen() {
+    var game_div = document.getElementById("game_div");
+    game_div.requestFullscreen();
 }
 document.addEventListener('keydown', function (event) {
     var keyName = event.key;
+    if (key_map[keyName]) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
     process_key_event(true, key_map[keyName]);
 }, false);
 document.addEventListener('keyup', function (event) {
     var keyName = event.key;
+    if (key_map[keyName]) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
     process_key_event(false, key_map[keyName]);
 }, false);
 document.addEventListener('keypress', function (event) {
@@ -59,7 +55,6 @@ function animate_start() {
     vegicide_get_graphics_json = Module.cwrap("vegicide_get_graphics_json", "string", []);
     vg_handle = vegicide_init();
     vegicide_process_input = Module.cwrap("vegicide_process_input", "", ["number", "number"]);
-    alert(Module.cwrap("vegicide_suck_futanari_cock", "", ["boolean"]));
 }
 function start() {
     var canvas = document.getElementById("glCanvas");

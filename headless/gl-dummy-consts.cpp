@@ -1,4 +1,4 @@
-#include "gl-consts.h"
+#include "../platformer/gl-consts.h"
 
 // See gl-consts.cpp
 // This is a dummy version for compiling scene.cpp without OpenGL

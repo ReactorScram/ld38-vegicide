@@ -191,7 +191,7 @@ int main (int /* argc */, char * /* argv */ []) {
 					running = false;
 				}
 				else {
-					evs.push_back (Input::encode (ev));
+					evs.push_back (encode (ev));
 				}
 			}
 			
