@@ -36,10 +36,12 @@ declare var vg_handle: any;
 declare class Howl {
 	constructor (params: Object);
 	play (): void;
+	stop (): void;
 	loop (loop: boolean): void;
 }
 
 declare var sounds: Map <string, Howl>;
+var bgm_music = "";
 
 declare class XMLHttpRequest {
 	onload: any;
@@ -139,8 +141,19 @@ function sound_start () {
 		["swooce", load_sound ("swooce")],
 	]);
 	
-	sounds.get ("ambient").loop (true);
-	sounds.get ("ambient").play ();
+	play_music ("ambient");
+}
+
+function play_music (name: string) {
+	if (name != bgm_music) {
+		if (sounds.get (bgm_music)) {
+			sounds.get (bgm_music).stop ();
+		}
+		
+		bgm_music = name;
+		sounds.get (name).loop (true);
+		sounds.get (name).play ();
+	}
 }
 
 function play_sound (name: string) {
@@ -208,6 +221,14 @@ function process_audio (ecs: Object) {
 	ecs.sounds.forEach (function (sound_code) {
 		play_sound (audio_names [sound_code]);
 	});
+	
+	var music_names: string [] = [
+		"ambient",
+		"ambient",
+		"attack",
+	];
+	
+	play_music (music_names [ecs.bgm]);
 }
 
 function set_shader (shader) {
