@@ -66,6 +66,8 @@ var key_map = {
 	s: 3,
 	k: 3,
 	Control: 4,
+	Shift: 4,
+	[" "]: 4,
 	r: 5
 };
 

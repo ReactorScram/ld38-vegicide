@@ -3,22 +3,25 @@
 ///<reference path="webgl.d.ts" />
 ///<reference path="tsm-master/TSM/tsm-0.7.d.ts" />
 var bgm_music = "";
-var key_map = {
-    ArrowRight: 0,
-    d: 0,
-    l: 0,
-    ArrowUp: 1,
-    w: 1,
-    i: 1,
-    ArrowLeft: 2,
-    a: 2,
-    j: 2,
-    ArrowDown: 3,
-    s: 3,
-    k: 3,
-    Control: 4,
-    r: 5
-};
+var key_map = (_a = {
+        ArrowRight: 0,
+        d: 0,
+        l: 0,
+        ArrowUp: 1,
+        w: 1,
+        i: 1,
+        ArrowLeft: 2,
+        a: 2,
+        j: 2,
+        ArrowDown: 3,
+        s: 3,
+        k: 3,
+        Control: 4,
+        Shift: 4
+    },
+    _a[" "] = 4,
+    _a.r = 5,
+    _a);
 function process_key_event(down, code) {
     vegicide_process_input(down, code);
 }
@@ -357,3 +360,4 @@ function initTextures() {
         _loop_1(i);
     }
 }
+var _a;
