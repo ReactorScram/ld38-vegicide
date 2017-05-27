@@ -6,7 +6,9 @@ LIBS = openal sdl sqlite3
 # Add additional include paths
 INCLUDES = -I $(SRC_PATH) -I .. -I $(DEP_PATH)/colorado -I $(DEP_PATH)/terf -I $(DEP_PATH) -I /usr/include/SOIL
 # General linker settings
-LINK_FLAGS = -L ../audio/ -L ../graphics/ -L ../depends -lGLee -lGL -lSOIL -lcolorado_scene -lColoradoAudio -l ColoradoExcelsior
+LINK_FLAGS = -L ../audio/ -L ../graphics/ -L ../depends \
+-lGLESv2 -lcolorado_scene -lColoradoAudio -l ColoradoExcelsior -lEGL \
+-lceecrap -leglport
 # Additional release-specific linker settings
 RLINK_FLAGS =
 # Additional debug-specific linker settings

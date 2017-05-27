@@ -3,7 +3,7 @@
 
 #ifdef COLORADO_PANDORA
 	#include <GLES2/gl2.h>
-	#include <eglport.h>
+	#include <eglport/eglport.h>
 	
 	#define GL_CLAMP GL_CLAMP_TO_EDGE
 #else

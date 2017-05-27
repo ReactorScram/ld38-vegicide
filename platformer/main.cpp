@@ -44,15 +44,16 @@ enum class GameState {
 
 int main (int /* argc */, char * /* argv */ []) {
 	string window_title = "ReactorScram LD38 Vegicide";
-	Terf::Archive terf ("rom.tar", "rom.tar.index");
-	terf.enableTerfLookup = false;
+	string rom_name = "vegicide-assets.tar";
+	Terf::Archive terf (rom_name, rom_name + ".index");
+	terf.enableTerfLookup = true;
 	terf.enableFsLookup = true;
 	ResourceTable rc = make_resource_table ();
 	
 	// End of game-specific bits
 	
 	ScreenOptions screen_opts;
-	screen_opts.fullscreen = false;
+	screen_opts.fullscreen = true;
 	screen_opts.width = 800;
 	screen_opts.height = 480;
 	
@@ -129,6 +130,9 @@ int main (int /* argc */, char * /* argv */ []) {
 		key_log << "# Frame count, key down, key code" << endl;
 	}
 	
+	uint32_t logic_time = 0;
+	uint32_t slow_frames = 0;
+	
 	while (running) {
 		auto frame_time = SDL_GetTicks ();
 		auto numSteps = timestep.step (frame_time - last_frame_time);
@@ -191,9 +195,17 @@ int main (int /* argc */, char * /* argv */ []) {
 			}
 			input.clear_taps ();
 			
-			audio.update (logic.scene.audio_frame);
+			//audio.update (logic.scene.audio_frame);
 			
 			frames++;
+		}
+		
+		auto frame_logic_time = SDL_GetTicks () - frame_time;
+		logic_time += frame_logic_time;
+		
+		if (frame_logic_time > 3) {
+			cerr << "slow frame " << frame_logic_time << endl;
+			slow_frames++;
 		}
 		
 		if (numSteps == 0) {
@@ -221,6 +233,10 @@ int main (int /* argc */, char * /* argv */ []) {
 			//ve.encodeAccumulatedFrame (frames * 1000 / 60);
 		}
 	}
+	
+	cerr << "logic ms / frame " << (double)logic_time / frames << 
+	endl;
+	cerr << "slow frames " << (double)slow_frames / frames << endl;
 	
 	return 0;
 }

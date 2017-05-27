@@ -5,6 +5,7 @@ build
 /maps
 /meshes
 /meshes-blender
+/releases
 /screenshots
 /svg
 /textures
@@ -16,5 +17,7 @@ build
 *.flac
 *.mp3
 *.ogg
+*.pnd
+*.so
 *.wav
 *.zip

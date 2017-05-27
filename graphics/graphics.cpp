@@ -13,7 +13,7 @@ using namespace glm;
 using namespace std;
 
 Graphics::Graphics () {
-	GLeeInit ();
+	//GLeeInit ();
 }
 
 void Graphics::load (const Terf::Archive & terf, const ResourceTable & rc) {

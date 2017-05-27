@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 
-//#include "ivorbisfile.h"
+#include "ivorbisfile.h"
 
 #include "terf/terf.h"
 

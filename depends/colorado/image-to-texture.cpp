@@ -6,7 +6,7 @@ using std::endl;
 
 #include <stdint.h>
 
-#include "SOIL.h"
+#include "soil/src/SOIL.h"
 
 static const uint32_t GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00;
 static const uint32_t GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 0x8C01;
