@@ -244,7 +244,7 @@ int main (int /* argc */, char * /* argv */ []) {
 			}
 			input.clear_taps ();
 			
-			//audio.update (logic.scene.audio_frame);
+			audio.update (logic.scene.audio_frame);
 			
 			frames++;
 		}
