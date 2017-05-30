@@ -1,0 +1,66 @@
+CC = gcc
+CXX = g++
+COMMONFLAGS = -fPIC -Wall -Wextra -O3 -Icolorado -I. -D COLORADO_HAVE_GLES -D USE_EGL_SDL -D USE_GLES2 -D COLORADO_PANDORA
+CFLAGS = $(COMMONFLAGS)
+CPPFLAGS = $(COMMONFLAGS) --std=c++17
+LDFLAGS = -shared
+RM = rm -f
+TARGET_LIB = libvegicide_depends.so
+
+C_SRCS = \
+	soil/src/stb_image_aug.c \
+	soil/src/SOIL.c \
+	soil/src/image_DXT.c \
+	soil/src/image_helper.c \
+	eglport/eglport.c \
+
+CPP_SRCS = \
+	terf/terf.cpp \
+	colorado/triangle-optimizer.cpp \
+	colorado/gl-error.cpp \
+	colorado/vbo-element.cpp \
+	colorado/image-to-texture.cpp \
+	colorado/vbo.cpp \
+	colorado/gl-buffer.cpp \
+	colorado/read-file.cpp \
+	colorado/mesh.cpp \
+	colorado/triangle-shader.cpp \
+	colorado/gl-shader.cpp \
+	colorado/screen-options.cpp \
+	colorado/ui-vbo-node.cpp \
+	colorado/fixed-timestep.cpp \
+	colorado/aabb.cpp \
+	colorado/sky-box.cpp \
+	colorado/gl.cpp \
+	colorado/particle-node.cpp \
+	colorado/particle-element.cpp \
+	colorado/attribute-enabler.cpp \
+	colorado/plane.cpp \
+	colorado/game.cpp \
+	colorado/node-renderer.cpp \
+	colorado/video-encoder/video-encoder-null.cpp \
+
+C_OBJS = $(C_SRCS:.c=.o)
+CPP_OBJS = $(CPP_SRCS:.cpp=.o)
+
+.PHONY: all
+all: ${TARGET_LIB} ${C_DEPS} ${CPP_DEPS}
+
+$(TARGET_LIB): $(C_OBJS) $(CPP_OBJS) 
+	$(CXX) ${LDFLAGS} -o $@ $^
+
+C_DEPS = $(C_SRCS:.c=.d)
+CPP_DEPS = $(CPP_SRCS:.cpp=.d)
+
+$(C_DEPS):%.d:%.c
+	$(CC) $(CFLAGS) -MM $< > $@
+
+$(CPP_DEPS):%.d:%.cpp
+	$(CXX) $(CPPFLAGS) -MM $< > $@
+
+include $(C_SRCS:.c=.d)
+include $(CPP_SRCS:.cpp=.d)
+
+.PHONY: clean
+clean:
+	${RM} ${TARGET_LIB} ${C_OBJS} $(C_SRCS:.c=.d) ${CPP_OBJS} $(CPP_SRCS:.cpp=.d)

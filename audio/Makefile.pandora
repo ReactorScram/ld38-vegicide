@@ -1,0 +1,30 @@
+CXX = g++
+INCLUDES = -I $(DEP_PATH) -I $(DEP_PATH)/colorado 
+CPPFLAGS = -fPIC -Wall -Wextra -O3 $(INCLUDES) --std=c++17
+LDFLAGS = -shared
+RM = rm -f
+TARGET_LIB = libColoradoAudio.so
+
+CPP_SRCS = \
+	stb-vorbis-dec.cpp \
+	tremor-dec.cpp \
+	audio-stream.cpp \
+	audio.cpp \
+
+CPP_OBJS = $(CPP_SRCS:.cpp=.o)
+
+.PHONY: all
+all: ${TARGET_LIB}
+
+$(TARGET_LIB): $(CPP_OBJS)
+	$(CXX) ${LDFLAGS} -o $@ $^
+
+$(CPP_SRCS:.cpp=.d):%.d:%.cpp
+	$(CXX) $(CPPFLAGS) -MM $< > $@
+
+include $(CPP_SRCS:.cpp=.d)
+
+.PHONY: clean
+clean:
+	${RM} ${TARGET_LIB} ${CPP_OBJS} $(CPP_SRCS:.cpp=.d)
+	

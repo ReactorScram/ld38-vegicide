@@ -145,7 +145,7 @@ int main (int /* argc */, char * /* argv */ []) {
 	//cerr << "Initializing audio" << endl;
 	Audio audio (terf);
 	
-	bool play_demo = true;
+	bool play_demo = false;
 	map <long, vector <KeyEvent> > input_key_log;
 	if (play_demo) {
 		auto buffer = terf.lookupFile ("key_log.bin");

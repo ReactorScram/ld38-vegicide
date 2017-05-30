@@ -14,7 +14,12 @@ using glm::vec2;
 using glm::vec3;
 using glm::vec4;
 using glm::mat4;
+using glm::mix;
 using glm::mod;
+using glm::normalize;
+using glm::translate;
+using glm::rotate;
+using glm::scale;
 using std::cerr;
 using std::endl;
 

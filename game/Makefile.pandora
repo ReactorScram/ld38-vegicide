@@ -1,18 +1,36 @@
-#### PROJECT SETTINGS ####
-# The name of the executable to be created
-BIN_NAME := Platformer.exe
-# Space-separated pkg-config libraries used by this project
-LIBS = openal sdl sqlite3
-# Add additional include paths
-INCLUDES = -I $(SRC_PATH) -I .. -I $(DEP_PATH)/colorado -I $(DEP_PATH)/terf -I $(DEP_PATH) -I /usr/include/SOIL
-# General linker settings
-LINK_FLAGS = -L ../audio/ -L ../graphics/ -L ../depends \
--lGLESv2 -lcolorado_scene -lColoradoAudio -l ColoradoExcelsior -lEGL \
--lceecrap -leglport
-# Additional release-specific linker settings
-RLINK_FLAGS =
-# Additional debug-specific linker settings
-DLINK_FLAGS =
-#### END PROJECT SETTINGS ####
+CXX = g++
+INCLUDES = -I .. -I $(DEP_PATH) -I $(DEP_PATH)/colorado -I ../../glm-0.9.6.3/glm
+CPPFLAGS = -Wall -Wextra -O3 $(INCLUDES) --std=c++17 -D COLORADO_PANDORA -D COLORADO_HAVE_GLES -D USE_EGL_SDL -D USE_GLES2
+LDFLAGS = `pkg-config --libs openal sdl sqlite3` -L ../audio/ -L ../graphics/ -L ../audio/ -lGLESv2 -lEGL -lopusfile -L ../depends -lvegicide_depends -lcolorado_scene -lColoradoAudio -L ../ecs -lcolorado_ecs
+RM = rm -f
+TARGET_BIN = Vegicide.exe
 
-include ../Makefile.common
+CPP_SRCS = \
+	scene-json.cpp \
+	input-sdl.cpp \
+	main.cpp \
+	scene.cpp \
+	gl-consts.cpp \
+	level.cpp \
+	logic.cpp \
+	input-frame.cpp \
+	input.cpp \
+
+CPP_OBJS = $(CPP_SRCS:.cpp=.o)
+
+.PHONY: all
+all: ${TARGET_BIN}
+
+$(TARGET_BIN): $(CPP_OBJS)
+	$(CXX) ${LDFLAGS} -o $@ $^
+
+$(CPP_SRCS:.cpp=.d):%.d:%.cpp
+	$(CXX) $(CPPFLAGS) -MM $< > $@
+
+include $(CPP_SRCS:.cpp=.d)
+
+.PHONY: clean
+clean:
+	${RM} ${TARGET_BIN} ${CPP_OBJS} $(CPP_SRCS:.cpp=.d)
+	
+
