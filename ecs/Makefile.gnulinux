@@ -1,0 +1,26 @@
+CXX = g++
+INCLUDES = -I.
+CPPFLAGS = -fPIC -Wall -Wextra -O3 $(INCLUDES)
+LDFLAGS = -shared
+RM = rm -f
+TARGET_LIB = libcolorado_ecs.so
+
+CPP_SRCS = \
+	ecs.cpp \
+
+CPP_OBJS = $(CPP_SRCS:.cpp=.o)
+
+.PHONY: all
+all: ${TARGET_LIB}
+
+$(TARGET_LIB): $(CPP_OBJS)
+	$(CXX) ${LDFLAGS} -o $@ $^
+
+$(CPP_SRCS:.cpp=.d):%.d:%.cpp
+	$(CXX) $(CPPFLAGS) -MM $< >$@
+
+include $(CPP_SRCS:.cpp=.d)
+
+.PHONY: clean
+clean:
+	${RM} ${TARGET_LIB} ${CPP_OBJS} $(CPP_SRCS:.cpp=.d)

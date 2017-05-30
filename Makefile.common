@@ -1,11 +1,12 @@
 # Compiler used
-CXX = clang++
+CC = gcc
+CXX = g++
 # Extension of source files used in the project
 SRC_EXT = cpp
 # Path to the source directory, relative to the makefile
 SRC_PATH = .
 # General compiler flags
-COMPILE_FLAGS = --std=c++1y -Werror -pedantic -Wall -Wextra -fPIC -D GLM_FORCE_CXX98
+COMPILE_FLAGS = --std=c++1y -pedantic -Wall -Wextra -fPIC -D GLM_FORCE_CXX98 -D COLORADO_PANDORA
 # Additional release-specific flags
 RCOMPILE_FLAGS = -D NDEBUG
 # Additional debug-specific flags
@@ -68,6 +69,9 @@ else
 						| sort -k 1nr | cut -f2-)
 endif
 
+C_SOURCES = $(shell find $(SRC_PATH) -name '*.c' -printf'%T@\t%p\n' \
+		| sort -k 1nr | cut -f2-)
+
 # fallback in case the above fails
 rwildcard = $(foreach d, $(wildcard $1*), $(call rwildcard,$d/,$2) \
 						$(filter $(subst *,%,$2), $d))
@@ -80,6 +84,8 @@ endif
 OBJECTS = $(SOURCES:$(SRC_PATH)/%.$(SRC_EXT)=$(BUILD_PATH)/%.o)
 # Set the dependency files that will be used to add header dependencies
 DEPS = $(OBJECTS:.o=.d)
+
+C_OBJECTS = $(C_SOURCE:$(SRC_PATH)/%.c=$(BUILD_PATH)/%.o)
 
 # Macros for timing compilation
 ifeq ($(UNAME_S),Darwin)
@@ -177,10 +183,10 @@ all: $(BIN_PATH)/$(BIN_NAME)
 	@ln -s $(BIN_PATH)/$(BIN_NAME) $(BIN_NAME)
 
 # Link the executable
-$(BIN_PATH)/$(BIN_NAME): $(OBJECTS)
+$(BIN_PATH)/$(BIN_NAME): $(OBJECTS) $(C_OBJECTS)
 	@echo "Linking: $@"
 	@$(START_TIME)
-	$(CMD_PREFIX)$(CXX) $(OBJECTS) $(LDFLAGS) -o $@
+	$(CMD_PREFIX)$(CXX) $(OBJECTS) $(C_OBJECTS) $(LDFLAGS) -o $@
 	@echo -en "\t Link time: "
 	@$(END_TIME)
 

@@ -1,0 +1,22 @@
+default: all
+
+MODULES = depends ecs graphics audio game
+
+DEP_PATH = $(realpath depends)
+
+.PHONY: clean debug all $(MODULES)
+
+all: maps/demo.bin maps/demo.sqlite
+	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) -f Makefile.gnulinux DEP_PATH=$(DEP_PATH) &&) true
+
+clean:
+	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) -f Makefile.gnulinux clean &&) true
+
+debug:
+	$(foreach MODULE, $(MODULES), $(MAKE) -C $(MODULE) -f Makefile.gnulinux debug && ) true
+
+maps/demo.bin: maps/demo.lua
+	luajit map-binner.lua --tiles $< > $@
+
+maps/demo.sqlite: maps/demo.lua
+	luajit map-binner.lua --objects $< | sqlite3 $@

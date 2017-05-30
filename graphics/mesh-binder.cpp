@@ -16,6 +16,8 @@ Mesh::Mesh () :
 }
 
 void Mesh::loadIqm (const vector <uint8_t> & buffer) {
+	//cerr << "Loading IQM of " << buffer.size () << " bytes" << endl;
+	
 	if (buffer.size () < sizeof (iqmheader)) {
 		// File too small
 		return;

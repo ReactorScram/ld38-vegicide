@@ -1,0 +1,35 @@
+CXX = g++
+INCLUDES = -I .. -I $(DEP_PATH) -I $(DEP_PATH)/colorado 
+CPPFLAGS = -Wall -Wextra -O3 $(INCLUDES)
+LDFLAGS = `pkg-config --libs openal sdl sqlite3` -L ../audio/ -L ../graphics/ -L ../audio/ -lGLee -lGL -lopusfile -L ../depends -lvegicide_depends -lcolorado_scene -lColoradoAudio -L ../ecs -lcolorado_ecs
+RM = rm -f
+TARGET_BIN = Vegicide.exe
+
+CPP_SRCS = \
+	scene-json.cpp \
+	input-sdl.cpp \
+	main.cpp \
+	scene.cpp \
+	gl-consts.cpp \
+	level.cpp \
+	logic.cpp \
+	input-frame.cpp \
+	input.cpp \
+
+CPP_OBJS = $(CPP_SRCS:.cpp=.o)
+
+.PHONY: all
+all: ${TARGET_BIN}
+
+$(TARGET_BIN): $(CPP_OBJS)
+	$(CXX) ${LDFLAGS} -o $@ $^
+
+$(CPP_SRCS:.cpp=.d):%.d:%.cpp
+	$(CXX) $(CPPFLAGS) -MM $< > $@
+
+include $(CPP_SRCS:.cpp=.d)
+
+.PHONY: clean
+clean:
+	${RM} ${TARGET_BIN} ${CPP_OBJS} $(CPP_SRCS:.cpp=.d)
+	

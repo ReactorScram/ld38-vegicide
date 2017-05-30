@@ -1,0 +1,30 @@
+CXX = g++
+INCLUDES = -I .. -I $(DEP_PATH)/colorado -I $(DEP_PATH)/terf -I $(DEP_PATH) -I $(DEP_PATH)/SOIL
+CPPFLAGS = -fPIC -Wall -Wextra -O3 $(INCLUDES)
+LDFLAGS = -shared
+RM = rm -f
+TARGET_LIB = libcolorado_scene.so
+
+CPP_SRCS = \
+	gl-state-tracker.cpp \
+	shader-binder.cpp \
+	texture-binder.cpp \
+	graphics.cpp \
+	mesh-binder.cpp \
+
+CPP_OBJS = $(CPP_SRCS:.cpp=.o)
+
+.PHONY: all
+all: ${TARGET_LIB}
+
+$(TARGET_LIB): $(CPP_OBJS)
+	$(CXX) ${LDFLAGS} -o $@ $^
+
+$(CPP_SRCS:.cpp=.d):%.d:%.cpp
+	$(CXX) $(CPPFLAGS) -MM $< > $@
+
+include $(CPP_SRCS:.cpp=.d)
+
+.PHONY: clean
+clean:
+	${RM} ${TARGET_LIB} ${CPP_OBJS} $(CPP_SRCS:.cpp=.d)

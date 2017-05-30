@@ -9,6 +9,7 @@ I have to push some change
 - Determinism checking
 
 - Multiple sound codecs (stb, Tremor, Opus)
+- stb is causing awful hitching on Pandora
 
 After judging:
 

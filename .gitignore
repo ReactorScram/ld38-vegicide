@@ -13,9 +13,13 @@ build
 
 .release_time
 
+*.d
 *.exe
 *.flac
+*.mem
 *.mp3
 *.ogg
+*.pnd
+*.so
 *.wav
 *.zip

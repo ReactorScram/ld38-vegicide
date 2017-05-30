@@ -8,7 +8,7 @@ uniform highp mat4 mvpMatrix;
 uniform lowp vec4 diffuseColor;
 
 void main (void) {
-	gl_Position = mvpMatrix *vec4 (attribPos, 1.0);
+	gl_Position = mvpMatrix * vec4 (attribPos, 1.0);
 	
 	varyingColor = diffuseColor;
 	
