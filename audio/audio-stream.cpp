@@ -21,6 +21,8 @@ AudioStream::AudioStream (void * d, int (*df)(void *, int16_t *, int)) {
 	alGenBuffers (2, buffers);
 	alGenSources (1, &source);
 	
+	cout << "Generated buffers: " << buffers [0] << ", " << buffers [1] << endl;
+	
 	const int size_multiplier = 4;
 	partialBuffer.resize (channels * 11520 * size_multiplier);
 	bufferFill = 0;
@@ -38,6 +40,8 @@ void AudioStream::update () {
 	ALint currentBuffer = 0;
 	alGetSourcei (source, AL_BUFFER, &currentBuffer);
 	
+	cout << "Current buffer: " << currentBuffer << endl;
+	
 	if (currentBuffer == AL_NONE) {
 		// No buffers queued yet - Probably just constructed
 	}
@@ -47,10 +51,13 @@ void AudioStream::update () {
 	}
 	else if (currentBuffer == (ALint)buffers [1]) {
 		// On buffer 1 - Fill 0
+		backBuffer = buffers [0];
 	}
 	else {
 		// uh-oh
 	}
+	
+	cout << "Back buffer: " << backBuffer << endl;
 	
 	ALint buffersProcessed = 0;
 	ALint buffersQueued = 0;
@@ -58,12 +65,12 @@ void AudioStream::update () {
 	alGetSourcei (source, AL_BUFFERS_PROCESSED, &buffersProcessed);
 	alGetSourcei (source, AL_BUFFERS_QUEUED, &buffersQueued);
 
-	//bool shouldWrite = buffersQueued - buffersProcessed <= 1;
-	/*
+	bool shouldWrite = buffersQueued - buffersProcessed <= 1;
+	
 	if (! shouldWrite) {
 		return;
 	}
-	*/
+	
 	//cout << "Queued: " << buffersQueued << ", Processed: " << buffersProcessed << ", Current: " << currentBuffer << endl;
 	
 	if (buffersProcessed >= 1) {
@@ -76,14 +83,14 @@ void AudioStream::update () {
 	alGetSourcei (source, AL_BUFFERS_PROCESSED, &buffersProcessed);
 	alGetSourcei (source, AL_BUFFERS_QUEUED, &buffersQueued);
 	
-	for (int i = 0; i < 4; i++) {
-		fill ();
-		//cout << "Filled " << bufferFill << endl;
-	}
-	
 	if (buffersQueued <= 1) {
+		for (int i = 0; i < 4; i++) {
+			fill ();
+		}
+		cout << "Filled " << bufferFill << endl;
+		
 		submit (backBuffer);
-		//cout << "Submitted" << endl;
+		cout << "Submitted " << backBuffer << endl;
 	}
 	
 	alGetSourcei (source, AL_BUFFERS_PROCESSED, &buffersProcessed);

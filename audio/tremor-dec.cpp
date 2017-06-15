@@ -65,6 +65,7 @@ int VorbisDecoder::fill (int16_t *buffer, int length) {
 	if (rc == 0) {
 		if (looping) {
 			reset ();
+			cout << "Reset" << endl;
 		}
 		else {
 			playing = false;

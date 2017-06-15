@@ -64,7 +64,6 @@ void Streamer::update (EMusic newBgm) {
 		bgm = newBgm;
 		
 		if (bgm != EMusic::NoMusic) {
-			cout << "Started playing new music" << endl;
 			encoded_music [bgm]->looping = true;
 			encoded_music [bgm]->playing = true;
 			alSourcePlay (encoded_music [bgm]->as.source);

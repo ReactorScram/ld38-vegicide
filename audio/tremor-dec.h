@@ -34,6 +34,8 @@ struct COLORADO_DLLSPEC VorbisDecoder {
 	bool playing;
 	
 	VorbisDecoder (const std::vector <uint8_t> & vorbisBuffer);
+	VorbisDecoder (const VorbisDecoder &) = delete;
+	VorbisDecoder & operator = (const VorbisDecoder &) = delete;
 	void reset ();
 	
 	int fill (int16_t * buffer, int length);
