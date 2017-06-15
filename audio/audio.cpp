@@ -90,16 +90,16 @@ void Audio::update (const AudioFrame & frame) {
 void Audio::loadVorbises (const Terf::Archive & terf) {
 	// Match this to ESound
 	vector <string> soundNames {
-		"bling",
-		"crunch",
-		"gasp",
-		"king-laugh",
-		"king-pain",
-		"king-roar",
-		"king-you",
-		"respawn",
-		"swooce",
-		"whoa",
+		"Bling",
+		"Crunch",
+		"Gasp",
+		"King-laugh",
+		"King-pain",
+		"King-roar",
+		"King-you",
+		"Respawn",
+		"Swooce",
+		"Whoa",
 	};
 	
 	for (int i = 0; i < (int)soundNames.size (); i++) {
