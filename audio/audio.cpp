@@ -53,7 +53,7 @@ Audio::Audio (const Terf::Archive & terf)
 	
 	bgm = EMusic::NoMusic;
 	
-	cout << "Audio constructed" << endl;
+	//cout << "Audio constructed" << endl;
 }
 
 Audio::~Audio () {
@@ -67,7 +67,7 @@ Audio::~Audio () {
 void Audio::update (const AudioFrame & frame) {
 	if (bgm != frame.bgm) {
 		if (bgm != EMusic::NoMusic) {
-			cout << "Stopped playing to change music" << endl;
+			//cout << "Stopped playing to change music" << endl;
 			encoded_music [bgm]->playing = false;
 			alSourceStop (encoded_music [bgm]->as.source);
 		}
@@ -75,7 +75,7 @@ void Audio::update (const AudioFrame & frame) {
 		bgm = frame.bgm;
 		
 		if (bgm != EMusic::NoMusic) {
-			cout << "Started playing new music" << endl;
+			//cout << "Started playing new music" << endl;
 			encoded_music [bgm]->looping = true;
 			encoded_music [bgm]->playing = true;
 			alSourcePlay (encoded_music [bgm]->as.source);

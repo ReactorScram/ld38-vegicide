@@ -14,7 +14,7 @@ int main () {
 	
 	Streamer audio (terf);
 	
-	auto bgm = EMusic::Ambient;
+	auto bgm = EMusic::Boss;
 	
 	while (true) {
 		audio.update (bgm);

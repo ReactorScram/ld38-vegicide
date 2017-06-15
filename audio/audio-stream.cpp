@@ -21,11 +21,12 @@ AudioStream::AudioStream (void * d, int (*df)(void *, int16_t *, int)) {
 	alGenBuffers (2, buffers);
 	alGenSources (1, &source);
 	
-	cout << "Generated buffers: " << buffers [0] << ", " << buffers [1] << endl;
+	//cout << "Generated buffers: " << buffers [0] << ", " << buffers [1] << endl;
 	
-	const int size_multiplier = 4;
+	const int size_multiplier = 1;
 	partialBuffer.resize (channels * 11520 * size_multiplier);
 	bufferFill = 0;
+	
 	lastFilled = buffers [1];
 }
 
@@ -35,62 +36,42 @@ AudioStream::~AudioStream () {
 }
 
 void AudioStream::update () {
-	ALuint backBuffer = buffers [0];
-	
-	ALint currentBuffer = 0;
-	alGetSourcei (source, AL_BUFFER, &currentBuffer);
-	
-	cout << "Current buffer: " << currentBuffer << endl;
-	
-	if (currentBuffer == AL_NONE) {
-		// No buffers queued yet - Probably just constructed
-	}
-	else if (currentBuffer == (ALint)buffers [0]) {
-		// On buffer 0  - fill 1 instead
-		backBuffer = buffers [1];
-	}
-	else if (currentBuffer == (ALint)buffers [1]) {
-		// On buffer 1 - Fill 0
-		backBuffer = buffers [0];
-	}
-	else {
-		// uh-oh
-	}
-	
-	cout << "Back buffer: " << backBuffer << endl;
-	
 	ALint buffersProcessed = 0;
 	ALint buffersQueued = 0;
 	
 	alGetSourcei (source, AL_BUFFERS_PROCESSED, &buffersProcessed);
 	alGetSourcei (source, AL_BUFFERS_QUEUED, &buffersQueued);
-
-	bool shouldWrite = buffersQueued - buffersProcessed <= 1;
 	
-	if (! shouldWrite) {
+	ALuint backBuffer = AL_NONE;
+	
+	if (buffersProcessed >= 1) {
+		vector <ALuint> unqueued;
+		unqueued.resize (buffersProcessed);
+		//cout << "Unqueued " << buffersProcessed << endl;
+		alSourceUnqueueBuffers (source, buffersProcessed, unqueued.data ());
+		backBuffer = unqueued [0];
+	}
+	else if (buffersQueued <= 1) {
+		//cout << "lastFilled " << lastFilled << endl;
+		// Used during startup
+		if (lastFilled == buffers [0]) {
+			backBuffer = buffers [1];
+		}
+		else if (lastFilled == buffers [1]) {
+			backBuffer = buffers [0];
+		}
+	}
+	else {
 		return;
 	}
 	
-	//cout << "Queued: " << buffersQueued << ", Processed: " << buffersProcessed << ", Current: " << currentBuffer << endl;
-	
-	if (buffersProcessed >= 1) {
-		vector <ALuint> unused;
-		unused.resize (buffersProcessed);
-		//cout << "Unqueued " << buffersProcessed << endl;
-		alSourceUnqueueBuffers (source, buffersProcessed, unused.data ());
-	}
-	
-	alGetSourcei (source, AL_BUFFERS_PROCESSED, &buffersProcessed);
-	alGetSourcei (source, AL_BUFFERS_QUEUED, &buffersQueued);
-	
-	if (buffersQueued <= 1) {
+	if (backBuffer != AL_NONE) {
 		for (int i = 0; i < 4; i++) {
 			fill ();
 		}
-		cout << "Filled " << bufferFill << endl;
 		
 		submit (backBuffer);
-		cout << "Submitted " << backBuffer << endl;
+		//cout << "Submitted " << backBuffer << endl;
 	}
 	
 	alGetSourcei (source, AL_BUFFERS_PROCESSED, &buffersProcessed);
@@ -127,7 +108,7 @@ void AudioStream::submit (ALuint i) {
 		alSourceQueueBuffers (source, 1, &i);
 		//cout << "Queued " << i << endl;
 		bufferFill = 0;
+		
+		lastFilled = i;
 	}
-	
-	lastFilled = i;
 }
