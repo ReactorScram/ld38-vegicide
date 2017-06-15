@@ -2,7 +2,7 @@
 #include <string>
 
 #include "terf/terf.h"
-#include "audio/audio.h"
+#include "audio/streamer.h"
 
 using namespace std;
 
@@ -12,13 +12,12 @@ int main () {
 	terf.enableTerfLookup = true;
 	terf.enableFsLookup = true;
 	
-	Audio audio (terf);
+	Streamer audio (terf);
 	
-	AudioFrame frame;
-	frame.bgm = EMusic::Ambient;
+	auto bgm = EMusic::Ambient;
 	
 	while (true) {
-		audio.update (frame);
+		audio.update (bgm);
 		usleep (1000 * 16);
 	}
 }

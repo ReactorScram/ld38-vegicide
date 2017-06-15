@@ -1,5 +1,7 @@
 #include "audio-stream.h"
 
+#include <iostream>
+
 using namespace std;
 
 void PcmSound::al_buffer (ALuint b) const {
@@ -19,7 +21,7 @@ AudioStream::AudioStream (void * d, int (*df)(void *, int16_t *, int)) {
 	alGenBuffers (2, buffers);
 	alGenSources (1, &source);
 	
-	const int size_multiplier = 8;
+	const int size_multiplier = 4;
 	partialBuffer.resize (channels * 11520 * size_multiplier);
 	bufferFill = 0;
 	lastFilled = buffers [1];
@@ -75,12 +77,13 @@ void AudioStream::update () {
 	alGetSourcei (source, AL_BUFFERS_QUEUED, &buffersQueued);
 	
 	for (int i = 0; i < 4; i++) {
-		//cout << "Filling" << endl;
 		fill ();
+		//cout << "Filled " << bufferFill << endl;
 	}
 	
 	if (buffersQueued <= 1) {
 		submit (backBuffer);
+		//cout << "Submitted" << endl;
 	}
 	
 	alGetSourcei (source, AL_BUFFERS_PROCESSED, &buffersProcessed);

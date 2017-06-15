@@ -37,7 +37,7 @@ protected:
 	std::shared_ptr <VorbisDecoder> sound_sources [(int)ESound::NUM_SOUNDS];
 	
 	std::map <EMusic, std::shared_ptr <VorbisDecoder> > encoded_music;
-	std::shared_ptr <VorbisDecoder> vorbis_decoder;
+	//std::shared_ptr <VorbisDecoder> vorbis_decoder;
 	
 	EMusic bgm;
 	

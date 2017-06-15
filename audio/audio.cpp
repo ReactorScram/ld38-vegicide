@@ -43,13 +43,17 @@ Audio::Audio (const Terf::Archive & terf)
 	
 	encoded_music [EMusic::Ambient] = shared_ptr <VorbisDecoder> (new VorbisDecoder (terf.lookupFile ("music/ambient.ogg")));
 	encoded_music [EMusic::Boss] = shared_ptr <VorbisDecoder> (new VorbisDecoder (terf.lookupFile ("music/boss.ogg")));
-	
+	/*
 	vorbis_decoder = encoded_music.at (EMusic::Ambient);
 	bgm = EMusic::Ambient;
 	vorbis_decoder->looping = true;
 	vorbis_decoder->playing = true;
 	
-	alSourcePlay (vorbis_decoder->as.source);
+	*/
+	
+	bgm = EMusic::NoMusic;
+	
+	cout << "Audio constructed" << endl;
 }
 
 Audio::~Audio () {
@@ -62,24 +66,31 @@ Audio::~Audio () {
 
 void Audio::update (const AudioFrame & frame) {
 	if (bgm != frame.bgm) {
-		vorbis_decoder->playing = false;
-		alSourceStop (vorbis_decoder->as.source);
-		vorbis_decoder = encoded_music.at (frame.bgm);
-		vorbis_decoder->looping = true;
-		vorbis_decoder->playing = true;
+		if (bgm != EMusic::NoMusic) {
+			cout << "Stopped playing to change music" << endl;
+			encoded_music [bgm]->playing = false;
+			alSourceStop (encoded_music [bgm]->as.source);
+		}
+		
+		bgm = frame.bgm;
+		
+		if (bgm != EMusic::NoMusic) {
+			cout << "Started playing new music" << endl;
+			encoded_music [bgm]->looping = true;
+			encoded_music [bgm]->playing = true;
+			alSourcePlay (encoded_music [bgm]->as.source);
+		}
 	}
 	
-	bgm = frame.bgm;
-	
-	vorbis_decoder->as.update ();
+	if (bgm != EMusic::NoMusic) {
+		encoded_music [bgm]->as.update ();
+	}
 	
 	for (int i = 0; i < (int)ESound::NUM_SOUNDS; i++) {
 		bool play = frame.sounds [i];
 		
 		if (play) {
 			sound_sources [i] = unique_ptr <VorbisDecoder> (new VorbisDecoder (sounds [(ESound)i]));
-			
-			
 			
 			sound_sources [i]->playing = true;
 			sound_sources [i]->looping = false;

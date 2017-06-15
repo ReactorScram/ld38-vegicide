@@ -1,6 +1,7 @@
 #include "tremor-dec.h"
 
 //#include "ivorbisfile.h"
+#include <iostream>
 
 extern "C" {
 #include "stb_vorbis.c"
@@ -27,6 +28,7 @@ VorbisDecoder::VorbisDecoder (const vector<uint8_t> &vorbisBuffer):
 	as (this, VorbisDecoder::fill), buffer (vorbisBuffer)
 {
 	reset ();
+	cout << "VorbisDecoder constructed" << endl;
 }
 
 void VorbisDecoder::reset () {
@@ -35,6 +37,7 @@ void VorbisDecoder::reset () {
 
 int VorbisDecoder::fill (int16_t *buffer, int length) {
 	if (! playing) {
+		cout << "VorbisDecoder: Won't fill because not playing" << endl;
 		return 0;
 	}
 	
@@ -65,6 +68,7 @@ int VorbisDecoder::fill (int16_t *buffer, int length) {
 		}
 		else {
 			playing = false;
+			cout << "VorbisDecoder stopping because ran out of samples and not looping" << endl;
 		}
 	}
 	
