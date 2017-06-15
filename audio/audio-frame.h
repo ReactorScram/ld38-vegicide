@@ -11,16 +11,7 @@ enum class EMusic {
 
 // Match this to loadVorbises
 enum class ESound {
-	Bling,
-	Crunch,
-	Gasp,
-	KingLaugh,
-	KingPain,
-	KingRoar,
-	KingYou,
-	Respawn,
-	Swooce,
-	Whoa,
+	#include "esound.h"
 	NUM_SOUNDS,
 };
 

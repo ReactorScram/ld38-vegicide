@@ -16,8 +16,11 @@ CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 .PHONY: all
 all: ${TARGET_LIB}
 
-$(TARGET_LIB): $(CPP_OBJS)
-	$(CXX) ${LDFLAGS} -o $@ $^
+esound.h: ../sounds/*.ogg enum-resources.sh
+	bash enum-resources.sh > $@
+
+$(TARGET_LIB): esound.h $(CPP_OBJS)
+	$(CXX) ${LDFLAGS} -o $@ $(CPP_OBJS)
 
 $(CPP_SRCS:.cpp=.d):%.d:%.cpp
 	$(CXX) $(CPPFLAGS) -MM $< > $@

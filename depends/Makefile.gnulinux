@@ -50,10 +50,10 @@ $(TARGET_LIB): $(C_OBJS) $(CPP_OBJS)
 	$(CXX) ${LDFLAGS} -o $@ $^
 
 $(C_SRCS:.c=.d):%.d:%.c
-	$(CC) $(CFLAGS) -MM $< >$@
+	$(CC) $(CFLAGS) -MM $< > $@
 
 $(CPP_SRCS:.cpp=.d):%.d:%.cpp
-	$(CXX) $(CPPFLAGS) -MM $< >$@
+	$(CXX) $(CPPFLAGS) -MM $< > $@
 
 include $(C_SRCS:.c=.d)
 include $(CPP_SRCS:.cpp=.d)
