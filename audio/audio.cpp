@@ -79,6 +79,8 @@ void Audio::update (const AudioFrame & frame) {
 		if (play) {
 			sound_sources [i] = unique_ptr <VorbisDecoder> (new VorbisDecoder (sounds [(ESound)i]));
 			
+			
+			
 			sound_sources [i]->playing = true;
 			sound_sources [i]->looping = false;
 		}
@@ -93,10 +95,10 @@ void Audio::loadVorbises (const Terf::Archive & terf) {
 		"Bling",
 		"Crunch",
 		"Gasp",
-		"King-laugh",
-		"King-pain",
-		"King-roar",
-		"King-you",
+		"KingLaugh",
+		"KingPain",
+		"KingRoar",
+		"KingYou",
 		"Respawn",
 		"Swooce",
 		"Whoa",
