@@ -1,7 +1,7 @@
 CXX = g++
 INCLUDES = -I .. -I $(DEP_PATH) -I $(DEP_PATH)/colorado 
 CPPFLAGS = -Wall -Wextra -O3 $(INCLUDES)
-LDFLAGS = `pkg-config --libs openal ` -L ../audio/ -L ../depends -lColoradoAudio
+LDFLAGS = `pkg-config --libs openal vorbisidec` -L ../audio/ -L ../depends -lColoradoAudio
 RM = rm -f
 TARGET_BIN = VgAudioTest.exe
 

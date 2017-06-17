@@ -8,26 +8,8 @@
 struct OggOpusFile;
 struct OggVorbis_File;
 
-extern "C" {
-struct stb_vorbis;
-}
-
-struct StbWrapper {
-	stb_vorbis * stb;
-	
-	StbWrapper (const std::vector <uint8_t> & b);
-	~StbWrapper ();
-	StbWrapper (const StbWrapper &) = delete;
-	StbWrapper & operator = (const StbWrapper &) = delete;
-	
-	stb_vorbis * operator * () const;
-};
-
 struct COLORADO_DLLSPEC VorbisDecoder {
-	// In order to ship Vegicide for Windows in a timely manner,
-	// I am replacing Tremor with stb_vorbis
-	std::unique_ptr <StbWrapper> dec;
-	
+	std::unique_ptr <OggVorbis_File> dec;
 	int decoder_error;
 	AudioStream as;
 	bool looping;
@@ -36,14 +18,19 @@ struct COLORADO_DLLSPEC VorbisDecoder {
 	VorbisDecoder (const std::vector <uint8_t> & vorbisBuffer);
 	VorbisDecoder (const VorbisDecoder &) = delete;
 	VorbisDecoder & operator = (const VorbisDecoder &) = delete;
+	~VorbisDecoder ();
 	void reset ();
 	
 	int fill (int16_t * buffer, int length);
 	
 	// Implements generic decoder
+	// Return value is multiplied by channel count
+	// i.e. actual samples decoded
 	static int fill (void * dec, int16_t * buffer, int length);
 	static PcmSound decode_all (const std::vector <uint8_t> & data);
 	
+	// I left these public cause otherwise 
+	// I'd have to learn how friend functions work
 	// Virtual file cursor for Vorbis
 	const std::vector <uint8_t> buffer;
 	size_t cursor;

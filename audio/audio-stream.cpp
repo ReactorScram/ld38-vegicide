@@ -23,8 +23,8 @@ AudioStream::AudioStream (void * d, int (*df)(void *, int16_t *, int)) {
 	
 	//cout << "Generated buffers: " << buffers [0] << ", " << buffers [1] << endl;
 	
-	const int size_multiplier = 1;
-	partialBuffer.resize (channels * 11520 * size_multiplier);
+	const int size_multiplier = 2;
+	partialBuffer.resize (channels * 16384 * size_multiplier);
 	bufferFill = 0;
 	
 	lastFilled = buffers [1];
@@ -50,6 +50,7 @@ void AudioStream::update () {
 		//cout << "Unqueued " << buffersProcessed << endl;
 		alSourceUnqueueBuffers (source, buffersProcessed, unqueued.data ());
 		backBuffer = unqueued [0];
+		//cout << "Unqueued count " << buffersProcessed << endl;
 	}
 	else if (buffersQueued <= 1) {
 		//cout << "lastFilled " << lastFilled << endl;
@@ -66,12 +67,12 @@ void AudioStream::update () {
 	}
 	
 	if (backBuffer != AL_NONE) {
-		for (int i = 0; i < 4; i++) {
+		auto target = partialBuffer.size () / 2;
+		for (int i = 0; i < 16 && bufferFill < target; i++) {
 			fill ();
 		}
 		
 		submit (backBuffer);
-		//cout << "Submitted " << backBuffer << endl;
 	}
 	
 	alGetSourcei (source, AL_BUFFERS_PROCESSED, &buffersProcessed);
@@ -86,7 +87,7 @@ void AudioStream::update () {
 }
 
 int AudioStream::fill () {
-	if (bufferFill < (int)partialBuffer.size () / 2) {
+	if (bufferFill < (int)partialBuffer.size ()) {
 		int num_samples = decoder_fill (dec, &partialBuffer [bufferFill], partialBuffer.size () - bufferFill);
 		
 		bufferFill += num_samples;
@@ -102,6 +103,8 @@ void AudioStream::submit (ALuint i) {
 		if (channels == 1) {
 			format = AL_FORMAT_MONO16;
 		}
+		
+		//cout << "Submitted " << i << " " << bufferFill << endl;
 		
 		alBufferData (i, format, partialBuffer.data (), bufferFill * 
 		sizeof (int16_t), 44100); //opusFrequency);

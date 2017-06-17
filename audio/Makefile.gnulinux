@@ -6,7 +6,6 @@ RM = rm -f
 TARGET_LIB = libColoradoAudio.so
 
 CPP_SRCS = \
-	stb-vorbis-dec.cpp \
 	tremor-dec.cpp \
 	audio-stream.cpp \
 	audio.cpp \
