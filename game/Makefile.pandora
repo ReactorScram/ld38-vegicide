@@ -1,7 +1,7 @@
 CXX = g++
 INCLUDES = -I .. -I $(DEP_PATH) -I $(DEP_PATH)/colorado -I ../../glm-0.9.6.3/glm
 CPPFLAGS = -Wall -Wextra -O3 $(INCLUDES) --std=c++17 -D COLORADO_PANDORA -D COLORADO_HAVE_GLES -D USE_EGL_SDL -D USE_GLES2
-LDFLAGS = `pkg-config --libs openal sdl sqlite3` -L ../audio/ -L ../graphics/ -L ../audio/ -lGLESv2 -lEGL -lopusfile -L ../depends -lvegicide_depends -lcolorado_scene -lColoradoAudio -L ../ecs -lcolorado_ecs
+LDFLAGS = `pkg-config --libs openal sdl sqlite3 vorbisidec` -L ../audio/ -L ../graphics/ -L ../audio/ -lGLESv2 -lEGL -lopusfile -L ../depends -lvegicide_depends -lcolorado_scene -lColoradoAudio -L ../ecs -lcolorado_ecs
 RM = rm -f
 TARGET_BIN = Vegicide.exe
 

@@ -1,6 +1,6 @@
 default: all
 
-MODULES = depends ecs graphics audio game
+MODULES = depends ecs graphics audio audio-test game
 
 DEP_PATH = $(realpath depends)
 

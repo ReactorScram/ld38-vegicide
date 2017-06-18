@@ -1,0 +1,28 @@
+CXX = g++
+INCLUDES = -I .. -I $(DEP_PATH) -I $(DEP_PATH)/colorado 
+CPPFLAGS = -Wall -Wextra -O3 $(INCLUDES) --std=c++17
+LDFLAGS = `pkg-config --libs openal vorbisidec` -L ../audio/ -L ../depends -lColoradoAudio
+RM = rm -f
+TARGET_BIN = VgAudioTest.exe
+
+CPP_SRCS = \
+	main.cpp \
+	../depends/terf/terf.cpp # Fuck
+
+CPP_OBJS = $(CPP_SRCS:.cpp=.o)
+
+.PHONY: all
+all: ${TARGET_BIN}
+
+$(TARGET_BIN): $(CPP_OBJS)
+	$(CXX) ${LDFLAGS} -o $@ $^
+
+$(CPP_SRCS:.cpp=.d):%.d:%.cpp
+	$(CXX) $(CPPFLAGS) -MM $< > $@
+
+include $(CPP_SRCS:.cpp=.d)
+
+.PHONY: clean
+clean:
+	${RM} ${TARGET_BIN} ${CPP_OBJS} $(CPP_SRCS:.cpp=.d)
+	

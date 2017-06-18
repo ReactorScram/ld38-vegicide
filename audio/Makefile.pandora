@@ -10,6 +10,7 @@ CPP_SRCS = \
 	tremor-dec.cpp \
 	audio-stream.cpp \
 	audio.cpp \
+	streamer.cpp \
 
 CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 
